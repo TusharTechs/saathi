@@ -15,7 +15,7 @@ export class SupabaseStore {
   if(this.url.protocol!=='https:'||!/^([a-z0-9]+)\.supabase\.co$/.test(this.url.hostname)||this.url.username||this.url.password||this.url.port||this.url.search||this.url.hash||!key)
    throw new WorkflowError(503,'Supabase storage configuration is incomplete. No local fallback is enabled.');
  }
- private async rpc(name:string,body:object={}){
+ protected async rpc(name:string,body:object={}){
   let response:Response;
   try{response=await this.transport(new URL(`/rest/v1/rpc/${name}`,this.url),{
    method:'POST',headers:{apikey:this.key,'Content-Type':'application/json',...(!this.key.startsWith('sb_secret_')?{Authorization:`Bearer ${this.key}`}:{})},
@@ -42,7 +42,7 @@ export class SupabaseStore {
   const fingerprint=createHash('sha256').update(JSON.stringify({patientId:request.patientId,scenario:request.scenario,answers:request.answers,...(origin?{origin}:{})})).digest('hex');
   const input=request.scenario?fixtureInput(request):buttonInput(request,{pack:'adult'});
   const report=processReport(input,request.scenario?'synthetic_fixture':'buttons',Boolean(request.answers.concerns));
-  const result=await this.rpc(origin?'saathi_telegram_submit':'saathi_demo_submit',{p_request_id:request.requestId,p_patient_key:request.patientId,p_fingerprint:fingerprint,p_report:{...report,...(origin?{origin}:{})},p_protocol:adultProtocol});
+  const result=await this.rpc(origin?(origin.channel==='telegram'?'saathi_telegram_submit':'saathi_wa_submit'):'saathi_demo_submit',{p_request_id:request.requestId,p_patient_key:request.patientId,p_fingerprint:fingerprint,p_report:{...report,...(origin?{origin}:{})},p_protocol:adultProtocol});
   return z.object({record:recordSchema,duplicate:z.boolean()}).parse(result) as unknown as {record:RecordEntry;duplicate:boolean};
  }
  async findRequest(requestId:string,fingerprint:string):Promise<RecordEntry|null>{
@@ -51,7 +51,7 @@ export class SupabaseStore {
  }
  async saveNarrative(requestId:string,patientId:string,fingerprint:string,report:Report,origin?:Origin){
   inputSchema.parse(report.input);if(origin)origin=originSchema.parse(origin);
-  return z.object({record:recordSchema,duplicate:z.boolean()}).parse(await this.rpc(origin?'saathi_telegram_submit':'saathi_demo_submit',{
+  return z.object({record:recordSchema,duplicate:z.boolean()}).parse(await this.rpc(origin?(origin.channel==='telegram'?'saathi_telegram_submit':'saathi_wa_submit'):'saathi_demo_submit',{
    p_request_id:requestId,p_patient_key:patientId,p_fingerprint:fingerprint,p_report:{...report,...(origin?{origin}:{})},p_protocol:adultProtocol,
   })) as unknown as {record:RecordEntry;duplicate:boolean};
  }

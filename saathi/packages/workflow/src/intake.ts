@@ -17,7 +17,7 @@ export const intakeSchema=z.object({
   }).strict(),
 }).strict();
 export type Intake = z.infer<typeof intakeSchema>;
-export const originSchema=z.object({channel:z.literal('telegram'),externalId:z.string().regex(/^[0-9]+:(?:[0-9]+|checkin:[0-9a-f-]{36})$/)}).strict();
+export const originSchema=z.discriminatedUnion('channel',[z.object({channel:z.literal('telegram'),externalId:z.string().regex(/^[0-9]+:(?:[0-9]+|checkin:[0-9a-f-]{36})$/)}).strict(),z.object({channel:z.literal('whatsapp'),externalId:z.string().regex(/^wamid\.[A-Za-z0-9+/=_-]{1,500}$/)}).strict()]);
 export type Origin=z.infer<typeof originSchema>;
 export const processingSchema=z.object({
  language:z.string().max(30),

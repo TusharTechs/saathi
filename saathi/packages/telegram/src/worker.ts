@@ -16,7 +16,7 @@ export function taskRunner(store:SupabaseStore,api:TelegramAPI,keys:{sarvam:stri
   // Reuse the server checkpoint even if Telegram's original voice file has expired.
   const saved=(await store.snapshot()).records.find(r=>r.requestId===task.requestId);
   if(saved){if(saved.patientId!==task.patientId||saved.report.origin?.externalId!==task.externalId||saved.report.source!=='voice')throw Error('Telegram checkpoint conflict.');return (await pipeline.analyze(saved)).record;}
-  const bytes=await api.voice(task.fileId,task.duration,task.size);return (await pipeline.voice(request,bytes)).record;
+  const bytes=await api.voice(task.fileId,task.duration??0,task.size);return (await pipeline.voice(request,bytes)).record;
  };
 }
 export type RunTask=(task:Task)=>Promise<RecordEntry>;

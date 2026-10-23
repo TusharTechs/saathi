@@ -3,7 +3,7 @@ import {buttonInput,processReport,type Intake} from '../../workflow/src/intake.t
 import {type State,type Task,type Action,hashCode,nonce,requestId} from './state.ts';
 const user=z.object({id:z.number().int().positive(),is_bot:z.boolean().optional()});
 const chat=z.object({id:z.number().int(),type:z.string()});
-const message=z.object({message_id:z.number().int(),chat,from:user.optional(),text:z.string().optional(),voice:z.object({file_id:z.string(),duration:z.number().nonnegative(),file_size:z.number().nonnegative().optional()}).optional()});
+const message=z.object({message_id:z.number().int(),chat,from:user.optional(),text:z.string().optional(),voice:z.object({file_id:z.string(),duration:z.number().nonnegative().optional(),file_size:z.number().nonnegative().optional()}).optional()});
 export const updateSchema=z.object({update_id:z.number().int().nonnegative(),message:message.optional(),callback_query:z.object({id:z.string(),from:user,message:message.optional(),data:z.string().optional()}).optional()});
 export type Update=z.infer<typeof updateSchema>;
 type Answers=Intake['answers'];
@@ -30,7 +30,7 @@ function valueFor(step:number,value:string):string|number|boolean|undefined{
  if(!q.choices.some(([,v])=>v===value))throw Error('invalid');return q.key==='fullMinute'?value==='yes':value;
 }
 /** Only trust updates fetched from Telegram. A private, paired, consenting chat is required. */
-export function planUpdate(state:State,raw:unknown,botId:number,now=Date.now()){
+export function planUpdate(state:State,raw:unknown,botId:number,now=Date.now(),channel?:{name:'WhatsApp';namespace:string;externalId:string}){
  const update=updateSchema.parse(raw);if(state.pending)throw Error('Complete the pending Telegram update first.');if(update.update_id<state.offset)return;
  const cb=update.callback_query,m=cb?.message??update.message,from=cb?.from??m?.from;
  const valid=m&&from&&!from.is_bot&&m.chat.type==='private'&&m.chat.id===from.id;
@@ -45,7 +45,7 @@ export function planUpdate(state:State,raw:unknown,botId:number,now=Date.now()){
   const code=/^\/start ([A-Za-z0-9_-]{32})$/.exec(text)?.[1],invite=code?state.invites[hashCode(code)]:undefined;
   if(!invite||invite.expires<=now||invite.claimedBy){reply('Ask the local Saathi operator for a fresh single-use synthetic patient link. Links expire after 15 minutes.');return;}
   invite.claimedBy=key;const n=nonce();state.chats[key]={patientId:invite.patientId,language:invite.language,pendingNonce:n,pendingUntil:now+15*60*1000};
-  p.actions.push(send(chatId,`Linking ${invite.patientId}. This is a synthetic demo, not a clinical service. Send only invented information. Text/voice goes through Telegram; audio is transcribed by Sarvam; transcripts go to Groq and are stored in Supabase. No clinician is contacted. Confirm you understand before sending reports.`,[[{text:'I agree · synthetic reports only',callback_data:`consent:${n}`}]]));return;
+  p.actions.push(send(chatId,`Linking ${invite.patientId}. This is a synthetic demo, not a clinical service. Send only invented information. Text/voice goes through ${channel?.name??'Telegram'}; audio is transcribed by Sarvam; transcripts go to Groq and are stored in Supabase. No clinician is contacted. Confirm you understand before sending reports.`,[[{text:'I agree · synthetic reports only',callback_data:`consent:${n}`}]]));return;
  }
  const session=state.chats[key];
  if(cb?.data?.startsWith('consent:')){
@@ -55,13 +55,13 @@ export function planUpdate(state:State,raw:unknown,botId:number,now=Date.now()){
  if(text==='/help'||text==='/start'){reply(help);return;}
  if(text.startsWith('/language')){const lang=({'en':'en-IN','hi':'hi-IN','kn':'kn-IN','auto':'unknown'} as Record<string,string>)[text.split(/\s+/)[1]??''];if(!lang){reply('Use /language en, /language hi, /language kn or /language auto.');return;}session.language=lang as typeof session.language;reply(`Report language set to ${session.language}. Button questions remain in English.`);return;}
  if(text==='/cancel'){delete session.draft;reply('Button draft discarded. You can send an invented text or voice report.');return;}
- const identity={requestId:requestId(botId,update.update_id),externalId:`${botId}:${update.update_id}`,patientId:session.patientId,language:session.language};
+ const identity={requestId:channel?requestId(channel.namespace,channel.externalId,'whatsapp'):requestId(botId,update.update_id),externalId:channel?.externalId??`${botId}:${update.update_id}`,patientId:session.patientId,language:session.language};
  if(text==='/retry'){if(session.lastTask){p.task=structuredClone(session.lastTask);reply('Checking your previous synthetic request using the same request ID.');}else reply('There is no previous report to retry.');return;}
  if(text==='/checkin'){session.draft={nonce:nonce(),step:0,answers:{},requestId:identity.requestId};p.actions.push(prompt(chatId,session.draft));return;}
- const submit=()=>{const draft=session.draft!;p.task={...identity,kind:'buttons',requestId:draft.requestId,externalId:`${botId}:checkin:${draft.requestId}`,answers:structuredClone(draft.answers)};delete session.draft;};
+ const submit=()=>{const draft=session.draft!;p.task={...identity,kind:'buttons',requestId:draft.requestId,externalId:channel?.externalId??`${botId}:checkin:${draft.requestId}`,answers:structuredClone(draft.answers)};delete session.draft;};
  if(text==='/submit'){if(session.draft)submit();else reply('No button draft is active. Use /checkin.');return;}
  const draft=session.draft,answer=cb?.data?new RegExp(`^q:${draft?.nonce}:([0-5]):(.+)$`).exec(cb.data):undefined;
- const numberReply=draft&&['rescue','respiratoryRate'].includes(questions[draft.step]?.key??'')&&/^\d+$/.test(text)?text:undefined;
+ const numberReply=draft&&['pain','rescue','respiratoryRate'].includes(questions[draft.step]?.key??'')&&/^\d+$/.test(text)?text:undefined;
  if(cb||numberReply!==undefined){
   if(!draft||(!numberReply&&(!answer||Number(answer[1])!==draft.step))){reply('That button is no longer current. Use the latest question or /checkin.');return;}
   let value;try{value=valueFor(draft.step,numberReply??answer![2]!);}catch{reply('That answer is outside the allowed choices. Use the latest question or skip.');return;}
@@ -70,7 +70,7 @@ export function planUpdate(state:State,raw:unknown,botId:number,now=Date.now()){
   draft.step++;if(evaluated.evaluation.tier==='RED'||draft.step===questions.length)submit();else p.actions.push(prompt(chatId,draft));return;
  }
  if(text.startsWith('/')){reply(help);return;}
- if(update.message?.voice){const v=update.message.voice;if(v.duration<1||v.duration>30||(v.file_size??0)>2*1024*1024){reply('Use a synthetic voice note of at most 30 seconds and 2 MB.');return;}p.task={...identity,kind:'voice',fileId:v.file_id,duration:v.duration,...(v.file_size!==undefined?{size:v.file_size}:{})};}
+ if(update.message?.voice){const v=update.message.voice;if((v.duration!==undefined&&(v.duration<1||v.duration>30))||(v.file_size??0)>2*1024*1024){reply('Use a synthetic voice note of at most 30 seconds and 2 MB.');return;}p.task={...identity,kind:'voice',fileId:v.file_id,duration:v.duration,...(v.file_size!==undefined?{size:v.file_size}:{})};}
  else if(text&&text.length<=4000)p.task={...identity,kind:'text',text};
  else reply('Use an invented text report up to 4,000 characters, a short Telegram voice note or /checkin. Other attachments and edited messages are not processed.');
  if(p.task)session.lastTask=structuredClone(p.task);

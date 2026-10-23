@@ -1,0 +1,53 @@
+# WhatsApp intake readiness
+
+Implemented 23 October 2026. **Live WhatsApp is not activated yet.** The Meta app/test number and three credentials are still being set up. The signed webhook source, private inbox, local processing worker, conversation flow and deployment commands are prepared. No public function was published and no WhatsApp message was sent during implementation.
+
+## Meta setup and remaining activation steps
+
+1. Create a developer app in [Meta for Developers](https://developers.facebook.com/apps/) and choose its WhatsApp use case/product. Use a separate Saathi demo app rather than changing an unrelated existing app. See [Meta's setup guide](https://developers.facebook.com/docs/whatsapp/cloud-api/get-started).
+2. In WhatsApp API Setup, obtain the test **Phone Number ID** and access token, and add your own WhatsApp number as a test recipient. In the app's basic settings, obtain its **App Secret**. Store these in `apps/web/.env.local` as `WA_PHONE_NUMBER_ID`, `WA_ACCESS_TOKEN`, `WA_APP_SECRET`. Phone Number ID is the Meta object ID, not the displayed phone number. Temporary tokens expire; replace them locally when necessary.
+3. `pnpm whatsapp:prepare` generates a random `WA_VERIFY_TOKEN` locally if missing, without printing it. This has already been done in the current workspace. Copy that value from the file when configuring Meta; do not paste it into chat. The verification token and App Secret serve different purposes.
+4. `pnpm whatsapp:check` inspects required configuration and validates the access token against the configured phone object when available. It sends no messages. App Secret correctness requires a live signed webhook check; presence is not proof of validity. Graph API is pinned to `v26.0` unless `WA_GRAPH_VERSION` is explicitly set.
+5. The current Supabase management token returned HTTP 403 for Edge Functions inspection. Update its project-scoped permissions to include **Edge Functions Read/Write** and **Secrets Read/Write**, preserving the existing database/migrations permissions. Keep the replacement `SUPABASE_ACCESS_TOKEN` in the same environment file.
+6. Review `pnpm whatsapp:plan` for the exact callback URL, source checksum, uploaded files and secret names. Deployment is a separate approval/activation step. Only the Meta receiver is intended to be public; the dashboard stays loopback-only. When publication is authorized, `pnpm whatsapp:deploy --publish` uploads three webhook configuration secrets and deploys `whatsapp-webhook`. It refuses to overwrite an existing function without `--replace`. It does not upload the WhatsApp access token, Groq key or Sarvam key to the receiver.
+7. Configure Meta's webhook with the published callback URL and your `WA_VERIFY_TOKEN`; subscribe the WhatsApp `messages` field. Verify the GET challenge and a real signed POST before claiming live readiness. The code's Cloud/Edge bundle deployment has not yet been tested against Supabase.
+8. With live replies explicitly enabled, run `pnpm whatsapp:run --send` locally. Generate a private link with `pnpm whatsapp:pair --patient demo-ramesh --language hi-IN`, open it in your own WhatsApp, send the prefilled `/start <code>` command and confirm synthetic-only consent. Pair links expire after 15 minutes; consent lasts 24 hours.
+
+The worker and pairing commands need existing Supabase storage configuration. Only one worker per configured Meta phone ID is supported, on the same host as its private conversation state. The webhook runs remotely, but transcription, extraction and outgoing replies require the local worker to be running. No always-on host, process manager or public dashboard is installed.
+
+## Receiver and queue
+
+`supabase/functions/whatsapp-webhook/handler.ts` is dependency-free code shared by the Edge entrypoint and Node tests. GET verification uses the separate token. Every POST requires an HMAC-SHA256 signature over the exact received bytes using the Meta App Secret. JSON parsing and database access occur only after verification. Requests are capped at 256 KB; wrong phone IDs, unsupported message types and delivery/status-only events do not trigger processing.
+
+Migration 007 adds `wa_demo_inbox` and `wa_demo_bindings`, with RLS and no anon/authenticated table access. Five new service-only functions provide enqueue, binding synchronization, next item, completion and report submission. Together with previous workflow/channel RPCs, all 15 remain server-only. `pnpm supabase:whatsapp` applies the forward migration; fresh `pnpm supabase:apply` includes all seven migrations.
+
+The private inbox deduplicates by Meta phone ID plus WhatsApp message ID. Unlinked senders may only send an exact pairing command or bare `/start`; their other reports/audio are discarded. Pending consent allows the consent button and unlink command, not reports or audio. Incoming Meta timestamps must be within the preceding 24 hours with at most five minutes of future clock skew. Meta and Supabase receive the signed event for filtering; rejected content is not retained in inbox rows or sent to speech/extraction providers.
+
+The receiver returns HTTP 200 after durable enqueue, before any model, media or outgoing request. A storage failure returns 503 so Meta can retry. Messages are processed sequentially by inbox ID; completed payload bodies are cleared while deduplication IDs remain. The worker's private local cursor and pending work permit restart recovery. This is a single-host design, not a distributed queue; preserve local state and stop workers before recovering stale locks.
+
+## Shared report flow
+
+WhatsApp reuses the tested patient-link/consent and six-question conversation logic with channel-specific provenance and copy. It accepts typed reports, voice notes, interactive reply/list answers, `/checkin`, `/submit`, `/retry`, `/cancel`, `/stop`, `/help` and `/language en|hi|kn|auto`.
+
+Questions remain English. More than ten pain choices use typed numeric input (0–10) and `/skip`; other choices use WhatsApp reply buttons or lists within platform limits. Current nonces/steps reject stale answers. A known RED button observation saves immediately. Missing answers stay unknown. Full K1–K12, translated button copy and clinical content approval remain outstanding.
+
+Narratives use the existing Sarvam/Groq pipeline and deterministic adult demo protocol. Transcripts and independent keyword flags are saved before extraction. Evidence quotes, uncertainty, RED preservation, extraction leases and explicit retries behave as in the web/Telegram flow. Stable report IDs are derived from the Meta phone ID and original WhatsApp message ID. Retries preserve the original request and completed voice checkpoints avoid downloading/transcribing again.
+
+Audio download is capped at 2 MB, requires a Meta-provided URL on `lookaside.fbsbx.com`, rejects redirects, and verifies declared size plus SHA-256 before transcription. Container signatures are checked. Meta audio events do not provide the Telegram-style duration field; duration is not invented. WAV duration is checked locally; Sarvam validates its 30-second REST limit for other supported containers. Audio bytes are not written to disk or storage.
+
+Outgoing responses are fixed synthetic status/consent/question text. No generated advice, draft emergency card, clinician paging, templates, reminders or scheduled sends are implemented. Sends are allowed only within 24 hours of the triggering incoming message. An expired window fails closed; no template or paid fallback is selected. Meta API acceptance is recorded as **accepted**, not proof of delivery/read. Status callbacks are currently acknowledged and ignored. An ambiguous/crashed send becomes **unknown** and is not automatically resent. `/retry` explicitly requests another receipt for the same report.
+
+Local invitation hashes, chat identifiers, consent, cursor, pending/retry input and the last 100 outcomes live under `apps/web/.saathi-demo/whatsapp-<MetaPhoneID>/`, with private files and Git exclusions. The worker mirrors binding/consent to the restricted database before sending onboarding responses, so the receiver can enforce consent before subsequent messages. `/stop` removes the local session and revokes its database binding; already saved report/audit history remains.
+
+## Verification and present limits
+
+- 144 automated tests cover webhook challenge/authentication, exact-byte Unicode signatures, tampering, body bounds, storage-failure acknowledgement, phone filtering, normalization, media host/hash/size controls, reply windows, interactive limits, pairing, consent, stable IDs, cursor/outbox recovery and shared Telegram regressions.
+- An end-to-end automated check uses real PostgreSQL-compatible migrations and RPCs: signed webhook → pending consent → consent → six button answers → worker → shared report transaction → R3 + A1 / RED. Meta transport is mocked; no external message is sent.
+- Hosted storage smoke passed: simulated WhatsApp W4 plus four extra doses produced R2 + A1 / RED, a retry returned the same record, and acknowledgement/resolution plus three audit events persisted. The report explicitly says no live Meta message was received or sent. ID: `2c1da1e3-62b0-4c18-a59a-6236b7a64b85`.
+- Browser inspection verified the WhatsApp source label, simulation label, original observations and rule traces.
+- Type checking and production build passed. All 15 hosted workflow/channel RPCs remain server-only. Production restart preserved the simulated report alongside existing Telegram reports. Built browser assets contain none of the seven configured server secrets.
+- **Not live-verified:** Meta credentials, webhook publication/challenge/subscription, actual Meta audio download, WhatsApp replies or delivery. These require completion of the setup/activation steps above.
+
+To repeat the hosted storage-only smoke: `pnpm exec tsx eval/whatsapp-storage-smoke.ts`. It creates and resolves one clearly labelled synthetic report; it does not call Meta, Sarvam or Groq.
+
+References: [Meta's official receiving-messages guide](https://whatsapp.github.io/WhatsApp-Nodejs-SDK/receivingMessages/), [official interactive-message reference](https://whatsapp.github.io/WhatsApp-Nodejs-SDK/api-reference/messages/interactive/), [Meta SDK changelog recording v26.0](https://github.com/facebook/facebook-ios-sdk/blob/main/CHANGELOG.md), [Supabase function deployment API](https://supabase.com/docs/reference/api/v1-deploy-a-function), [Supabase function configuration](https://supabase.com/docs/guides/functions/function-configuration). Meta's legacy SDK is archived; the application uses native HTTP rather than adding that SDK.

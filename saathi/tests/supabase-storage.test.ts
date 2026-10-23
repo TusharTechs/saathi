@@ -1,3 +1,10 @@
+import {mkdtemp,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {createHmac} from 'node:crypto';
+import {webhook} from '../supabase/functions/whatsapp-webhook/handler.ts';
+import {TelegramState} from '../packages/telegram/src/state.ts';
+import {WhatsAppAPI,WhatsAppStore,WhatsAppWorker,runWhatsAppTask,channelNumber} from '../packages/whatsapp/src/index.ts';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -19,14 +26,14 @@ test('Supabase service-only storage transactions and grants',async t=>{
    create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
    grant usage on schema public,auth to anon,authenticated,service_role;
    alter default privileges in schema public grant execute on functions to anon,authenticated,service_role;`);
-  for(const file of ['supabase/migrations/202610230001_core.sql','supabase/migrations/202610230002_function_permissions.sql','supabase/seed/demo.sql','supabase/migrations/202610230003_demo_storage.sql','supabase/migrations/202610230004_conflict_responses.sql','supabase/migrations/202610230005_narrative_analysis.sql','supabase/migrations/202610230006_telegram_origin.sql']) await db.exec(await readFile(new URL(file,root),'utf8'));
+  for(const file of ['supabase/migrations/202610230001_core.sql','supabase/migrations/202610230002_function_permissions.sql','supabase/seed/demo.sql','supabase/migrations/202610230003_demo_storage.sql','supabase/migrations/202610230004_conflict_responses.sql','supabase/migrations/202610230005_narrative_analysis.sql','supabase/migrations/202610230006_telegram_origin.sql','supabase/migrations/202610230007_whatsapp_intake.sql']) await db.exec(await readFile(new URL(file,root),'utf8'));
   await t.test('anonymous and authenticated roles cannot call any service-only RPC',async()=>{
    for(const role of ['anon','authenticated']){
     await db.exec(`set role ${role}`);
     for(const sql of ['select public.saathi_demo_queue()','select public.saathi_demo_tick()',`select public.saathi_demo_record('${randomUUID()}')`])await assert.rejects(db.query(sql),/permission denied/);
     await db.exec('reset role');
    }
-   const r=await db.query<{allowed:boolean}>("select bool_or(has_function_privilege('anon',oid,'EXECUTE') or has_function_privilege('authenticated',oid,'EXECUTE')) as allowed from pg_proc where proname like 'saathi_demo_%' or proname='saathi_telegram_submit'");assert.equal(r.rows[0]!.allowed,false);
+   const r=await db.query<{allowed:boolean}>("select bool_or(has_function_privilege('anon',oid,'EXECUTE') or has_function_privilege('authenticated',oid,'EXECUTE')) as allowed from pg_proc where proname like 'saathi_demo_%' or proname='saathi_telegram_submit' or proname like 'saathi_wa_%'");assert.equal(r.rows[0]!.allowed,false);
   });
   await db.exec('set role service_role');
   await t.test('queue reads seeded patients from the database',async()=>{
@@ -116,6 +123,53 @@ test('Supabase service-only storage transactions and grants',async t=>{
    const complete={...pending,processing:{...pending.processing,extraction:{...pending.processing.extraction,status:'complete'}}};
    await assert.rejects(rpc('select public.saathi_demo_complete_analysis($1,$2,$3::jsonb) as data',[saved.record.id,c.lease,JSON.stringify({...complete,origin:{...origin,externalId:'12345:12'}})]),/Invalid analysis/);
    const done=await rpc<RecordEntry>('select public.saathi_demo_complete_analysis($1,$2,$3::jsonb) as data',[saved.record.id,c.lease,JSON.stringify(complete)]);assert.deepEqual(done.report.origin,origin);assert.equal(done.report.evaluation.tier,null);
+  });
+  await t.test('WhatsApp inbox requires pairing/consent, deduplicates and erases processed raw payloads',async()=>{
+   const phone='123456789',sender='919876543210',stamp=Math.floor(Date.now()/1000);
+   const m={id:'wamid.ONE',from:sender,timestamp:stamp,kind:'text',text:'Invented report'};
+   const enqueue=(messages:unknown[])=>rpc<{accepted:number}>('select public.saathi_wa_enqueue($1,$2::jsonb) as data',[phone,JSON.stringify(messages)]);
+   assert.equal((await enqueue([m])).accepted,0);
+   assert.equal((await enqueue([{...m,id:'wamid.START',text:'/start '+'a'.repeat(32)}])).accepted,1);
+   await rpc("select public.saathi_wa_binding($1,$2,false,now()+interval '15 minutes') as data",[phone,sender]);
+   assert.equal((await enqueue([m])).accepted,0);assert.equal((await enqueue([{id:'wamid.UNCONSENTED_VOICE',from:sender,timestamp:stamp,kind:'voice',mediaId:'123'}])).accepted,0);
+   assert.equal((await enqueue([{...m,id:'wamid.CONSENT',kind:'button',buttonId:'consent:n'}])).accepted,1);
+   await rpc("select public.saathi_wa_binding($1,$2,true,now()+interval '24 hours') as data",[phone,sender]);
+   assert.equal((await enqueue([m,{...m,id:'wamid.OTHER',from:'919999999999'}])).accepted,1);assert.equal((await enqueue([m])).accepted,0);
+   assert.equal((await enqueue([{...m,id:'wamid.OLD',timestamp:stamp-86401},{...m,id:'wamid.FUTURE',timestamp:stamp+600}])).accepted,0);
+   const first=await rpc<{id:number;message:unknown}>('select public.saathi_wa_next($1,0) as data',[phone]);assert.ok(first.id>0);
+   await rpc('select public.saathi_wa_complete($1,9999999) as data',[phone]);assert.equal(await rpc('select public.saathi_wa_next($1,0) as data',[phone]),null);
+   await rpc('select public.saathi_wa_binding($1,$2,false,null) as data',[phone,sender]);assert.equal((await enqueue([{...m,id:'wamid.STOPPED'}])).accepted,0);
+  });
+  await t.test('WhatsApp report provenance reaches the shared message/check-in transaction',async()=>{
+   const request=randomUUID(),origin={channel:'whatsapp',externalId:'wamid.SYNTHETIC'};
+   const r={...processReport(buttonInput({requestId:request,patientId:'demo-ramesh',answers:{wakefulness:'W4'}},{pack:'adult'}),'buttons'),origin};
+   const saved=await rpc<{record:RecordEntry}>('select public.saathi_wa_submit($1,$2,$3,$4::jsonb,$5::jsonb) as data',[request,'demo-ramesh',fingerprint,JSON.stringify(r),JSON.stringify(adultProtocol)]);assert.deepEqual(saved.record.report.origin,origin);assert.equal(saved.record.report.evaluation.tier,'RED');
+   const rows=await db.query<{channel:string}>("select channel from public.messages where external_id='wamid.SYNTHETIC'");assert.equal(rows.rows[0]!.channel,'whatsapp');
+  });
+  await t.test('signed webhook through consent, live inbox worker and button protocol persists one WhatsApp report',async()=>{
+   const phone='222222222',sender='919111222333',secret='e'.repeat(32),directory=await mkdtemp(join(tmpdir(),'saathi-wa-e2e-'));
+   try{
+    const transport:typeof fetch=async(url,options)=>{
+     const name=String(url).split('/').pop()!;assert.match(name,/^saathi_[a-z_]+$/);const args=JSON.parse(String(options?.body)) as Record<string,unknown>;const entries=Object.entries(args);for(const [key] of entries)assert.match(key,/^[a-z_]+$/);
+     const sql=`select public.${name}(${entries.map(([key],i)=>`${key}=>$${i+1}`).join(',')}) as data`;
+     return Response.json(await rpc(sql,entries.map(([,v])=>v&&typeof v==='object'?JSON.stringify(v):v)));
+    };
+    const store=new WhatsAppStore('https://example.supabase.co','sb_secret_test',transport),state=new TelegramState(directory,channelNumber(phone),'whatsapp');let apiCalls=0;
+    const api=new WhatsAppAPI(phone,'fake','v26.0',async(url)=>{assert.ok(String(url).endsWith(`/${phone}/messages`));apiCalls++;return Response.json({messages:[{id:'wamid.RECEIPT'+apiCalls}]});});
+    const worker=new WhatsAppWorker(state,store,api,runWhatsAppTask(store,api,{sarvam:'',groq:''}));
+    const handler=webhook({appSecret:secret,verifyToken:'v'.repeat(64),phoneId:phone},messages=>rpc('select public.saathi_wa_enqueue($1,$2::jsonb) as data',[phone,JSON.stringify(messages)]));let step=0;
+    const receive=async(kind:'text'|'button',value:string)=>{
+     step++;const m={id:'wamid.E2E'+step,from:sender,timestamp:String(Math.floor(Date.now()/1000)),type:kind==='text'?'text':'interactive',...(kind==='text'?{text:{body:value}}:{interactive:{type:'button_reply',button_reply:{id:value}}})};
+     const body=JSON.stringify({object:'whatsapp_business_account',entry:[{changes:[{field:'messages',value:{messaging_product:'whatsapp',metadata:{phone_number_id:phone},messages:[m]}}]}]});
+     const response=await handler(new Request('https://example.invalid',{method:'POST',headers:{'x-hub-signature-256':'sha256='+createHmac('sha256',secret).update(body).digest('hex')},body}));assert.equal(response.status,200);assert.equal(await worker.once(),true);
+    };
+    const code=await state.pair('demo-ramesh','en-IN');await receive('text','/start '+code);const consent=(await state.snapshot()).chats[sender]!.pendingNonce!;await receive('button','consent:'+consent);await receive('text','/checkin');const n=(await state.snapshot()).chats[sender]!.draft!.nonce;
+    await receive('button',`q:${n}:0:W1`);await receive('button',`q:${n}:1:normal`);await receive('text','2');await receive('text','4');await receive('text','12');await receive('button',`q:${n}:5:yes`);
+    const report=(await store.queue()).records.find(r=>r.report.origin?.externalId==='wamid.E2E9');assert.ok(report);assert.equal(report.report.origin?.channel,'whatsapp');assert.equal(report.report.evaluation.tier,'RED');assert.ok(report.report.evaluation.matched.includes('R3'));assert.ok(report.report.evaluation.matched.includes('A1'));
+    assert.equal((await state.snapshot()).deliveries.length,apiCalls);assert.ok((await state.snapshot()).deliveries.every(d=>d.status==='accepted'));
+    const pending=await db.query<{n:number}>("select count(*)::int as n from public.wa_demo_inbox where phone_id=$1 and payload is not null",[phone]);assert.equal(pending.rows[0]!.n,0);
+    assert.equal(await worker.once(),false);
+   }finally{await rm(directory,{recursive:true,force:true});}
   });
   await t.test('local history imports once, retaining IDs, timestamps and acknowledgement',async()=>{
    const localId=randomUUID(),localRequest=randomUUID();

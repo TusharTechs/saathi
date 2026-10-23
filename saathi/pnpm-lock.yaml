@@ -63,6 +63,8 @@ importers:
 
   packages/telegram: {}
 
+  packages/whatsapp: {}
+
   packages/workflow: {}
 
 packages:

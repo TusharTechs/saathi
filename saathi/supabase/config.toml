@@ -1,0 +1,3 @@
+# Only this signature-authenticated Meta receiver is intended to be public.
+[functions.whatsapp-webhook]
+verify_jwt = false

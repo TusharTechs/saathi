@@ -35,3 +35,7 @@ Caregiver check-in now supports short recorded/uploaded audio and typed English,
 ## Telegram intake
 
 A local worker now supports privately paired, consenting synthetic Telegram chats, with text/voice and six button questions feeding the same Supabase queue. Run `pnpm telegram:check`, create a private link with `pnpm telegram:pair --patient demo-ramesh --language hi-IN`, and run `pnpm telegram:run --send` when ready to enable replies. See [the Telegram guide](docs/10-TELEGRAM-INTAKE.md) for setup, migration, consent, limits and delivery recovery. No public deployment or webhook is required.
+
+## WhatsApp intake prepared
+
+The signed Meta webhook, private Supabase inbox, patient consent flow, text/voice/button worker and deployment commands are implemented. Live activation is pending Meta test-app credentials, additional project-scoped Functions/Secrets permissions and approval to publish the receiver. No WhatsApp messages have been sent. See [the WhatsApp readiness guide](docs/11-WHATSAPP-INTAKE.md) for setup, verification and remaining checks.

@@ -19,14 +19,14 @@ test('Supabase service-only storage transactions and grants',async t=>{
    create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
    grant usage on schema public,auth to anon,authenticated,service_role;
    alter default privileges in schema public grant execute on functions to anon,authenticated,service_role;`);
-  for(const file of ['supabase/migrations/202610230001_core.sql','supabase/migrations/202610230002_function_permissions.sql','supabase/seed/demo.sql','supabase/migrations/202610230003_demo_storage.sql','supabase/migrations/202610230004_conflict_responses.sql','supabase/migrations/202610230005_narrative_analysis.sql']) await db.exec(await readFile(new URL(file,root),'utf8'));
+  for(const file of ['supabase/migrations/202610230001_core.sql','supabase/migrations/202610230002_function_permissions.sql','supabase/seed/demo.sql','supabase/migrations/202610230003_demo_storage.sql','supabase/migrations/202610230004_conflict_responses.sql','supabase/migrations/202610230005_narrative_analysis.sql','supabase/migrations/202610230006_telegram_origin.sql']) await db.exec(await readFile(new URL(file,root),'utf8'));
   await t.test('anonymous and authenticated roles cannot call any service-only RPC',async()=>{
    for(const role of ['anon','authenticated']){
     await db.exec(`set role ${role}`);
     for(const sql of ['select public.saathi_demo_queue()','select public.saathi_demo_tick()',`select public.saathi_demo_record('${randomUUID()}')`])await assert.rejects(db.query(sql),/permission denied/);
     await db.exec('reset role');
    }
-   const r=await db.query<{allowed:boolean}>("select bool_or(has_function_privilege('anon',oid,'EXECUTE') or has_function_privilege('authenticated',oid,'EXECUTE')) as allowed from pg_proc where proname like 'saathi_demo_%'");assert.equal(r.rows[0]!.allowed,false);
+   const r=await db.query<{allowed:boolean}>("select bool_or(has_function_privilege('anon',oid,'EXECUTE') or has_function_privilege('authenticated',oid,'EXECUTE')) as allowed from pg_proc where proname like 'saathi_demo_%' or proname='saathi_telegram_submit'");assert.equal(r.rows[0]!.allowed,false);
   });
   await db.exec('set role service_role');
   await t.test('queue reads seeded patients from the database',async()=>{
@@ -99,6 +99,23 @@ test('Supabase service-only storage transactions and grants',async t=>{
    const saved=await rpc<RecordEntry>('select public.saathi_demo_complete_analysis($1,$2,$3::jsonb) as data',[r.id,c.lease,JSON.stringify(failed)]);
    assert.equal(saved.report.evaluation.tier,'RED');assert.ok(saved.report.evaluation.matched.some(x=>x.startsWith('safety_net:')));assert.equal(saved.report.processing?.extraction.status,'failed');
    assert.equal((await claim()).claimed,true);
+  });
+  await t.test('Telegram provenance, channel and external message ID persist atomically and cannot change',async()=>{
+   const request=randomUUID(),origin={channel:'telegram',externalId:'12345:11'};
+   const input={messages:[{id:request,text:'A synthetic report.'}],fields:{},context:{pack:'adult' as const}};
+   const pending={...processReport(input,'text',true),origin,processing:{language:'en-IN',extraction:{provider:'groq',model:'openai/gpt-oss-120b',status:'pending'}}};
+   const call=(p:unknown=pending)=>rpc<{record:RecordEntry;duplicate:boolean}>('select public.saathi_telegram_submit($1,$2,$3,$4::jsonb,$5::jsonb) as data',[request,'demo-ramesh',fingerprint,JSON.stringify(p),JSON.stringify(adultProtocol)]);
+   const saved=await call();assert.deepEqual(saved.record.report.origin,origin);assert.equal((await call()).duplicate,true);
+   const m=await db.query<{channel:string;external_id:string}>("select channel,external_id from public.messages where external_id='12345:11'");assert.deepEqual(m.rows,[{channel:'telegram',external_id:'12345:11'}]);
+   await assert.rejects(call({...pending,origin:{...origin,externalId:'12345:12'}}),/origin conflict/);
+   await assert.rejects(call({...pending,origin:{channel:'local',externalId:'12345:11'}}),/Invalid Telegram/);
+   const before=(await db.query<{n:number}>('select count(*)::int as n from public.alerts')).rows[0]!.n;
+   await assert.rejects(rpc('select public.saathi_telegram_submit($1,$2,$3,$4::jsonb,$5::jsonb) as data',[randomUUID(),'demo-ramesh',fingerprint,JSON.stringify(pending),JSON.stringify(adultProtocol)]),/unique constraint/);
+   assert.equal((await db.query<{n:number}>('select count(*)::int as n from public.alerts')).rows[0]!.n,before);
+   const c=await rpc<{lease:string}>('select public.saathi_demo_claim_analysis($1) as data',[saved.record.id]);
+   const complete={...pending,processing:{...pending.processing,extraction:{...pending.processing.extraction,status:'complete'}}};
+   await assert.rejects(rpc('select public.saathi_demo_complete_analysis($1,$2,$3::jsonb) as data',[saved.record.id,c.lease,JSON.stringify({...complete,origin:{...origin,externalId:'12345:12'}})]),/Invalid analysis/);
+   const done=await rpc<RecordEntry>('select public.saathi_demo_complete_analysis($1,$2,$3::jsonb) as data',[saved.record.id,c.lease,JSON.stringify(complete)]);assert.deepEqual(done.report.origin,origin);assert.equal(done.report.evaluation.tier,null);
   });
   await t.test('local history imports once, retaining IDs, timestamps and acknowledgement',async()=>{
    const localId=randomUUID(),localRequest=randomUUID();

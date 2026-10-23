@@ -140,3 +140,7 @@ The app is now configured for Supabase-backed synthetic storage. Migrations 003 
 ## 13. Voice and text extraction connected (23 Oct)
 
 Sarvam verbatim STT and Groq structured extraction now feed the deterministic adult demo protocol. The source transcript and keyword flags are saved before model extraction; source quotes are validated and extraction updates are atomic with audit events. Migration 005 adds service-only lookup and leased analysis completion. Narratives never become GREEN and always need human review. Live English text/audio and Hindi/Kannada text passed; 108 automated tests pass. See docs/09 for configuration, limits and retry behavior. Real auth, messaging and clinical approval remain outstanding.
+
+## 14. Telegram intake connected (23 Oct)
+
+A single-host local poller now supports private single-use patient links, synthetic-only consent, text and voice notes, six English button questions, stable update IDs, persistent cursor/outbox recovery and explicit retry. Known RED button observations save immediately. Migration 006 preserves Telegram origin/channel through extraction, and all ten demo/channel RPCs are service-only. Live private pairing, consent, text extraction, Supabase persistence, dashboard traces and a Telegram receipt passed using @SaathiHelperBot. 131 automated tests pass. See docs/10 for commands, limits and recovery. No public webhook/deployment, care-team paging or approved clinical guidance is connected.

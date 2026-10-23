@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile, rename, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID, createHash } from 'node:crypto';
 import { z } from 'zod';
-import { intakeSchema, buttonInput, processReport, processingSchema, type Report } from './intake.ts';
+import { intakeSchema, buttonInput, processReport, processingSchema, originSchema, type Report } from './intake.ts';
 import { fixtureInput } from './fixtures.ts';
 
 export type Patient={id:string;name:string;age:number;language:string;diagnosis:string;initials:string};
@@ -20,7 +20,7 @@ export type Snapshot={version:1;records:RecordEntry[]};
 export class WorkflowError extends Error {constructor(public code:number,message:string){super(message);}}
 export const savedSchema=z.object({version:z.literal(1),records:z.array(z.object({
   id:z.uuid(),patientId:z.string(),requestId:z.uuid(),fingerprint:z.string(),createdAt:z.iso.datetime({offset:true}),status:z.enum(['open','acked','resolved']),revision:z.number().int(),escalationLevel:z.number().int().min(0).max(2),lastEscalatedAt:z.iso.datetime({offset:true}),exhausted:z.boolean(),
-  report:z.object({input:z.object({messages:z.array(z.object({id:z.string(),text:z.string()})),fields:z.record(z.string(),z.unknown()),context:z.record(z.string(),z.unknown())}),evaluation:z.object({mode:z.literal('demo_only'),protocolVersion:z.string(),tier:z.enum(['RED','AMBER','GREEN']).nullable(),status:z.enum(['complete','needs_followup','unsupported_pack']),matched:z.array(z.string()),unknownRuleIds:z.array(z.string()),followupFields:z.array(z.string()),traces:z.array(z.unknown())}),safetyNet:z.array(z.unknown()),source:z.enum(['buttons','synthetic_fixture','voice','text']),needsTextReview:z.boolean(),processing:processingSchema.optional()}),
+  report:z.object({input:z.object({messages:z.array(z.object({id:z.string(),text:z.string()})),fields:z.record(z.string(),z.unknown()),context:z.record(z.string(),z.unknown())}),evaluation:z.object({mode:z.literal('demo_only'),protocolVersion:z.string(),tier:z.enum(['RED','AMBER','GREEN']).nullable(),status:z.enum(['complete','needs_followup','unsupported_pack']),matched:z.array(z.string()),unknownRuleIds:z.array(z.string()),followupFields:z.array(z.string()),traces:z.array(z.unknown())}),safetyNet:z.array(z.unknown()),source:z.enum(['buttons','synthetic_fixture','voice','text']),needsTextReview:z.boolean(),processing:processingSchema.optional(),origin:originSchema.optional()}),
   events:z.array(z.object({id:z.uuid(),at:z.iso.datetime({offset:true}),type:z.enum(['created','acknowledged','resolved','escalated','escalation_exhausted','imported','analysis_started','analysis_completed','analysis_failed','reopened']),actor:z.string(),details:z.string()})),
 }))});
 /** Single-host synthetic store. Directory lock serializes independent route bundles/processes. */

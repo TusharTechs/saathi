@@ -27,6 +27,7 @@ export class NarrativePipeline {
   }catch(error){
    report={...processReport({...old.input,fields:{}},old.source,true),processing:{...processing,extraction:{provider:'groq',model:'openai/gpt-oss-120b',status:'failed',failureCode:error instanceof ProviderError?error.kind:'invalid_response'}}};
   }
+  if(old.origin)report.origin=old.origin;
   return {record:await this.store.completeAnalysis(record.id,claim.lease,report),duplicate:false};
  }
  private async persist(requestId:string,patientId:string,fingerprint:string,text:string,source:'voice'|'text',processing:Processing){

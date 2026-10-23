@@ -71,3 +71,10 @@ test('an active extraction claim prevents a second model call',async()=>{
  const first=p.text(args);while(!m.claims())await new Promise(r=>setImmediate(r));
  const second=await p.text(args);assert.equal(second.duplicate,true);assert.equal(calls,1);finish();assert.equal((await first).record.report.evaluation.tier,null);
 });
+
+test('extraction completion preserves a server-assigned Telegram origin',async()=>{
+ const m=memoryStore(),save=m.store.saveNarrative.bind(m.store),origin={channel:'telegram' as const,externalId:'12345:22'};
+ m.store.saveNarrative=(id,patient,hash,report)=>save(id,patient,hash,{...report,origin});
+ const p=new NarrativePipeline(m.store,{sarvam:'',groq:'test'},{speech:transcribe,extract:async(t,id)=>extract(t,id,'test',async()=>response(facts()))});
+ const result=await p.text({requestId:id,patientId:'demo-ramesh',language:'en-IN',synthetic:true,text});assert.deepEqual(result.record.report.origin,origin);
+});

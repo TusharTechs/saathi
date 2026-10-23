@@ -31,3 +31,7 @@ The configured `.env.local` now uses `SAATHI_STORAGE=supabase`. The dashboard st
 ## Voice and text extraction connected
 
 Caregiver check-in now supports short recorded/uploaded audio and typed English, Hindi or Kannada reports. Sarvam transcribes; Groq extracts schema-validated observations with original source quotes; the deterministic engine evaluates them. Source reports and independent keyword flags are saved before extraction. Failures stay visible for review and retry. See [the voice/text guide](docs/09-VOICE-AND-TEXT.md) for limits, data flow, migrations and verification. All narrative reports require human review; clinical guidance and external notifications remain disabled.
+
+## Telegram intake
+
+A local worker now supports privately paired, consenting synthetic Telegram chats, with text/voice and six button questions feeding the same Supabase queue. Run `pnpm telegram:check`, create a private link with `pnpm telegram:pair --patient demo-ramesh --language hi-IN`, and run `pnpm telegram:run --send` when ready to enable replies. See [the Telegram guide](docs/10-TELEGRAM-INTAKE.md) for setup, migration, consent, limits and delivery recovery. No public deployment or webhook is required.

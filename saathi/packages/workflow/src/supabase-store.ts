@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { z } from 'zod';
 import { inputSchema } from '../../shared/src/index.ts';
 import { adultProtocol } from '../../clinical-content/src/index.ts';
-import { intakeSchema, buttonInput, processReport, type Report } from './intake.ts';
+import { intakeSchema, buttonInput, processReport, originSchema, type Origin, type Report } from './intake.ts';
 import { fixtureInput } from './fixtures.ts';
 import { savedSchema, WorkflowError, type Snapshot, type RecordEntry, type Patient } from './store.ts';
 const queueSchema=savedSchema.extend({storage:z.literal('supabase'),patients:z.array(z.object({id:z.string(),name:z.string(),age:z.number(),language:z.string(),diagnosis:z.string(),initials:z.string()})),team:z.array(z.string())});
@@ -36,23 +36,23 @@ export class SupabaseStore {
   catch(e){if(e instanceof WorkflowError)throw e;throw new WorkflowError(503,'Supabase returned an incompatible queue format. Records were not changed.');}
  }
  async snapshot():Promise<Snapshot>{return this.queue();}
- async submit(raw:unknown):Promise<{record:RecordEntry;duplicate:boolean}>{
-  const request=intakeSchema.parse(raw);
+ async submit(raw:unknown,origin?:Origin):Promise<{record:RecordEntry;duplicate:boolean}>{
+  const request=intakeSchema.parse(raw);if(origin)origin=originSchema.parse(origin);
   if(request.scenario&&Object.keys(request.answers).length)throw new WorkflowError(400,'Choose a synthetic scenario or enter answers, not both.');
-  const fingerprint=createHash('sha256').update(JSON.stringify({patientId:request.patientId,scenario:request.scenario,answers:request.answers})).digest('hex');
+  const fingerprint=createHash('sha256').update(JSON.stringify({patientId:request.patientId,scenario:request.scenario,answers:request.answers,...(origin?{origin}:{})})).digest('hex');
   const input=request.scenario?fixtureInput(request):buttonInput(request,{pack:'adult'});
   const report=processReport(input,request.scenario?'synthetic_fixture':'buttons',Boolean(request.answers.concerns));
-  const result=await this.rpc('saathi_demo_submit',{p_request_id:request.requestId,p_patient_key:request.patientId,p_fingerprint:fingerprint,p_report:report,p_protocol:adultProtocol});
+  const result=await this.rpc(origin?'saathi_telegram_submit':'saathi_demo_submit',{p_request_id:request.requestId,p_patient_key:request.patientId,p_fingerprint:fingerprint,p_report:{...report,...(origin?{origin}:{})},p_protocol:adultProtocol});
   return z.object({record:recordSchema,duplicate:z.boolean()}).parse(result) as unknown as {record:RecordEntry;duplicate:boolean};
  }
  async findRequest(requestId:string,fingerprint:string):Promise<RecordEntry|null>{
   const raw=await this.rpc('saathi_demo_lookup',{p_request_id:requestId,p_fingerprint:fingerprint});
   return raw===null?null:recordSchema.parse(raw) as unknown as RecordEntry;
  }
- async saveNarrative(requestId:string,patientId:string,fingerprint:string,report:Report){
-  inputSchema.parse(report.input);
-  return z.object({record:recordSchema,duplicate:z.boolean()}).parse(await this.rpc('saathi_demo_submit',{
-   p_request_id:requestId,p_patient_key:patientId,p_fingerprint:fingerprint,p_report:report,p_protocol:adultProtocol,
+ async saveNarrative(requestId:string,patientId:string,fingerprint:string,report:Report,origin?:Origin){
+  inputSchema.parse(report.input);if(origin)origin=originSchema.parse(origin);
+  return z.object({record:recordSchema,duplicate:z.boolean()}).parse(await this.rpc(origin?'saathi_telegram_submit':'saathi_demo_submit',{
+   p_request_id:requestId,p_patient_key:patientId,p_fingerprint:fingerprint,p_report:{...report,...(origin?{origin}:{})},p_protocol:adultProtocol,
   })) as unknown as {record:RecordEntry;duplicate:boolean};
  }
  async claimAnalysis(id:string){

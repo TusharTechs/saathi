@@ -10,7 +10,8 @@ const hardening=(await readFile(new URL('supabase/migrations/202610230002_functi
 const storage=(await readFile(new URL('supabase/migrations/202610230003_demo_storage.sql',root),'utf8')).replace(/^begin;\s*$/m,'').replace(/^commit;\s*$/m,'');
 const conflicts=(await readFile(new URL('supabase/migrations/202610230004_conflict_responses.sql',root),'utf8')).replace(/^begin;\s*$/m,'').replace(/^commit;\s*$/m,'');
 const analysis=(await readFile(new URL('supabase/migrations/202610230005_narrative_analysis.sql',root),'utf8')).replace(/^begin;\s*$/m,'').replace(/^commit;\s*$/m,'');
-const query=schema.replace(/commit;\s*$/i,()=>`${hardening}\n${seed}\n${storage}\n${conflicts}\n${analysis}\ncommit;`);
+const telegram=(await readFile(new URL('supabase/migrations/202610230006_telegram_origin.sql',root),'utf8')).replace(/^begin;\s*$/m,'').replace(/^commit;\s*$/m,'');
+const query=schema.replace(/commit;\s*$/i,()=>`${hardening}\n${seed}\n${storage}\n${conflicts}\n${analysis}\n${telegram}\ncommit;`);
 const hash=createHash('sha256').update(query).digest('hex').slice(0,12);
 const tables=['care_team_members','patients','patient_care_team','protocol_versions','messages','checkins','alerts','alert_events'];
 function project(){
@@ -32,7 +33,7 @@ async function management(ref,path,body){
 }
 try{
  if(mode==='plan'){
-  console.log(JSON.stringify({mode,changes:'Create core schema, RLS and transition RPC; insert five synthetic patients and three unlinked team members',tables,migrationName:`saathi_core_${hash}`,checksum:hash,externalWrites:false},null,2));
+  console.log(JSON.stringify({mode,changes:'Create synthetic schema, RLS, service-only workflow and intake RPCs; seed five patients and three unlinked team members',tables,migrationName:`saathi_core_${hash}`,checksum:hash,externalWrites:false},null,2));
  }else if(mode==='check'){
   const {url}=project();
   const keys={public:process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY||process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,server:process.env.SUPABASE_SECRET_KEY||process.env.SUPABASE_SERVICE_ROLE_KEY};
@@ -71,6 +72,16 @@ try{
    await management(ref,'migrations',{name:'saathi_202610230005_narrative_analysis',query});
    console.log('Service-only narrative analysis migration applied.');
   }
+ }else if(mode==='telegram'){
+  const {ref}=project();
+  const state=await management(ref,'query',{query:"select to_regprocedure('public.saathi_telegram_submit(uuid,text,text,jsonb,jsonb)') is not null as ready",read_only:true});
+  if(!Array.isArray(state))throw new Error('Unexpected Telegram migration inspection response.');
+  if(state[0]?.ready)console.log('Telegram provenance migration is already present. No migration was repeated.');
+  else{
+   const query=await readFile(new URL('supabase/migrations/202610230006_telegram_origin.sql',root),'utf8');
+   await management(ref,'migrations',{name:'saathi_202610230006_telegram_origin',query});
+   console.log('Service-only Telegram provenance migration applied.');
+  }
  }else if(mode==='apply'){
   const {ref}=project();
   const result=await management(ref,'query',{query:`select tablename from pg_catalog.pg_tables where schemaname='public' and tablename in (${tables.map(t=>`'${t}'`).join(',')})`,read_only:true});
@@ -81,5 +92,5 @@ try{
   const count=Array.isArray(verified)?verified[0]?.patients:undefined;
   if(count!==5)throw new Error('Migration request completed but seed verification failed. Inspect the project before retrying.');
   console.log('Core migration and synthetic seed applied. Verified five synthetic patients. App storage is not switched automatically.');
- }else throw new Error('Use plan, check, storage, analysis or apply.');
+ }else throw new Error('Use plan, check, storage, analysis, telegram or apply.');
 }catch(error){console.error(error instanceof Error?error.message:'Supabase operation failed; credentials withheld.');process.exitCode=1;}

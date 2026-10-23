@@ -17,13 +17,15 @@ export const intakeSchema=z.object({
   }).strict(),
 }).strict();
 export type Intake = z.infer<typeof intakeSchema>;
+export const originSchema=z.object({channel:z.literal('telegram'),externalId:z.string().regex(/^[0-9]+:(?:[0-9]+|checkin:[0-9a-f-]{36})$/)}).strict();
+export type Origin=z.infer<typeof originSchema>;
 export const processingSchema=z.object({
  language:z.string().max(30),
  transcription:z.object({provider:z.literal('sarvam'),model:z.literal('saaras:v4')}).optional(),
  extraction:z.object({provider:z.literal('groq'),model:z.literal('openai/gpt-oss-120b'),status:z.enum(['pending','complete','failed']),failureCode:z.string().max(50).optional()}),
 }).strict();
 export type Processing=z.infer<typeof processingSchema>;
-export type Report = {input:Input; evaluation:Evaluation; safetyNet:ReturnType<typeof scanSafetyNet>; source:'buttons'|'synthetic_fixture'|'voice'|'text'; needsTextReview:boolean;processing?:Processing};
+export type Report = {input:Input; evaluation:Evaluation; safetyNet:ReturnType<typeof scanSafetyNet>; source:'buttons'|'synthetic_fixture'|'voice'|'text'; needsTextReview:boolean;processing?:Processing;origin?:Origin};
 export function processReport(input: Input, source:Report['source'], needsTextReview=false): Report {
   const parsed=inputSchema.parse(input);
   const evaluation=evaluate(parsed);

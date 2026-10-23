@@ -15,7 +15,11 @@
     "supabase:apply": "node scripts/supabase.mjs apply",
     "supabase:analysis": "node scripts/supabase.mjs analysis",
     "supabase:storage": "node scripts/supabase.mjs storage",
-    "supabase:import-local": "tsx scripts/import-local.ts"
+    "supabase:import-local": "tsx scripts/import-local.ts",
+    "telegram:check": "tsx scripts/telegram.ts check",
+    "telegram:pair": "tsx scripts/telegram.ts pair",
+    "telegram:run": "tsx scripts/telegram.ts run",
+    "supabase:telegram": "node scripts/supabase.mjs telegram"
   },
   "dependencies": {
     "zod": "^4.0.0"

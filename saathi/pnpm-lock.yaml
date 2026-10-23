@@ -61,6 +61,8 @@ importers:
 
   packages/shared: {}
 
+  packages/telegram: {}
+
   packages/workflow: {}
 
 packages:

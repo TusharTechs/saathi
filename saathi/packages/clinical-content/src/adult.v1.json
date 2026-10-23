@@ -1,0 +1,649 @@
+{
+  "version": "adult.v1-demo.1",
+  "status": "demo_only",
+  "approved_by": null,
+  "approved_at": null,
+  "source": "docs/02-CLINICAL-PROTOCOL.md",
+  "rules": [
+    {
+      "id": "R1",
+      "tier": "RED",
+      "label": "Wakefulness W5",
+      "source_status": "accepted_pending_review",
+      "approved_by": null,
+      "approved_at": null,
+      "when": {
+        "field": "wakefulness",
+        "op": "==",
+        "value": "W5"
+      }
+    },
+    {
+      "id": "R2",
+      "tier": "RED",
+      "label": "Wakefulness W4",
+      "source_status": "accepted_pending_review",
+      "approved_by": null,
+      "approved_at": null,
+      "when": {
+        "field": "wakefulness",
+        "op": "==",
+        "value": "W4"
+      }
+    },
+    {
+      "id": "R3",
+      "tier": "RED",
+      "label": "Adult breathing concern",
+      "source_status": "confirmed_in_handoff",
+      "approved_by": null,
+      "approved_at": null,
+      "when": {
+        "any": [
+          {
+            "all": [
+              {
+                "field": "resp_rate_per_min",
+                "op": "<=",
+                "value": 12
+              },
+              {
+                "field": "resp_count_full_minute",
+                "op": "==",
+                "value": true
+              }
+            ]
+          },
+          {
+            "field": "breathing",
+            "op": "==",
+            "value": "very_slow_or_pauses"
+          },
+          {
+            "all": [
+              {
+                "field": "breathing",
+                "op": "==",
+                "value": "noisy_rattling"
+              },
+              {
+                "field": "breathing_new",
+                "op": "==",
+                "value": true
+              },
+              {
+                "field": "wakefulness",
+                "op": "in",
+                "value": [
+                  "W3",
+                  "W4",
+                  "W5"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "R4",
+      "tier": "RED",
+      "label": "Severe breathlessness or blue lips",
+      "source_status": "accepted_pending_review",
+      "approved_by": null,
+      "approved_at": null,
+      "when": {
+        "any": [
+          {
+            "all": [
+              {
+                "field": "breathing",
+                "op": "==",
+                "value": "breathless_rest"
+              },
+              {
+                "field": "breathlessness_sudden_severe",
+                "op": "==",
+                "value": true
+              }
+            ]
+          },
+          {
+            "field": "blue_lips",
+            "op": "==",
+            "value": true
+          },
+          {
+            "all": [
+              {
+                "field": "face_neck_swelling",
+                "op": "==",
+                "value": true
+              },
+              {
+                "field": "breathing",
+                "op": "in",
+                "value": [
+                  "breathless_moving",
+                  "breathless_rest"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "R5",
+      "tier": "RED",
+      "label": "Reported neurological red flags",
+      "source_status": "accepted_pending_review",
+      "approved_by": null,
+      "approved_at": null,
+      "when": {
+        "any": [
+          {
+            "field": "back_pain_leg_weakness",
+            "op": "==",
+            "value": true
+          },
+          {
+            "field": "bladder_bowel_loss",
+            "op": "==",
+            "value": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "R6",
+      "tier": "RED",
+      "label": "Sudden confusion or hallucinations",
+      "source_status": "accepted_pending_review",
+      "approved_by": null,
+      "approved_at": null,
+      "when": {
+        "field": "confusion",
+        "op": "in",
+        "value": [
+          "sudden",
+          "hallucinations"
+        ]
+      }
+    },
+    {
+      "id": "R7",
+      "tier": "RED",
+      "label": "Seizure",
+      "source_status": "accepted_pending_review",
+      "approved_by": null,
+      "approved_at": null,
+      "when": {
+        "field": "seizure",
+        "op": "==",
+        "value": true
+      }
+    },
+    {
+      "id": "R8",
+      "tier": "RED",
+      "label": "Reported bleeding red flags",
+      "source_status": "accepted_pending_review",
+      "approved_by": null,
+      "approved_at": null,
+      "when": {
+        "any": [
+          {
+            "field": "heavy_bleeding",
+            "op": "==",
+            "value": true
+          },
+          {
+            "field": "vomit_appearance",
+            "op": "==",
+            "value": "blood_or_coffee"
+          },
+          {
+            "field": "black_stools",
+            "op": "==",
+            "value": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "R9",
+      "tier": "RED",
+      "label": "Repeated vomiting with swollen belly and no stool or wind",
+      "source_status": "accepted_pending_review",
+      "approved_by": null,
+      "approved_at": null,
+      "when": {
+        "all": [
+          {
+            "field": "vomit_count_24h",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "field": "swollen_belly",
+            "op": "==",
+            "value": true
+          },
+          {
+            "field": "no_stool_or_wind",
+            "op": "==",
+            "value": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "R10",
+      "tier": "RED",
+      "label": "Fever with recent chemotherapy",
+      "source_status": "accepted_pending_review",
+      "approved_by": null,
+      "approved_at": null,
+      "when": {
+        "all": [
+          {
+            "field": "fever_c",
+            "op": ">=",
+            "value": 38
+          },
+          {
+            "field": "chemo_within_weeks",
+            "op": "<=",
+            "value": 6
+          }
+        ]
+      }
+    },
+    {
+      "id": "R11",
+      "tier": "RED",
+      "label": "Sudden severe pain not helped by rescue dose",
+      "source_status": "accepted_pending_review",
+      "approved_by": null,
+      "approved_at": null,
+      "when": {
+        "all": [
+          {
+            "field": "pain_now",
+            "op": ">=",
+            "value": 8
+          },
+          {
+            "field": "pain_sudden",
+            "op": "==",
+            "value": true
+          },
+          {
+            "field": "rescue_not_helped",
+            "op": "==",
+            "value": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "R12",
+      "tier": "RED",
+      "label": "Medication error",
+      "source_status": "accepted_pending_review",
+      "approved_by": null,
+      "approved_at": null,
+      "when": {
+        "field": "med_error",
+        "op": "==",
+        "value": true
+      }
+    },
+    {
+      "id": "R13",
+      "tier": "RED",
+      "label": "Reported crisis",
+      "source_status": "accepted_pending_review",
+      "approved_by": null,
+      "approved_at": null,
+      "when": {
+        "any": [
+          {
+            "field": "self_harm_or_crisis",
+            "op": "==",
+            "value": true
+          },
+          {
+            "field": "caregiver_coping",
+            "op": "==",
+            "value": "not_coping"
+          }
+        ]
+      }
+    },
+    {
+      "id": "A1",
+      "tier": "AMBER",
+      "label": "At least three rescue doses in 24 hours",
+      "source_status": "confirmed_in_handoff",
+      "approved_by": null,
+      "approved_at": null,
+      "when": {
+        "field": "rescue_doses_24h",
+        "op": ">=",
+        "value": 3
+      }
+    },
+    {
+      "id": "A2",
+      "tier": "AMBER",
+      "label": "Pain despite medicines or rise from baseline",
+      "source_status": "accepted_pending_review",
+      "approved_by": null,
+      "approved_at": null,
+      "when": {
+        "any": [
+          {
+            "all": [
+              {
+                "field": "pain_now",
+                "op": ">=",
+                "value": 7
+              },
+              {
+                "field": "pain_despite_medicines",
+                "op": "==",
+                "value": true
+              }
+            ]
+          },
+          {
+            "difference": {
+              "left": "pain_now",
+              "right": "context.usual_pain_score",
+              "gte": 3
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "A3",
+      "tier": "AMBER",
+      "label": "Vomiting or unable to retain medicines",
+      "source_status": "accepted_pending_review",
+      "approved_by": null,
+      "approved_at": null,
+      "when": {
+        "any": [
+          {
+            "field": "vomit_count_24h",
+            "op": ">=",
+            "value": 3
+          },
+          {
+            "field": "cannot_keep_medicines_down",
+            "op": "==",
+            "value": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "A4",
+      "tier": "AMBER",
+      "label": "No stool for three days while on morphine",
+      "source_status": "accepted_pending_review",
+      "approved_by": null,
+      "approved_at": null,
+      "when": {
+        "all": [
+          {
+            "field": "days_since_stool",
+            "op": ">=",
+            "value": 3
+          },
+          {
+            "field": "context.on_morphine",
+            "op": "==",
+            "value": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "A5",
+      "tier": "AMBER",
+      "label": "Sips or nothing for at least 24 hours",
+      "source_status": "accepted_pending_review",
+      "approved_by": null,
+      "approved_at": null,
+      "when": {
+        "all": [
+          {
+            "field": "intake",
+            "op": "in",
+            "value": [
+              "mouthfuls_sips",
+              "nothing"
+            ]
+          },
+          {
+            "field": "reduced_intake_hours",
+            "op": ">=",
+            "value": 24
+          }
+        ]
+      }
+    },
+    {
+      "id": "A6",
+      "tier": "AMBER",
+      "label": "New W3 after dose increase",
+      "source_status": "accepted_pending_review",
+      "approved_by": null,
+      "approved_at": null,
+      "when": {
+        "all": [
+          {
+            "field": "wakefulness",
+            "op": "==",
+            "value": "W3"
+          },
+          {
+            "field": "wakefulness_new_since_dose_increase_72h",
+            "op": "==",
+            "value": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "A7",
+      "tier": "AMBER",
+      "label": "New jerking",
+      "source_status": "accepted_pending_review",
+      "approved_by": null,
+      "approved_at": null,
+      "when": {
+        "field": "jerking",
+        "op": "==",
+        "value": true
+      }
+    },
+    {
+      "id": "A8",
+      "tier": "AMBER",
+      "label": "Gradual confusion",
+      "source_status": "accepted_pending_review",
+      "approved_by": null,
+      "approved_at": null,
+      "when": {
+        "field": "confusion",
+        "op": "==",
+        "value": "gradual"
+      }
+    },
+    {
+      "id": "A9",
+      "tier": "AMBER",
+      "label": "Wound changes with photo",
+      "source_status": "accepted_pending_review",
+      "approved_by": null,
+      "approved_at": null,
+      "when": {
+        "all": [
+          {
+            "any": [
+              {
+                "field": "wound_more_bleeding",
+                "op": "==",
+                "value": true
+              },
+              {
+                "field": "wound_stronger_smell",
+                "op": "==",
+                "value": true
+              },
+              {
+                "field": "wound_new_discharge",
+                "op": "==",
+                "value": true
+              },
+              {
+                "field": "wound_spreading_redness",
+                "op": "==",
+                "value": true
+              }
+            ]
+          },
+          {
+            "field": "context.wound_photo_available",
+            "op": "==",
+            "value": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "A10",
+      "tier": "AMBER",
+      "label": "New breathlessness at rest",
+      "source_status": "accepted_pending_review",
+      "approved_by": null,
+      "approved_at": null,
+      "when": {
+        "all": [
+          {
+            "field": "breathing",
+            "op": "==",
+            "value": "breathless_rest"
+          },
+          {
+            "field": "breathing_new",
+            "op": "==",
+            "value": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "A11",
+      "tier": "AMBER",
+      "label": "Missed medicines or morphine running out",
+      "source_status": "accepted_pending_review",
+      "approved_by": null,
+      "approved_at": null,
+      "when": {
+        "any": [
+          {
+            "field": "missed_regular_doses",
+            "op": ">=",
+            "value": 2
+          },
+          {
+            "all": [
+              {
+                "field": "context.on_morphine",
+                "op": "==",
+                "value": true
+              },
+              {
+                "field": "context.morphine_supply_days",
+                "op": "<=",
+                "value": 5
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "A12",
+      "tier": "AMBER",
+      "label": "Caregiver struggling on consecutive check-ins",
+      "source_status": "accepted_pending_review",
+      "approved_by": null,
+      "approved_at": null,
+      "when": {
+        "field": "context.caregiver_struggling_streak",
+        "op": ">=",
+        "value": 2
+      }
+    },
+    {
+      "id": "A13",
+      "tier": "AMBER",
+      "label": "Question unanswered after two card attempts",
+      "source_status": "accepted_pending_review",
+      "approved_by": null,
+      "approved_at": null,
+      "when": {
+        "field": "context.unanswered_card_attempts",
+        "op": ">=",
+        "value": 2
+      }
+    },
+    {
+      "id": "A14",
+      "tier": "AMBER",
+      "label": "No check-in for two days",
+      "source_status": "accepted_pending_review",
+      "approved_by": null,
+      "approved_at": null,
+      "when": {
+        "field": "context.days_since_checkin",
+        "op": ">=",
+        "value": 2
+      }
+    },
+    {
+      "id": "A15",
+      "tier": "AMBER",
+      "label": "Proposed adult breathing band",
+      "source_status": "draft",
+      "approved_by": null,
+      "approved_at": null,
+      "when": {
+        "all": [
+          {
+            "field": "resp_rate_per_min",
+            "op": ">=",
+            "value": 13
+          },
+          {
+            "field": "resp_rate_per_min",
+            "op": "<=",
+            "value": 15
+          },
+          {
+            "field": "resp_count_full_minute",
+            "op": "==",
+            "value": true
+          }
+        ]
+      }
+    }
+  ]
+}

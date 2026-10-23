@@ -1,0 +1,56 @@
+import { z } from 'zod';
+import { inputSchema, type Input } from '../../shared/src/index.ts';
+import { evaluate, type Evaluation } from '../../rules-engine/src/index.ts';
+import { scanSafetyNet } from './safety-net.ts';
+
+export const intakeSchema=z.object({
+  requestId:z.uuid(),patientId:z.string().min(1).max(80),
+  scenario:z.enum(['urgent','review','complete','incomplete']).optional(),
+  answers:z.object({
+    pain:z.number().int().min(0).max(10).optional(),
+    rescue:z.number().int().min(0).max(100).optional(),
+    wakefulness:z.enum(['W1','W2','W3','W4','W5']).optional(),
+    breathing:z.enum(['normal','breathless_moving','breathless_rest','very_slow_or_pauses','noisy_rattling']).optional(),
+    respiratoryRate:z.number().int().min(0).max(120).optional(),
+    fullMinute:z.boolean().optional(),
+    concerns:z.string().trim().max(4000).optional(),
+  }).strict(),
+}).strict();
+export type Intake = z.infer<typeof intakeSchema>;
+export const processingSchema=z.object({
+ language:z.string().max(30),
+ transcription:z.object({provider:z.literal('sarvam'),model:z.literal('saaras:v4')}).optional(),
+ extraction:z.object({provider:z.literal('groq'),model:z.literal('openai/gpt-oss-120b'),status:z.enum(['pending','complete','failed']),failureCode:z.string().max(50).optional()}),
+}).strict();
+export type Processing=z.infer<typeof processingSchema>;
+export type Report = {input:Input; evaluation:Evaluation; safetyNet:ReturnType<typeof scanSafetyNet>; source:'buttons'|'synthetic_fixture'|'voice'|'text'; needsTextReview:boolean;processing?:Processing};
+export function processReport(input: Input, source:Report['source'], needsTextReview=false): Report {
+  const parsed=inputSchema.parse(input);
+  const evaluation=evaluate(parsed);
+  // Structured fixtures use schema keys as text; scan real button/narrative reports only.
+  const safetyNet=source==='synthetic_fixture'?[]:scanSafetyNet(parsed.messages);
+  if(parsed.context.pack==='adult' && safetyNet.length) {
+    evaluation.tier='RED';
+    evaluation.matched=[...evaluation.matched,...safetyNet.map(h=>`safety_net:${h.id}:${h.language}`)];
+  }
+  if(needsTextReview && evaluation.status!=='unsupported_pack') {
+    evaluation.status='needs_followup';
+    if(evaluation.tier==='GREEN') evaluation.tier=null;
+  }
+  return {input:parsed,evaluation,safetyNet,source,needsTextReview};
+}
+export function buttonInput(request:Intake, context:Input['context']):Input {
+  const lines: {key:keyof Input['fields'];value:string|number|boolean;quote:string}[]=[];
+  const a=request.answers;
+  if(a.pain!==undefined) lines.push({key:'pain_now',value:a.pain,quote:`Pain now: ${a.pain}/10`});
+  if(a.rescue!==undefined) lines.push({key:'rescue_doses_24h',value:a.rescue,quote:`Extra doses in 24 hours: ${a.rescue}`});
+  const wording={W1:'Awake and talking normally',W2:'Sleeping, wakes easily when called',W3:'A little drowsy, wakes easily and stays awake',W4:'Keeps falling asleep while talking or eating',W5:'Very hard to wake, or cannot be woken'};
+  if(a.wakefulness) lines.push({key:'wakefulness',value:a.wakefulness,quote:wording[a.wakefulness]});
+  const breathing={normal:'Breathing: normal',breathless_moving:'Breathing: breathless when moving',breathless_rest:'Breathing: breathless at rest',very_slow_or_pauses:'Breathing: very slow or long pauses',noisy_rattling:'Breathing: noisy or rattling'};
+  if(a.breathing) lines.push({key:'breathing',value:a.breathing,quote:breathing[a.breathing]});
+  if(a.respiratoryRate!==undefined) lines.push({key:'resp_rate_per_min',value:a.respiratoryRate,quote:`Counted breaths: ${a.respiratoryRate}`});
+  if(a.fullMinute!==undefined) lines.push({key:'resp_count_full_minute',value:a.fullMinute,quote:`Counted for a full minute: ${a.fullMinute?'yes':'no'}`});
+  const id=request.requestId;
+  return {context, messages:[{id,text:[...lines.map(l=>l.quote),a.concerns].filter(Boolean).join('\n')||'No answers supplied'}],
+    fields:Object.fromEntries(lines.map(l=>[l.key,{value:l.value,confidence:1,quote:l.quote,messageId:id}]))};
+}

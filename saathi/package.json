@@ -1,0 +1,29 @@
+{
+  "name": "saathi",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.25.0",
+  "scripts": {
+    "test": "tsx --test tests/*.test.ts",
+    "typecheck": "tsc --noEmit && pnpm --filter @saathi/web typecheck",
+    "demo": "tsx eval/demo.ts",
+    "dev": "pnpm --filter @saathi/web dev",
+    "build": "pnpm --filter @saathi/web build",
+    "start": "pnpm --filter @saathi/web start",
+    "supabase:plan": "node scripts/supabase.mjs plan",
+    "supabase:check": "node scripts/supabase.mjs check",
+    "supabase:apply": "node scripts/supabase.mjs apply",
+    "supabase:analysis": "node scripts/supabase.mjs analysis",
+    "supabase:storage": "node scripts/supabase.mjs storage",
+    "supabase:import-local": "tsx scripts/import-local.ts"
+  },
+  "dependencies": {
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0",
+    "@types/node": "^22.0.0",
+    "@electric-sql/pglite": "0.5.11"
+  }
+}

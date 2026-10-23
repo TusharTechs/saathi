@@ -54,7 +54,8 @@ test('button numeric inputs are bounded and unknown answers stay missing',()=>{
  planUpdate(s,message(1,'999'),botId);assert.equal(s.pending?.task,undefined);assert.equal(s.chats['42']!.draft!.step,3);finish(s);
  planUpdate(s,message(2,'4'),botId);assert.equal(s.chats['42']!.draft!.answers.rescue,4);finish(s);
  planUpdate(s,callback(3,'q:n:4:skip'),botId);assert.equal(s.chats['42']!.draft!.answers.respiratoryRate,undefined);finish(s);
- planUpdate(s,callback(4,'q:n:5:skip'),botId);const task=s.pending!.task!;assert.equal(task.kind,'buttons');if(task.kind==='buttons')assert.deepEqual(task.answers,{rescue:4});
+ planUpdate(s,callback(4,'q:n:5:skip'),botId);assert.equal(s.chats['42']!.draft!.step,6);finish(s);
+ planUpdate(s,message(5,'/submit'),botId);const task=s.pending!.task!;assert.equal(task.kind,'buttons');if(task.kind==='buttons')assert.deepEqual(task.answers,{rescue:4});
 });
 test('Telegram API errors never expose token paths or raw error content',async()=>{
  for(const [code,kind] of [[401,'configuration'],[409,'conflict'],[429,'rate_limit'],[500,'unknown']] as const){let calls=0;

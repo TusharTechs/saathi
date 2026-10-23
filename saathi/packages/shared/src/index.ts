@@ -4,6 +4,8 @@ const observed = <T extends z.ZodType>(value: T) => z.object({
   quote: z.string().min(1), messageId: z.string().min(1),
 }).strict();
 export const fieldsSchema = z.object({
+  nausea_vomiting: observed(z.enum(["none", "feels_sick", "vomited"])).optional(),
+  leg_swelling: observed(z.enum(["no", "same", "more"])).optional(),
   pain_now: observed(z.number().int().min(0).max(10)).optional(),
   rescue_doses_24h: observed(z.number().int().nonnegative()).optional(),
   wakefulness: observed(z.enum(["W1", "W2", "W3", "W4", "W5"])).optional(),

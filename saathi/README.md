@@ -39,3 +39,9 @@ A local worker now supports privately paired, consenting synthetic Telegram chat
 ## WhatsApp intake prepared
 
 The signed Meta webhook, private Supabase inbox, patient consent flow, text/voice/button worker and deployment commands are implemented. Live activation is pending Meta test-app credentials, additional project-scoped Functions/Secrets permissions and approval to publish the receiver. No WhatsApp messages have been sent. See [the WhatsApp readiness guide](docs/11-WHATSAPP-INTAKE.md) for setup, verification and remaining checks.
+
+## Complete daily intake and patient history
+
+The web and channel check-ins cover K1–K12, with skipped facts remaining unknown and RED answers saved immediately in chats. The new **Patient timeline** view brings together saved reports, per-report pain/rescue values, original sources and audit history, plus a copyable pre-call summary. `pnpm escalation:run` enables automatic demo escalation checks every 30 seconds; it sends no notifications and requires this computer to stay running. See [the workspace guide](docs/12-CARE-TEAM-WORKSPACE.md).
+
+**Clinical review** shows unsigned rules, outstanding clinical questions and the handoff's care-card drafts for your partner to review locally. `pnpm eval:text` runs the 60-example EN/HI/KN keyword baseline; `pnpm eval:live` runs real extraction when Groq capacity is available. The first live run stopped on a quota/rate-limit error and is explicitly incomplete; see `output/evaluation/`. No evaluation result is labelled clinician-validated.

@@ -13,6 +13,15 @@ export const intakeSchema=z.object({
     breathing:z.enum(['normal','breathless_moving','breathless_rest','very_slow_or_pauses','noisy_rattling']).optional(),
     respiratoryRate:z.number().int().min(0).max(120).optional(),
     fullMinute:z.boolean().optional(),
+    nausea:z.enum(['none','feels_sick','vomited']).optional(),
+    vomitCount:z.number().int().min(0).max(100).optional(),
+    vomitAppearance:z.enum(['none','food','green_yellow','blood_or_coffee']).optional(),
+    stoolDays:z.number().int().min(0).max(365).optional(),
+    intake:z.enum(['usual','less','mouthfuls_sips','nothing']).optional(),
+    confusion:z.enum(['no','gradual','sudden','hallucinations']).optional(),
+    legSwelling:z.enum(['no','same','more']).optional(),
+    missedDoses:z.number().int().min(0).max(100).optional(),
+    coping:z.enum(['managing','struggling','not_coping']).optional(),
     concerns:z.string().trim().max(4000).optional(),
   }).strict(),
 }).strict();
@@ -52,6 +61,14 @@ export function buttonInput(request:Intake, context:Input['context']):Input {
   if(a.breathing) lines.push({key:'breathing',value:a.breathing,quote:breathing[a.breathing]});
   if(a.respiratoryRate!==undefined) lines.push({key:'resp_rate_per_min',value:a.respiratoryRate,quote:`Counted breaths: ${a.respiratoryRate}`});
   if(a.fullMinute!==undefined) lines.push({key:'resp_count_full_minute',value:a.fullMinute,quote:`Counted for a full minute: ${a.fullMinute?'yes':'no'}`});
+  const extra: [keyof typeof a,keyof Input['fields'],string][]=[
+    ['nausea','nausea_vomiting','Nausea or vomiting'],['vomitCount','vomit_count_24h','Vomiting episodes in 24 hours'],
+    ['vomitAppearance','vomit_appearance','Vomit appearance'],['stoolDays','days_since_stool','Days since last stool'],
+    ['intake','intake','Eating and drinking'],['confusion','confusion','Confusion or restlessness'],
+    ['legSwelling','leg_swelling','Feet or leg swelling'],['missedDoses','missed_regular_doses','Regular doses missed in 24 hours'],
+    ['coping','caregiver_coping','Caregiver coping'],
+  ];
+  for(const [answer,key,label] of extra){const value=a[answer];if(value!==undefined)lines.push({key,value,quote:`${label}: ${String(value).replaceAll('_',' ')}`});}
   const id=request.requestId;
   return {context, messages:[{id,text:[...lines.map(l=>l.quote),a.concerns].filter(Boolean).join('\n')||'No answers supplied'}],
     fields:Object.fromEntries(lines.map(l=>[l.key,{value:l.value,confidence:1,quote:l.quote,messageId:id}]))};

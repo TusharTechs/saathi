@@ -6,15 +6,7 @@ const chat=z.object({id:z.number().int(),type:z.string()});
 const message=z.object({message_id:z.number().int(),chat,from:user.optional(),text:z.string().optional(),voice:z.object({file_id:z.string(),duration:z.number().nonnegative().optional(),file_size:z.number().nonnegative().optional()}).optional()});
 export const updateSchema=z.object({update_id:z.number().int().nonnegative(),message:message.optional(),callback_query:z.object({id:z.string(),from:user,message:message.optional(),data:z.string().optional()}).optional()});
 export type Update=z.infer<typeof updateSchema>;
-type Answers=Intake['answers'];
-const questions:{key:keyof Answers;text:string;choices:[string,string][]}[]=[
- {key:'wakefulness',text:'How awake are they?',choices:[['Awake / talking normally','W1'],['Sleeping, wakes easily','W2'],['Drowsy but stays awake','W3'],['Falls asleep while talking/eating','W4'],['Very hard to wake / cannot wake','W5']]},
- {key:'breathing',text:'How is the breathing?',choices:[['Normal','normal'],['Breathless when moving','breathless_moving'],['Breathless at rest','breathless_rest'],['Very slow / long pauses','very_slow_or_pauses'],['Noisy / rattling','noisy_rattling']]},
- {key:'pain',text:'Pain now, 0–10?',choices:Array.from({length:11},(_,i)=>[String(i),String(i)])},
- {key:'rescue',text:'Number of extra doses in the last 24 hours? Choose a count or type a whole number (0–100).',choices:Array.from({length:7},(_,i)=>[String(i),String(i)])},
- {key:'respiratoryRate',text:'Breaths counted per minute? Choose a count or type a whole number (0–120).',choices:[8,10,12,14,16,20,24,30].map(n=>[String(n),String(n)])},
- {key:'fullMinute',text:'Was that breath count taken over a full minute?',choices:[['Yes','yes'],['No','no']]},
-];
+import {checkinQuestions as questions,parseCheckinAnswer} from '../../workflow/src/checkin.ts';
 const send=(chatId:number,text:string,buttons?:{text:string;callback_data:string}[][]):Action=>({method:'sendMessage',payload:{chat_id:chatId,text,...(buttons?{reply_markup:{inline_keyboard:buttons}}:{})},status:'pending'});
 const help='Synthetic demo only. Send an invented text report or a voice note up to 30 seconds / 2 MB. /checkin starts English buttons; /submit saves partial answers; /cancel discards the draft; /retry retries your last report; /language en|hi|kn|auto selects language; /stop unlinks this chat. No clinician, emergency response or clinical guidance is connected.';
 export function receipt(record:{id:string;report:{evaluation:{tier:string|null};processing?:{extraction:{status:string}}}}){return `Synthetic report saved (${record.id}). Demo tier: ${record.report.evaluation.tier??'needs clarification'}. ${record.report.processing?.extraction.status==='failed'?'Extraction failed; the source and any keyword flags remain in the queue. Use /retry or review it on the dashboard.':record.report.processing?.extraction.status==='pending'?'Extraction is still pending; the source and any keyword flags are saved. Check the dashboard before retrying.':'Review the source wording and observations on the dashboard.'} No clinician has been contacted. This bot is a test tool, not a clinical service.`;}
@@ -22,12 +14,7 @@ function prompt(chatId:number,draft:NonNullable<State['chats'][string]['draft']>
  const q=questions[draft.step]!;const choices=q.choices.map(([text,value])=>({text,callback_data:`q:${draft.nonce}:${draft.step}:${value}`}));
  const rows=[];for(let i=0;i<choices.length;i+=q.choices.length>7?4:1)rows.push(choices.slice(i,i+(q.choices.length>7?4:1)));
  rows.push([{text:'Skip / not known',callback_data:`q:${draft.nonce}:${draft.step}:skip`}]);
- return send(chatId,`Synthetic check-in · ${draft.step+1}/${questions.length}\n${q.text}\nUnanswered observations stay unknown. /submit saves now.`,rows);
-}
-function valueFor(step:number,value:string):string|number|boolean|undefined{
- if(value==='skip')return undefined;const q=questions[step];if(!q)return undefined;
- if(['pain','rescue','respiratoryRate'].includes(q.key)){if(!/^\d{1,3}$/.test(value))throw Error('invalid');const n=Number(value),max=q.key==='pain'?10:q.key==='rescue'?100:120;if(n>max)throw Error('invalid');return n;}
- if(!q.choices.some(([,v])=>v===value))throw Error('invalid');return q.key==='fullMinute'?value==='yes':value;
+ return send(chatId,`Synthetic check-in · ${draft.step+1}/${questions.length}\n${q.text}${q.max!==undefined?` Type a whole number from 0 to ${q.max}, or choose below.`:''}\nUnanswered observations stay unknown. /submit saves now.`,rows);
 }
 /** Only trust updates fetched from Telegram. A private, paired, consenting chat is required. */
 export function planUpdate(state:State,raw:unknown,botId:number,now=Date.now(),channel?:{name:'WhatsApp';namespace:string;externalId:string}){
@@ -60,11 +47,12 @@ export function planUpdate(state:State,raw:unknown,botId:number,now=Date.now(),c
  if(text==='/checkin'){session.draft={nonce:nonce(),step:0,answers:{},requestId:identity.requestId};p.actions.push(prompt(chatId,session.draft));return;}
  const submit=()=>{const draft=session.draft!;p.task={...identity,kind:'buttons',requestId:draft.requestId,externalId:channel?.externalId??`${botId}:checkin:${draft.requestId}`,answers:structuredClone(draft.answers)};delete session.draft;};
  if(text==='/submit'){if(session.draft)submit();else reply('No button draft is active. Use /checkin.');return;}
- const draft=session.draft,answer=cb?.data?new RegExp(`^q:${draft?.nonce}:([0-5]):(.+)$`).exec(cb.data):undefined;
- const numberReply=draft&&['pain','rescue','respiratoryRate'].includes(questions[draft.step]?.key??'')&&/^\d+$/.test(text)?text:undefined;
- if(cb||numberReply!==undefined){
-  if(!draft||(!numberReply&&(!answer||Number(answer[1])!==draft.step))){reply('That button is no longer current. Use the latest question or /checkin.');return;}
-  let value;try{value=valueFor(draft.step,numberReply??answer![2]!);}catch{reply('That answer is outside the allowed choices. Use the latest question or skip.');return;}
+ const draft=session.draft,answer=cb?.data?new RegExp(`^q:${draft?.nonce}:(\\d{1,2}):(.+)$`).exec(cb.data):undefined;
+ const numberReply=draft&&questions[draft.step]?.max!==undefined&&/^\d+$/.test(text)?text:undefined;
+ const textReply=draft&&questions[draft.step]?.textInput&&text&&!text.startsWith('/')&&text.length<=4000?text:undefined;
+ if(cb||numberReply!==undefined||textReply!==undefined){
+  if(!draft||(numberReply===undefined&&textReply===undefined&&(!answer||Number(answer[1])!==draft.step))){reply('That button is no longer current. Use the latest question or /checkin.');return;}
+  let value;try{value=parseCheckinAnswer(questions[draft.step]!,numberReply??textReply??answer![2]!);}catch{reply('That answer is outside the allowed choices. Use the latest question or skip.');return;}
   if(value!==undefined)(draft.answers as Record<string,unknown>)[questions[draft.step]!.key]=value;
   const evaluated=processReport(buttonInput({requestId:draft.requestId,patientId:session.patientId,answers:draft.answers},{pack:'adult'}),'buttons');
   draft.step++;if(evaluated.evaluation.tier==='RED'||draft.step===questions.length)submit();else p.actions.push(prompt(chatId,draft));return;

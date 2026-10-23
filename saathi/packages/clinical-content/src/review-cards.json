@@ -1,0 +1,41 @@
+{
+  "version": "review-drafts.1",
+  "cards": [
+    {
+      "id": "C-URG",
+      "title": "Emergency response",
+      "status": "draft",
+      "approved_by": null,
+      "approved_at": null,
+      "source": "docs/02-CLINICAL-PROTOCOL.md §7",
+      "text": "1. Your care team has been alerted. A doctor will call you within [N] minutes. You can also call the on-call doctor now: [on-call number].\n2. Do not give another extra dose of pain medicine until the doctor speaks to you.\n3. Stay with the patient. If they are lying down, turn them gently onto their side.\n4. If breathing becomes very slow or stops, or you cannot wake them, call **108** now.\n5. Keep the medicine box and this phone with you."
+    },
+    {
+      "id": "C2",
+      "title": "Giving opioid medicines",
+      "status": "draft",
+      "approved_by": null,
+      "approved_at": null,
+      "source": "docs/02-CLINICAL-PROTOCOL.md §7",
+      "text": "- *About morphine:* morphine is a strong pain medicine. Used as prescribed, it is safe and controls pain. Common effects are constipation (always give the laxative) and some sleepiness in the first days.\n- *Liquid morphine:*\n  1. Use only the oral syringe from the hospital, never a kitchen spoon.\n  2. Draw up exactly the amount on the chart.\n  3. Give it slowly into the side of the mouth, with the patient sitting up.\n  4. Tap \"Given\".\n  5. Give a rescue dose only for breakthrough pain, as the chart says, and tap \"Extra dose given\".\n  6. If the patient is very sleepy, do not give it. Tell the team.\n- *Fentanyl patch:*\n  1. Apply it to clean, dry, non-hairy, unbroken skin on the upper arm, chest or upper back. Clip hair; don't shave.\n  2. Don't cut the patch.\n  3. Press it firmly with your palm for 30 seconds.\n  4. Write the date and time on the patch or the chart.\n  5. Change it on the schedule on the chart (usually every 3 days), using a new spot each time.\n  6. Keep heat away (hot-water bottle, heating pad, hot bath, sunbathing). Heat makes more medicine enter the body.\n  7. Fold a used patch in half, sticky sides together, and store or return it as the team tells you. Keep it away from children.\n  8. If a patch falls off, apply a new one and tell the team.\n  9. If the patient becomes very sleepy or breathes slowly, remove the patch and call the doctor.\n- Videos: see §9 (patch video options are English only, so consider recording one at KMC)."
+    },
+    {
+      "id": "C6",
+      "title": "Constipation while taking morphine",
+      "status": "draft",
+      "approved_by": null,
+      "approved_at": null,
+      "source": "docs/02-CLINICAL-PROTOCOL.md §7",
+      "text": "1. Morphine almost always causes constipation.\n2. Give the laxative every day, even if the patient has passed stool.\n3. Offer fluids often.\n4. Gentle movement helps.\n5. Tell the team if there is no stool for 3 days, or if there is belly pain or vomiting."
+    },
+    {
+      "id": "C12",
+      "title": "Counting breaths and checking drowsiness (main card)",
+      "status": "draft",
+      "approved_by": null,
+      "approved_at": null,
+      "source": "docs/02-CLINICAL-PROTOCOL.md §7",
+      "text": "- *Counting breaths:* wait until the patient is resting quietly. Watch or feel the chest or tummy rise. Count each rise for **one full minute** by the phone timer, then pick the number in the app.\n  - **12 or fewer → RED:** the app alerts the doctor, and you call the on-call number.\n  - 13–15 → the team reviews today (🟡 pending confirmation).\n- *Checking drowsiness:* call their name and talk to them. Then pick the drop-down level that fits best (W1–W5). If they keep falling asleep while talking or eating, or are hard to wake, the app alerts the doctor immediately."
+    }
+  ]
+}

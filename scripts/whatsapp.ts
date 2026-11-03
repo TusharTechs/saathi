@@ -4,7 +4,7 @@ import {fileURLToPath} from 'node:url';
 import {join} from 'node:path';
 import {z} from 'zod';
 import {TelegramState,patient} from '../packages/telegram/src/state.ts';
-import {WhatsAppAPI,WhatsAppBusiness,discover,WhatsAppError,WhatsAppStore,WhatsAppWorker,readiness,runWhatsAppTask,channelNumber} from '../packages/whatsapp/src/index.ts';
+import {WhatsAppAPI,WhatsAppBusiness,discover,WhatsAppError,WhatsAppStore,WhatsAppWorker,OnCallState,OnCallAlerts,readiness,runWhatsAppTask,channelNumber} from '../packages/whatsapp/src/index.ts';
 const root=new URL('../',import.meta.url);const mode=process.argv[2]??'check';
 const option=(name:string)=>{const i=process.argv.indexOf(name);return i>=0?process.argv[i+1]:undefined;};
 try{
@@ -31,13 +31,16 @@ try{
    if(!(await store.queue()).patients.some(p=>p.id===patientId))throw Error('Unknown seeded patient');
    const phone=(await api.check()).display_phone_number.replace(/\D/g,'');if(!/^[1-9]\d{7,14}$/.test(phone))throw Error('Meta did not return a usable display phone number');
    const code=await state.pair(patientId,language);console.log(`Private 15-minute pairing link:\nhttps://wa.me/${phone}?text=${encodeURIComponent('/start '+code)}\nOpen it and send the prefilled command, then confirm synthetic-only consent. No message was sent by this command.`);
+  }else if(mode==='oncall'){
+   const phone=(await api.check()).display_phone_number.replace(/\D/g,'');if(!/^[1-9]\d{7,14}$/.test(phone))throw Error('Meta did not return a usable display phone number');
+   const code=await new OnCallState(directory).invite();console.log(`Private 15-minute on-call link (replaces any earlier unused link):\nhttps://wa.me/${phone}?text=${encodeURIComponent('/oncall '+code)}\nOpen it on the on-call doctor's phone and send the prefilled command while pnpm whatsapp:run --send is running. No message was sent by this command.`);
   }else if(mode==='run'){
    if(!process.argv.includes('--send'))throw Error('Run requires --send. No inbox messages were processed.');if(process.env.SAATHI_STORAGE!=='supabase')throw Error('WhatsApp requires Supabase storage');
    await api.check();await store.queue();await mkdir(directory,{recursive:true,mode:0o700});const lock=join(directory,`whatsapp-${id}.worker.lock`);
    try{await writeFile(lock,String(process.pid),{flag:'wx',mode:0o600});}catch{throw Error('A WhatsApp worker lock exists. Stop the other worker before inspecting a stale lock.');}
    const controller=new AbortController(),stop=()=>controller.abort();process.once('SIGINT',stop);process.once('SIGTERM',stop);
-   try{console.log('WhatsApp synthetic inbox worker active; replies enabled only within the incoming 24-hour window.');await new WhatsAppWorker(state,store,api,runWhatsAppTask(store,api,{sarvam:process.env.SARVAM_API_KEY??'',groq:process.env.GROQ_API_KEY??''}),e=>console.log(JSON.stringify(e))).poll(controller.signal);}
+   try{console.log('WhatsApp synthetic inbox worker active; replies enabled only within the incoming 24-hour window.');await new WhatsAppWorker(state,store,api,runWhatsAppTask(store,api,{sarvam:process.env.SARVAM_API_KEY??'',groq:process.env.GROQ_API_KEY??''}),e=>console.log(JSON.stringify(e)),new OnCallAlerts(new OnCallState(directory),store,api,e=>console.log(JSON.stringify(e)))).poll(controller.signal);}
    finally{process.off('SIGINT',stop);process.off('SIGTERM',stop);await rm(lock,{force:true});}
-  }else throw Error('Use check, subscribe --confirm, register --confirm, pair --patient demo-ramesh --language hi-IN, or run --send.');
+  }else throw Error('Use check, subscribe --confirm, register --confirm, pair --patient demo-ramesh --language hi-IN, oncall, or run --send.');
  }
 }catch(e){console.error(e instanceof WhatsAppError?e.message:'WhatsApp setup, worker state or storage could not be confirmed. Check configuration; existing state was preserved.');process.exitCode=1;}

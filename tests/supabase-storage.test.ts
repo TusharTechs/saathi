@@ -26,7 +26,7 @@ test('Supabase service-only storage transactions and grants',async t=>{
    create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
    grant usage on schema public,auth to anon,authenticated,service_role;
    alter default privileges in schema public grant execute on functions to anon,authenticated,service_role;`);
-  for(const file of ['supabase/migrations/202610230001_core.sql','supabase/migrations/202610230002_function_permissions.sql','supabase/seed/demo.sql','supabase/migrations/202610230003_demo_storage.sql','supabase/migrations/202610230004_conflict_responses.sql','supabase/migrations/202610230005_narrative_analysis.sql','supabase/migrations/202610230006_telegram_origin.sql','supabase/migrations/202610230007_whatsapp_intake.sql']) await db.exec(await readFile(new URL(file,root),'utf8'));
+  for(const file of ['supabase/migrations/202610230001_core.sql','supabase/migrations/202610230002_function_permissions.sql','supabase/seed/demo.sql','supabase/migrations/202610230003_demo_storage.sql','supabase/migrations/202610230004_conflict_responses.sql','supabase/migrations/202610230005_narrative_analysis.sql','supabase/migrations/202610230006_telegram_origin.sql','supabase/migrations/202610230007_whatsapp_intake.sql','supabase/migrations/202611030008_whatsapp_oncall.sql']) await db.exec(await readFile(new URL(file,root),'utf8'));
   await t.test('anonymous and authenticated roles cannot call any service-only RPC',async()=>{
    for(const role of ['anon','authenticated']){
     await db.exec(`set role ${role}`);
@@ -139,6 +139,10 @@ test('Supabase service-only storage transactions and grants',async t=>{
    const first=await rpc<{id:number;message:unknown}>('select public.saathi_wa_next($1,0) as data',[phone]);assert.ok(first.id>0);
    await rpc('select public.saathi_wa_complete($1,9999999) as data',[phone]);assert.equal(await rpc('select public.saathi_wa_next($1,0) as data',[phone]),null);
    await rpc('select public.saathi_wa_binding($1,$2,false,null) as data',[phone,sender]);assert.equal((await enqueue([{...m,id:'wamid.STOPPED'}])).accepted,0);
+   // On-call phones are unpaired: only on-call commands and well-formed Acknowledge taps are retained.
+   const doctor={...m,from:'918888888888'};
+   assert.equal((await enqueue([{...doctor,id:'wamid.ONCALL',text:'/oncall '+'b'.repeat(32)},{...doctor,id:'wamid.RENEW',text:'/oncall'},{...doctor,id:'wamid.OFF',text:'/offcall'},{...doctor,id:'wamid.ACK',kind:'button',buttonId:'ack:'+randomUUID()}])).accepted,4);
+   assert.equal((await enqueue([{...doctor,id:'wamid.DOCTOR_TEXT',text:'Invented report'},{...doctor,id:'wamid.BAD_ACK',kind:'button',buttonId:'ack:not-a-report'},{...doctor,id:'wamid.ONCALL_EXTRA',text:'/oncall now please'}])).accepted,0);
   });
   await t.test('WhatsApp report provenance reaches the shared message/check-in transaction',async()=>{
    const request=randomUUID(),origin={channel:'whatsapp',externalId:'wamid.SYNTHETIC'};

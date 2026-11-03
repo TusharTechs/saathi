@@ -45,3 +45,7 @@ The signed Meta webhook, private Supabase inbox, patient consent flow, text/voic
 The web and channel check-ins cover K1–K12, with skipped facts remaining unknown and RED answers saved immediately in chats. The new **Patient timeline** view brings together saved reports, per-report pain/rescue values, original sources and audit history, plus a copyable pre-call summary. `pnpm escalation:run` enables automatic demo escalation checks every 30 seconds; it sends no notifications and requires this computer to stay running. See [the workspace guide](docs/12-CARE-TEAM-WORKSPACE.md).
 
 **Clinical review** shows unsigned rules, outstanding clinical questions and the handoff's care-card drafts for your partner to review locally. `pnpm eval:text` runs the 60-example EN/HI/KN keyword baseline; `pnpm eval:live` runs real extraction when Groq capacity is available. The first live run stopped on a quota/rate-limit error and is explicitly incomplete; see `output/evaluation/`. No evaluation result is labelled clinician-validated.
+
+## Guided tour, FHIR export and on-call alerts
+
+Open http://127.0.0.1:3000/tour for a step-by-step walkthrough of every feature with live data. Each report has an **Export FHIR** button (FHIR R4, simulated ABHA). `pnpm whatsapp:oncall` registers the on-call doctor's WhatsApp for RED alerts with an Acknowledge button; send `/oncall` each shift to keep the free 24-hour window open. See [the WhatsApp guide](docs/11-WHATSAPP-INTAKE.md#on-call-doctor-alerts).

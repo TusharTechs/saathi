@@ -29,6 +29,16 @@ Meta refused to create another test WABA for the TechTush portfolio ("Business W
 
 The worker and pairing commands need existing Supabase storage configuration. Only one worker per configured Meta phone ID is supported, on the same host as its private conversation state. The webhook runs remotely, but transcription, extraction and outgoing replies require the local worker to be running. No always-on host, process manager or public dashboard is installed.
 
+## On-call doctor alerts
+
+Every new open RED report, from WhatsApp, Telegram or the web, is sent to one registered on-call WhatsApp number. The fixed alert text includes the synthetic patient, time, channel and matched rules, and an **Acknowledge** button. Tapping it acknowledges the report through the same audited transition as the dashboard, recorded as the simulated Demo doctor 1, which stops escalation.
+
+1. Apply the inbox filter once with `pnpm supabase:oncall` (migration 008). It lets unpaired numbers send only `/oncall <code>`, `/oncall`, `/offcall` and well-formed `ack:<report id>` taps; other content is still discarded.
+2. With `pnpm whatsapp:run --send` running, create a private 15-minute link with `pnpm whatsapp:oncall` and open it on the on-call phone. The phone must be a verified recipient while Saathi uses the Meta test number.
+3. **Send `/oncall` at the start of each shift.** WhatsApp allows free messages only within 24 hours of the phone's last message. When that window has lapsed, the alert is recorded as `window_closed` and nothing is sent; no paid template is used.
+
+Only REDs created after registration are alerted, at most five per 10-second check, and each one once. A send interrupted by a crash becomes `unknown` and is never repeated. `/offcall` stops alerts. State lives in `apps/web/.saathi-demo/whatsapp-<MetaPhoneID>/oncall.json`. The same phone can be both a family tester and the on-call number; only on-call commands and Acknowledge taps leave the family check-in flow.
+
 ## Receiver and queue
 
 `supabase/functions/whatsapp-webhook/handler.ts` is dependency-free code shared by the Edge entrypoint and Node tests. GET verification uses the separate token. Every POST requires an HMAC-SHA256 signature over the exact received bytes using the Meta App Secret. JSON parsing and database access occur only after verification. Requests are capped at 256 KB; wrong phone IDs, unsupported message types and delivery/status-only events do not trigger processing.

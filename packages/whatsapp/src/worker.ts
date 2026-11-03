@@ -4,6 +4,7 @@ import {TelegramState,type Task,type State} from '../../telegram/src/state.ts';
 import {planUpdate,queueResult,finishUpdate,receipt} from '../../telegram/src/engine.ts';
 import {WhatsAppAPI,WhatsAppError} from './api.ts';
 import {WhatsAppStore,type Inbound} from './store.ts';
+import type {OnCallAlerts} from './oncall.ts';
 export const channelNumber=(phone:string)=>createHash('sha256').update(phone).digest().readUInt32BE(0);
 export function planWhatsApp(state:State,id:number,message:Inbound,phone:string,now=Date.now()){
  const sender=Number(message.from),base={message_id:id,chat:{id:sender,type:'private'},from:{id:sender,is_bot:false}};
@@ -27,7 +28,7 @@ export function runWhatsAppTask(store:WhatsAppStore,api:WhatsAppAPI,keys:{sarvam
  };
 }
 export class WhatsAppWorker {
- constructor(private state:TelegramState,private store:WhatsAppStore,private api:WhatsAppAPI,private runTask:ReturnType<typeof runWhatsAppTask>,private log:(event:object)=>void=()=>{}){}
+ constructor(private state:TelegramState,private store:WhatsAppStore,private api:WhatsAppAPI,private runTask:ReturnType<typeof runWhatsAppTask>,private log:(event:object)=>void=()=>{},private oncall?:OnCallAlerts){}
  async recover(){
   let snapshot=await this.state.snapshot();const p=snapshot.pending;if(!p)return;
   await this.store.binding(this.api.phoneId,p.chatId,snapshot.chats[String(p.chatId)]);
@@ -51,7 +52,10 @@ export class WhatsAppWorker {
  }
  async once(){
   await this.recover();const state=await this.state.snapshot();await this.store.complete(this.api.phoneId,state.offset);
+  // An alert failure must not hold up family reports; it is retried on the next check.
+  await this.oncall?.check().catch(()=>this.log({event:'oncall_check',status:'failed'}));
   const next=await this.store.next(this.api.phoneId,state.offset);if(!next)return false;
+  if(await this.oncall?.inbound(next.message)){await this.state.transact(s=>{s.offset=next.id+1;});await this.store.complete(this.api.phoneId,next.id+1);return true;}
   await this.state.transact(s=>planWhatsApp(s,next.id,next.message,this.api.phoneId));await this.recover();return true;
  }
  async poll(signal:AbortSignal){while(!signal.aborted){if(!await this.once())await new Promise<void>(resolve=>{if(signal.aborted){resolve();return;}const end=()=>{clearTimeout(timer);signal.removeEventListener('abort',end);resolve();};const timer=setTimeout(end,2000);signal.addEventListener('abort',end,{once:true});});}}

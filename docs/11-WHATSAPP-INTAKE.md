@@ -1,6 +1,6 @@
 # WhatsApp intake readiness
 
-Implemented 23 October 2026; WhatsApp Business Account support added 3 November 2026. **Live WhatsApp is not activated yet.** The signed webhook source, private inbox, local processing worker, conversation flow, deployment commands and business-account readiness checks are prepared. No public function was published and no WhatsApp message was sent during implementation. On 3 November the stored `WA_ACCESS_TOKEN` was rejected by Meta (HTTP 401, probably an expired temporary token), so a new token is required.
+Implemented 23 October 2026; WhatsApp Business Account support added 3 November 2026. **Live WhatsApp is not activated yet.** The signed webhook source, private inbox, local processing worker, conversation flow, deployment commands and business-account readiness checks are prepared. No public function was published and no WhatsApp message was sent during implementation. On 3 November the stored `WA_ACCESS_TOKEN` was rejected by Meta (HTTP 401, probably an expired temporary token), so a new token is required. **Update:** later that day the Meta side passed `pnpm whatsapp:check`: the token, Messaging account, a test number registered for Cloud API and the webhook subscription all report ok. Publishing the receiver (steps 8–10) remains.
 
 ## Connecting a WhatsApp Business Account
 

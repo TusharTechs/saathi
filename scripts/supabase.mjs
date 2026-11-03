@@ -15,7 +15,8 @@ const whatsapp=(await readFile(new URL('supabase/migrations/202610230007_whatsap
 const oncall=(await readFile(new URL('supabase/migrations/202611030008_whatsapp_oncall.sql',root),'utf8')).replace(/^begin;\s*$/m,'').replace(/^commit;\s*$/m,'');
 const teleconsult=(await readFile(new URL('supabase/migrations/202611030009_teleconsult.sql',root),'utf8')).replace(/^begin;\s*$/m,'').replace(/^commit;\s*$/m,'');
 const accounts=(await readFile(new URL('supabase/migrations/202611040010_accounts_and_cloud_worker.sql',root),'utf8')).replace(/^begin;\s*$/m,'').replace(/^commit;\s*$/m,'');
-const query=schema.replace(/commit;\s*$/i,()=>`${hardening}\n${seed}\n${storage}\n${conflicts}\n${analysis}\n${telegram}\n${whatsapp}\n${oncall}\n${teleconsult}\n${accounts}\ncommit;`);
+const loginPhone=(await readFile(new URL('supabase/migrations/202611040011_login_expected_phone.sql',root),'utf8')).replace(/^begin;\s*$/m,'').replace(/^commit;\s*$/m,'');
+const query=schema.replace(/commit;\s*$/i,()=>`${hardening}\n${seed}\n${storage}\n${conflicts}\n${analysis}\n${telegram}\n${whatsapp}\n${oncall}\n${teleconsult}\n${accounts}\n${loginPhone}\ncommit;`);
 const hash=createHash('sha256').update(query).digest('hex').slice(0,12);
 const tables=['care_team_members','patients','patient_care_team','protocol_versions','messages','checkins','alerts','alert_events'];
 function project(){
@@ -130,6 +131,12 @@ end $s$;
 select cron.schedule('saathi-worker','*/2 * * * *',$job$select net.http_post(url:='${app}/api/worker',headers:=jsonb_build_object('Authorization','Bearer '||(select decrypted_secret from vault.decrypted_secrets where name='saathi_worker_secret')),body:='{}'::jsonb,timeout_milliseconds:=55000)$job$);`;
   await management(ref,'query',{query});
   console.log(JSON.stringify(await management(ref,'query',{query:"select jobname,schedule,active from cron.job where jobname='saathi-worker'",read_only:true})));
+ }else if(mode==='login-phone'){
+  const {ref}=project();
+  const state=await management(ref,'query',{query:"select to_regprocedure('public.saathi_login_challenge(text,integer,text)') is not null as ready",read_only:true});
+  if(!Array.isArray(state))throw new Error('Unexpected inspection response.');
+  if(state[0]?.ready)console.log('Mobile-first sign-in migration is already present.');
+  else{await management(ref,'migrations',{name:'saathi_202611040011_login_expected_phone',query:await readFile(new URL('supabase/migrations/202611040011_login_expected_phone.sql',root),'utf8')});console.log('Mobile-first sign-in migration applied.');}
  }else if(mode==='accounts'){
   const {ref}=project();
   const state=await management(ref,'query',{query:"select to_regprocedure('public.saathi_demo_close_as(uuid,integer,text,text,text)') is not null as ready",read_only:true});

@@ -1,4 +1,5 @@
 'use client';
+import JudgeSwitcher from '../../components/JudgeSwitcher';
 import { useCallback, useEffect, useState } from 'react';
 type Family={patient:{name:string;age:number;saathiId:string;hospital:string|null;hospitalId:string|null};medications:{key:string;name:string;dose:string;slots:string[];instructions:string}[];appointments:{kind:string;date:string;time?:string;note:string}[];requests:{id:string;createdAt:string;status:string;reply:string}[];fees:{enabled:boolean;audioCall:number}};
 const TZ='Asia/Kolkata',when=(at:string)=>new Date(at).toLocaleString('en-IN',{timeZone:TZ,day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
@@ -18,7 +19,7 @@ export default function FamilyPortal(){
   }
   if(!data)return <main className="family"><p className="muted">{error||'Loading…'}</p></main>;
   const latest=data.requests[0];
-  return <main className="family">
+  return <><JudgeSwitcher/><main className="family">
     <header><a className="brand" href="/c"><span className="brandmark">s</span>saathi<span className="branddot">●</span></a><button onClick={async()=>{await fetch('/api/session',{method:'DELETE'});window.location.href='/login';}}>Sign out</button></header>
     <p className="family-rider">Saathi is a support service, not an emergency service. If the patient is very sick, go to the nearest hospital or call 108 now.</p>
     {!confirmed?<section className="family-card"><h1>Is this the patient?</h1><dl><dt>Name</dt><dd>{data.patient.name}</dd><dt>Age</dt><dd>{data.patient.age}</dd><dt>Hospital</dt><dd>{data.patient.hospital??'—'} {data.patient.hospitalId?`(${data.patient.hospitalId})`:''}</dd><dt>Saathi ID</dt><dd>{data.patient.saathiId}</dd></dl>
@@ -34,5 +35,5 @@ export default function FamilyPortal(){
     {data.appointments.length>0&&<section className="family-card"><h2>Upcoming</h2><ul>{data.appointments.map((a,i)=><li key={i}>{a.kind==='opd_visit'?'OPD visit':a.kind==='phone_followup'?'Phone follow-up':'Refill due'} · {new Date(a.date+'T12:00:00+05:30').toLocaleDateString('en-IN',{day:'2-digit',month:'short'})}{a.time?` ${a.time}`:''}</li>)}</ul></section>}
     {data.requests.length>0&&<section className="family-card"><h2>Your requests</h2><ul>{data.requests.map(r=><li key={r.id}>{when(r.createdAt)} · {r.status==='resolved'?'Call completed':r.status==='acked'?'The care team will call you':'Received'}</li>)}</ul></section>}
     <p className="login-foot"><a href="/terms">Service terms and consent</a> · <a href="https://tushartechs.github.io/saathi-privacy/" target="_blank" rel="noreferrer">Privacy</a> · Synthetic demo data only</p>
-  </main>;
+  </main></>;
 }

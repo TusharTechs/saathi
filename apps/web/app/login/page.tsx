@@ -1,5 +1,6 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { JUDGE_EMAIL, JUDGE_PASSWORD } from '../../lib/judge-accounts';
 type Role='medical'|'coordinator'|'family';
 type Info={whatsappLogin:boolean;orgCode:string;demoSaathiId:string};
 type Challenge={id:string;code:string;text:string;link:string;qr:string;number:string};
@@ -11,18 +12,33 @@ const ROLES:[Role,string,string][]=[
 ];
 const post=async(payload:object)=>{const r=await fetch('/api/session',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const d=await r.json();if(!r.ok)throw Error(d.error);return d;};
 
-/** Shows a WhatsApp sign-in code and waits until the person sends it from their phone. */
+/**
+ * Mobile sign-in without paid SMS: the person types their number, taps once, and WhatsApp opens with the code already
+ * written. Sending it proves they own that number (messages to a business are free). The page then continues by itself.
+ */
 function WhatsAppVerify({onVerified}:{onVerified:(challengeId:string)=>void}){
-  const [c,setC]=useState<Challenge|null>(null),[error,setError]=useState(''),[expired,setExpired]=useState(false);
-  const start=useCallback(async()=>{setError('');setExpired(false);try{setC(await post({kind:'challenge'}));}catch(e){setError(e instanceof Error?e.message:'Could not create a code.');}},[]);
+  const [phone,setPhone]=useState(''),[c,setC]=useState<Challenge&{phone:string}|null>(null),[error,setError]=useState(''),[state,setState]=useState<'waiting'|'expired'|'mismatch'>('waiting'),[busy,setBusy]=useState(false);
   const done=useRef(false);
-  useEffect(()=>{if(!c)return;done.current=false;const id=setInterval(async()=>{try{const r=await fetch(`/api/session?challenge=${c.id}`,{cache:'no-store'});const d=await r.json();if(d.verified&&!done.current){done.current=true;clearInterval(id);onVerified(c.id);}else if(d.expired){clearInterval(id);setExpired(true);}}catch{/* keep polling */}},2000);return ()=>clearInterval(id);},[c,onVerified]);
-  if(!c)return <div className="wa-start"><button type="button" className="wa-button" onClick={start}>Verify my mobile with WhatsApp</button><p className="muted">You send us a short code from your WhatsApp. It is free, and no SMS is needed.</p>{error&&<p className="message error">{error}</p>}</div>;
+  const start=async()=>{setError('');setBusy(true);try{const d=await post({kind:'challenge',phone});setC(d);setState('waiting');
+    // On a phone, open WhatsApp straight away with the message ready to send.
+    if(window.matchMedia('(pointer:coarse)').matches)window.location.href=d.link;}catch(e){setError(e instanceof Error?e.message:'Could not start sign-in.');}finally{setBusy(false);}};
+  useEffect(()=>{if(!c)return;done.current=false;const id=setInterval(async()=>{try{const r=await fetch(`/api/session?challenge=${c.id}`,{cache:'no-store'});const d=await r.json();
+    if(d.verified&&!done.current){done.current=true;clearInterval(id);onVerified(c.id);}else if(d.expired){clearInterval(id);setState('expired');}else if(d.mismatch)setState('mismatch');}catch{/* keep polling */}},2000);return ()=>clearInterval(id);},[c,onVerified]);
+  if(!c)return <form className="wa-start" onSubmit={e=>{e.preventDefault();start();}}>
+    <label>Mobile number<input type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={e=>setPhone(e.target.value)} required placeholder="+91 98450 12345"/></label>
+    <button type="submit" className="wa-button" disabled={busy||phone.replace(/\D/g,'').length<8}>{busy?'Please wait…':'Verify with WhatsApp'}</button>
+    <p className="muted">WhatsApp opens with a code already typed. Tap <b>Send</b> and you are signed in. Free, no SMS needed.</p>
+    {error&&<p className="message error">{error}</p>}</form>;
   return <div className="wa-box">
-    <div><p>Send this message to Saathi on WhatsApp <b>{c.number}</b>:</p><p className="wa-code">{c.text}</p>
+    <div>
+      <p className="wa-step"><b>1.</b> Open WhatsApp on <b>{c.phone}</b> <button type="button" className="linkish" onClick={()=>{setC(null);setError('');}}>change</button></p>
       <a className="wa-button" href={c.link} target="_blank" rel="noreferrer">Open WhatsApp</a>
-      <p className="muted">{expired?<>This code expired. <button type="button" className="linkish" onClick={start}>Get a new code</button></>:<><span className="live-dot"/>Waiting for your message… this page continues by itself.</>}</p></div>
-    <div className="wa-qr"><div dangerouslySetInnerHTML={{__html:c.qr}}/><small>On a computer? Scan with your phone camera.</small></div>
+      <p className="wa-step"><b>2.</b> Tap <b>Send</b> on the message <span className="wa-code">{c.text}</span> to Saathi ({c.number}).</p>
+      <p className={state==='waiting'?'muted':'message error'}>{state==='expired'?<>This code expired. <button type="button" className="linkish" onClick={start}>Get a new code</button></>
+        :state==='mismatch'?<>That message came from a different number. Send it from WhatsApp on {c.phone}, or <button type="button" className="linkish" onClick={()=>setC(null)}>change the number</button>.</>
+        :<><span className="live-dot"/>Waiting for your message… this page continues by itself.</>}</p>
+    </div>
+    <div className="wa-qr"><div dangerouslySetInnerHTML={{__html:c.qr}}/><small>On a computer? Scan to open WhatsApp on your phone.</small></div>
   </div>;
 }
 
@@ -45,8 +61,10 @@ export default function Login(){
       <section className="judge-card">
         <div className="eyebrow">JUDGING SAATHI? EXPLORE INSTANTLY</div>
         <h1>Try it in one click</h1>
-        <p className="muted">Shared demo accounts with invented (synthetic) patients. No sign-up needed. The doctor view includes a short guided tour.</p>
+        <p className="muted">Invented (synthetic) patients, no sign-up needed. Switch between the three views any time from the bar at the top. The doctor view starts with a short guided tour.</p>
         <div className="judge-roles">{ROLES.map(([r,label,desc])=><button key={r} disabled={busy} onClick={()=>run(async()=>{await post({kind:'demo',role:r});go(r);})}><b>{label}</b><span>{desc}</span><i>Open →</i></button>)}</div>
+              <div className="judge-creds"><b>Or sign in with the judge test login</b> (one login for all three views; switch views from the bar at the top)
+          <p>Email <code>{JUDGE_EMAIL}</code> · Password <code>{JUDGE_PASSWORD}</code> <button type="button" onClick={()=>{setTab('signin');setMethod('email');setEmail(JUDGE_EMAIL);setPassword(JUDGE_PASSWORD);setError('');document.querySelector('.login-card')?.scrollIntoView({behavior:'smooth'});}}>Fill in</button></p></div>
       </section>
       <section className="login-card">
         <div className="login-switch" role="tablist"><button role="tab" aria-selected={tab==='signin'} className={tab==='signin'?'active':''} onClick={()=>switchTab('signin')}>Sign in</button><button role="tab" aria-selected={tab==='signup'} className={tab==='signup'?'active':''} onClick={()=>switchTab('signup')}>Create an account</button></div>

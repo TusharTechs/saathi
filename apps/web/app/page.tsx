@@ -1,4 +1,5 @@
 'use client';
+import JudgeSwitcher from '../components/JudgeSwitcher';
 import { useCallback, useEffect, useState } from 'react';
 import ClinicalReview from '../components/ClinicalReview';
 import PatientWorkspace from '../components/PatientWorkspace';
@@ -35,7 +36,7 @@ export default function Page(){
    const result=await send('/api/intake',payload);setSelected(result.record.id);setView('queue');setNotice('Synthetic report saved. No message has been sent.');setAnswers({});setRequestId('');setPendingPayload(null);
  };
  const update=(key:string,value:string)=>setAnswers({...answers,[key]:value});
- return <div className="shell">
+ return <><JudgeSwitcher/><div className="shell">
   <aside className="sidebar"><a className="brand" href="/" aria-label="Saathi home"><span className="brandmark">s</span>saathi<span className="branddot">●</span></a><div className="workspace-label">CARE TEAM WORKSPACE</div>
    <nav data-tour="nav"><button className={view==='queue'?'nav active':'nav'} onClick={()=>setView('queue')}><span>▤</span> Care queue <b>{queue.records.filter(r=>r.status!=='resolved').length}</b></button><button className={view==='intake'?'nav active':'nav'} onClick={()=>setView('intake')}><span>＋</span> Caregiver check-in</button><button className={view==='patients'?'nav active':'nav'} onClick={()=>setView('patients')}><span>◷</span> Patient timeline</button><button className={view==='review'?'nav active':'nav'} onClick={()=>setView('review')}><span>✓</span> Clinical review</button><a className="nav" data-tour="emr-link" href="/emr" target="_blank" rel="noreferrer"><span>⌂</span> Hospital EMR ↗</a><a className="nav" data-tour="coord-link" href="/coordinator" target="_blank" rel="noreferrer"><span>▦</span> Call manager report ↗</a><button className="nav tour-launch" onClick={()=>setTouring(true)}><span>▶</span> Tour for judges</button></nav>
    <div className="side-note"><span className="live-dot"/> Live demo · synthetic data<p>Five invented patients.<br/>Every report has a trace.</p></div>
@@ -54,5 +55,5 @@ export default function Page(){
    {touring&&<JudgeTour view={view} setView={setView as (v:TourView)=>void} hasReports={queue.records.length>0} onExample={()=>perform(()=>intake('urgent'))} onClose={()=>{localStorage.setItem('saathi-tour-seen','1');setTouring(false);}}/>}
    <footer>saathi <span>AI listens. The doctor decides.</span><small>Local prototype · clinician approval pending</small></footer>
   </main>
- </div>;
+ </div></>;
 }

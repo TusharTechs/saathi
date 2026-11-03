@@ -1,23 +1,23 @@
 import { z } from 'zod';
 import QRCode from 'qrcode';
 import { guard, body, store, json, fail } from '../../../lib/server';
-import { readSession, sessionCookie, publicDemo, type Role, type Session } from '../../../lib/session';
+import { readSession, sessionCookie, publicDemo, normalizePhone, type Role, type Session } from '../../../lib/session';
 import { accounts, hashPassword, verifyPassword, passwordRule, emailRule, limitAttempts, recordFailure, type Account } from '../../../lib/accounts';
 import { saathiId, WorkflowError } from '../../../../../packages/workflow/src/index';
+import { JUDGE_EMAIL, JUDGE_NAME, JUDGE_PATIENT } from '../../../lib/judge-accounts';
 const role=z.enum(['medical','coordinator','family']);
 const schema=z.discriminatedUnion('kind',[
   // Shared demo accounts so judges can explore every role in one click.
   z.object({kind:z.literal('demo'),role}).strict(),
-  z.object({kind:z.literal('challenge')}).strict(),
+  // Judges switch views without signing in again.
+  z.object({kind:z.literal('switch'),role}).strict(),
+  z.object({kind:z.literal('challenge'),phone:z.string().trim().min(8).max(20)}).strict(),
   z.object({kind:z.literal('email-login'),email:emailRule,password:z.string().min(1).max(128)}).strict(),
   z.object({kind:z.literal('whatsapp-login'),challengeId:z.uuid()}).strict(),
   z.object({kind:z.literal('signup'),role,name:z.string().trim().min(1).max(80),method:z.enum(['email','whatsapp']),email:emailRule.optional(),password:passwordRule.optional(),challengeId:z.uuid().optional(),orgCode:z.string().trim().max(40).optional(),saathiId:z.string().trim().max(20).optional(),agreed:z.literal(true)}).strict(),
 ]);
-const DEMO:Record<Role,Session>={
-  medical:{role:'medical',name:'Judge · Doctor (demo)',method:'demo'},
-  coordinator:{role:'coordinator',name:'Judge · Call manager (demo)',method:'demo'},
-  family:{role:'family',name:'Judge · Family of Ramesh K. (demo)',patientId:'demo-ramesh',method:'demo'},
-};
+// One judge identity viewed through each role; the family view is the synthetic patient Ramesh K.
+const judgeView=(role:Role,base:Partial<Session>={}):Session=>({name:JUDGE_NAME,method:'demo',...base,role,judge:true,...(role==='family'?{patientId:JUDGE_PATIENT,agreedAt:new Date().toISOString()}:{})});
 const ORG_CODE=()=>process.env.SAATHI_ORG_CODE||'SAATHI-DEMO';
 const WA_NUMBER=()=>(process.env.SAATHI_WA_NUMBER??'').replace(/[^\d]/g,'');
 export const runtime='nodejs';
@@ -28,24 +28,27 @@ export async function GET(request:Request){
   try{
     // Polling a WhatsApp sign-in code works before sign-in; the unguessable ID only reveals verified or expired.
     const challenge=new URL(request.url).searchParams.get('challenge');
-    if(challenge){const s=await accounts().status(z.uuid().parse(challenge));return json({verified:Boolean(s?.verified),expired:!s||s.expired});}
+    if(challenge){const s=await accounts().status(z.uuid().parse(challenge));return json({verified:Boolean(s?.verified),expired:!s||s.expired,mismatch:Boolean(s?.mismatch)});}
     return json({session:readSession(request),publicDemo:publicDemo(),whatsappLogin:Boolean(WA_NUMBER()),orgCode:ORG_CODE(),demoSaathiId:saathiId('demo-ramesh')});
   }catch(e){return fail(e);}
 }
 export async function POST(request:Request){
   try{
     preflight(request);const input=schema.parse(await body(request));
-    if(input.kind==='demo')return withCookie({role:input.role},DEMO[input.role]);
+    if(input.kind==='demo')return withCookie({role:input.role},judgeView(input.role));
+    if(input.kind==='switch'){const current=readSession(request);if(!current?.judge)throw new WorkflowError(403,'Only judge test sessions can switch views.');
+      return withCookie({role:input.role},judgeView(input.role,{name:current.name,method:current.method,accountId:current.accountId}));}
     const db=accounts();
     if(input.kind==='challenge'){
       const number=WA_NUMBER();if(!number)throw new WorkflowError(503,'WhatsApp sign-in is not configured.');
-      const {id,code}=await db.challenge(),text=`LOGIN ${code}`,link=`https://wa.me/${number}?text=${encodeURIComponent(text)}`;
-      return json({id,code,text,link,qr:await QRCode.toString(link,{type:'svg',margin:1,width:180,color:{dark:'#214f46',light:'#ffffff'}}),number:`+${number}`});
+      const phone=normalizePhone(input.phone),{id,code}=await db.challenge(phone),text=`LOGIN ${code}`,link=`https://wa.me/${number}?text=${encodeURIComponent(text)}`;
+      return json({id,code,text,link,qr:await QRCode.toString(link,{type:'svg',margin:1,width:180,color:{dark:'#214f46',light:'#ffffff'}}),number:`+${number}`,phone:`+${phone}`});
     }
     if(input.kind==='email-login'){
       limitAttempts('email:'+input.email);const a=await db.find({email:input.email});
       if(!a||!await verifyPassword(input.password,a.passwordHash)){recordFailure('email:'+input.email);throw new WorkflowError(400,'That email and password do not match an account.');}
-      await db.touch(a.id);return withCookie({role:a.role},sessionFor(a,'email'));
+      await db.touch(a.id);if(a.email===JUDGE_EMAIL)return withCookie({role:'medical'},judgeView('medical',{name:a.name,method:'email',accountId:a.id}));
+      return withCookie({role:a.role},sessionFor(a,'email'));
     }
     if(input.kind==='whatsapp-login'){
       const status=await db.status(input.challengeId);if(!status?.verified||!status.phone)throw new WorkflowError(400,status?.expired?'This code expired. Get a new one.':'We have not received your WhatsApp message yet.');

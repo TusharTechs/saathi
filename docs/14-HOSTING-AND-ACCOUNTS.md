@@ -13,8 +13,9 @@ Saathi runs entirely on free tiers with no computer left on.
 The worker's state (chat bindings and consent, on-call registration, reminders) moved from JSON files to `saathi_worker_state` with optimistic versions; a lease (`saathi_worker_lease`) keeps one pass at a time. `pnpm whatsapp:move-state` copied the local files once. `pnpm whatsapp:run --send` still works locally with `SAATHI_WORKER_STATE=supabase` but must not run alongside the cloud worker for long; the lease is only taken by cloud passes.
 
 ## Sign-in
-- **One-click demo accounts** for judges: doctor, call manager and family (Ramesh K., synthetic).
-- **Mobile via WhatsApp ("reverse OTP")**: the site shows `LOGIN 123456`; the person sends it from WhatsApp (link or QR). The receiver marks the code verified for the sender's number. Inbound messages are free, so no SMS provider is needed. Codes last 10 minutes and sign in once.
+- **For judges:** one-click buttons for each view, or one public test login (in `apps/web/lib/judge-accounts.ts`, shown on the sign-in page, created by `pnpm accounts:seed-judges`). Judge sessions show a "Judge view" bar to switch between doctor, call manager and family (Ramesh K., synthetic) without signing in again. Real accounts cannot switch.
+- **Mobile via WhatsApp:** the person types their number and taps *Verify with WhatsApp*; WhatsApp opens (automatically on phones, by QR on computers) with `LOGIN 123456` already typed, and they tap Send. The code only verifies if it arrives from the number they typed (migration 011); otherwise the page says it came from a different number. Messages to a business are free, so no SMS provider is needed. Codes last 10 minutes and sign in once.
+- **Why not a code sent to the phone:** SMS in India needs a paid provider and DLT registration, and Firebase phone auth needs the paid Blaze plan. WhatsApp codes sent by Saathi need a paid authentication template (about ₹0.12 each), a card on the WhatsApp account and, on the test number, only reach 5 registered phones.
 - **Email and password**: scrypt hashes; works for relatives abroad. No email is sent (no free mail provider is configured), so addresses are not verified and there is no password reset yet.
 - **Sign-up**: staff need the organisation invite code (`SAATHI_ORG_CODE`, demo `SAATHI-DEMO`, shown on the page for judges); families need the patient's Saathi ID (demo `SA-QFH9YB`). Everyone accepts the draft service terms.
 - Sessions are HMAC-signed cookies (12 h). Every API route checks the role. Password-guessing limits are per serverless instance.
@@ -26,4 +27,4 @@ The worker's state (chat bindings and consent, on-call registration, reminders) 
 - Saathi's fixed replies are English until Dr. Rao checks the Hindi and Kannada wording. Families can write or speak in English, Hindi or Kannada: typed messages are labelled by script and voice notes use Sarvam's language auto-detection.
 
 ## Commands
-`pnpm supabase:accounts` (migration 010) · `pnpm supabase:schedule` (pg_cron, run by Tushar) · `pnpm whatsapp:deploy --publish --replace` (receiver and its secrets) · `npx vercel deploy --prod` (from the repository root; `.vercelignore` keeps secrets out).
+`pnpm supabase:accounts` (migration 010) · `pnpm supabase:login-phone` (migration 011) · `pnpm accounts:seed-judges` · `pnpm supabase:schedule` (pg_cron; active since 3 Nov, every 2 minutes) · `pnpm whatsapp:deploy --publish --replace` (receiver and its secrets) · `npx vercel deploy --prod` (from the repository root; `.vercelignore` keeps secrets out).

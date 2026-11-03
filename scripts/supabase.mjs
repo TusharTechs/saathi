@@ -13,7 +13,8 @@ const analysis=(await readFile(new URL('supabase/migrations/202610230005_narrati
 const telegram=(await readFile(new URL('supabase/migrations/202610230006_telegram_origin.sql',root),'utf8')).replace(/^begin;\s*$/m,'').replace(/^commit;\s*$/m,'');
 const whatsapp=(await readFile(new URL('supabase/migrations/202610230007_whatsapp_intake.sql',root),'utf8')).replace(/^begin;\s*$/m,'').replace(/^commit;\s*$/m,'');
 const oncall=(await readFile(new URL('supabase/migrations/202611030008_whatsapp_oncall.sql',root),'utf8')).replace(/^begin;\s*$/m,'').replace(/^commit;\s*$/m,'');
-const query=schema.replace(/commit;\s*$/i,()=>`${hardening}\n${seed}\n${storage}\n${conflicts}\n${analysis}\n${telegram}\n${whatsapp}\n${oncall}\ncommit;`);
+const teleconsult=(await readFile(new URL('supabase/migrations/202611030009_teleconsult.sql',root),'utf8')).replace(/^begin;\s*$/m,'').replace(/^commit;\s*$/m,'');
+const query=schema.replace(/commit;\s*$/i,()=>`${hardening}\n${seed}\n${storage}\n${conflicts}\n${analysis}\n${telegram}\n${whatsapp}\n${oncall}\n${teleconsult}\ncommit;`);
 const hash=createHash('sha256').update(query).digest('hex').slice(0,12);
 const tables=['care_team_members','patients','patient_care_team','protocol_versions','messages','checkins','alerts','alert_events'];
 function project(){
@@ -105,6 +106,16 @@ try{
    await management(ref,'migrations',{name:'saathi_202611030008_whatsapp_oncall',query});
    console.log('WhatsApp on-call inbox filter applied.');
   }
+ }else if(mode==='teleconsult'){
+  const {ref}=project();
+  const state=await management(ref,'query',{query:"select to_regprocedure('public.saathi_demo_close(uuid,integer,text,text)') is not null as ready",read_only:true});
+  if(!Array.isArray(state))throw new Error('Unexpected teleconsult migration inspection response.');
+  if(state[0]?.ready)console.log('Teleconsult migration is already present. No migration was repeated.');
+  else{
+   const query=await readFile(new URL('supabase/migrations/202611030009_teleconsult.sql',root),'utf8');
+   await management(ref,'migrations',{name:'saathi_202611030009_teleconsult',query});
+   console.log('Teleconsult migration applied: call notes, care plans, dose logs and fees.');
+  }
  }else if(mode==='apply'){
   const {ref}=project();
   const result=await management(ref,'query',{query:`select tablename from pg_catalog.pg_tables where schemaname='public' and tablename in (${tables.map(t=>`'${t}'`).join(',')})`,read_only:true});
@@ -115,5 +126,5 @@ try{
   const count=Array.isArray(verified)?verified[0]?.patients:undefined;
   if(count!==5)throw new Error('Migration request completed but seed verification failed. Inspect the project before retrying.');
   console.log('Core migration and synthetic seed applied. Verified five synthetic patients. App storage is not switched automatically.');
- }else throw new Error('Use plan, check, storage, analysis, telegram, whatsapp, oncall or apply.');
+ }else throw new Error('Use plan, check, storage, analysis, telegram, whatsapp, oncall, teleconsult or apply.');
 }catch(error){console.error(error instanceof Error?error.message:'Supabase operation failed; credentials withheld.');process.exitCode=1;}

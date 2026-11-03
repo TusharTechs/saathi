@@ -1,0 +1,78 @@
+'use client';
+import { useEffect, useState } from 'react';
+import {escalationStatus} from '../../../packages/workflow/src/escalation';
+import {callbackDue,service} from '../../../packages/workflow/src/service-config';
+import type { RecordEntry, CarePlanEntry } from '../../../packages/workflow/src/index';
+import type { Patient } from '../../../packages/workflow/src/store';
+export type WorkspacePatient=Patient&{saathiId:string;abha:string;whatsapp:string|null};
+export type Workspace={patients:WorkspacePatient[];records:RecordEntry[];team:string[];storage:'local'|'supabase'|null;carePlans:Record<string,CarePlanEntry>;fees:Record<string,'due'|'paid'|'waived'>};
+const tier=(r:RecordEntry)=>r.report.evaluation.tier??'PENDING';
+const rank:Record<string,number>={RED:0,AMBER:1,PENDING:2,GREEN:3};
+const TZ='Asia/Kolkata';
+export const istDate=(at:string|number)=>new Intl.DateTimeFormat('en-CA',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(at));
+export const stamp=(at:string|number)=>new Date(at).toLocaleString('en-IN',{timeZone:TZ,day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+const clock=(at:number)=>new Date(at).toLocaleTimeString('en-IN',{timeZone:TZ,hour:'2-digit',minute:'2-digit'});
+const tierLabel=(t:string)=>t==='PENDING'?'REVIEW':t;
+const statusLabel:Record<RecordEntry['status'],string>={open:'New · not acknowledged',acked:'In call-back list',resolved:'Call closed'};
+const minutes=(ms:number)=>{const m=Math.round(Math.abs(ms)/60000);return m>=2880?`${Math.round(m/1440)} days`:m>=120?`${Math.round(m/60)} h`:`${m} min`;};
+// The RED message is Dr. Rao's wording from the 3 Nov call, awaiting written confirmation (review pack B1).
+export const RED_FAMILY_MESSAGE='The patient’s condition may be critical and cannot be managed through teleconsultation. Please seek urgent medical care at the nearest hospital now. If breathing stops or you cannot wake the patient, call 108. Our on-call doctor has also been alerted.';
+function Due({r,now}:{r:RecordEntry;now:number}){
+  if(r.status==='resolved')return null;const due=callbackDue(r.createdAt,r.report.evaluation.tier),left=due-now;
+  return <span className={`due ${left<0?'late':left<15*60000?'soon':''}`}>{left<0?`Call overdue by ${minutes(left)}`:`Call by ${clock(due)} · ${minutes(left)} left`}</span>;
+}
+type Props={ws:Workspace;selected:string|null;setSelected:(id:string|null)=>void;busy:boolean;perform:(task:()=>Promise<void>)=>Promise<void>;send:(url:string,payload:object)=>Promise<any>;setNotice:(n:string)=>void;onExample:()=>void;loaded:boolean};
+export default function CareQueue({ws,selected,setSelected,busy,perform,send,setNotice,onExample,loaded}:Props){
+  const today=istDate(Date.now());
+  const [date,setDate]=useState(today),[now,setNow]=useState(Date.now()),[notes,setNotes]=useState(''),[advice,setAdvice]=useState('');
+  useEffect(()=>{const id=setInterval(()=>setNow(Date.now()),30000);return ()=>clearInterval(id);},[]);
+  useEffect(()=>{setNotes('');setAdvice('');},[selected]);
+  // Oldest first within each urgency, so the team calls back in the order families asked.
+  const order=(a:RecordEntry,b:RecordEntry)=>(rank[tier(a)]!-rank[tier(b)]!)||Date.parse(a.createdAt)-Date.parse(b.createdAt);
+  const day=ws.records.filter(r=>istDate(r.createdAt)===date),carried=date===today?ws.records.filter(r=>r.status!=='resolved'&&istDate(r.createdAt)<date):[];
+  const open=[...carried,...day.filter(r=>r.status!=='resolved')];
+  const sections:[string,string,RecordEntry[]][]=[
+    ['urgent','Needs immediate review',open.filter(r=>tier(r)==='RED').sort(order)],
+    ['callback','Call-back list',open.filter(r=>tier(r)!=='RED').sort(order)],
+    ['closed',date===today?'Closed today':'Closed on this day',day.filter(r=>r.status==='resolved').sort((a,b)=>Date.parse(a.createdAt)-Date.parse(b.createdAt))],
+  ];
+  const all=sections.flatMap(s=>s[2]),chosen=all.find(r=>r.id===selected)??all[0];
+  const patient=chosen?ws.patients.find(p=>p.id===chosen.patientId):undefined,plan=chosen?ws.carePlans[chosen.patientId]?.plan:undefined;
+  const count=(t:string)=>day.filter(r=>tier(r)===t).length;
+  const phone=plan?.demographics.phone??patient?.whatsapp??null;
+  const fee=chosen?ws.fees[chosen.id]??'due':'due';
+  return <>
+    <section className="day-bar" aria-label="Reports for the selected day">
+      <label>Date<input type="date" value={date} max={today} onChange={e=>{setDate(e.target.value||today);setSelected(null);}}/></label>
+      {date!==today&&<button onClick={()=>{setDate(today);setSelected(null);}}>Back to today</button>}
+      <div className="day-counts"><span><b>{day.length}</b> calls received</span><span className="red"><b>{count('RED')}</b> RED</span><span className="amber"><b>{count('AMBER')}</b> AMBER</span><span><b>{count('GREEN')+count('PENDING')}</b> GREEN / review</span><span className="done"><b>{day.filter(r=>r.status==='resolved').length}</b> closed</span>{carried.length>0&&<span className="carry"><b>{carried.length}</b> still open from earlier days</span>}</div>
+    </section>
+    <div className="queue-layout"><section className="queue-panel">
+      {!loaded?<div className="empty">Loading workspace…</div>:all.length===0?<div className="empty"><div className="empty-symbol">✧</div><h3>No reports on {date===today?'this day yet':stamp(date+'T12:00:00+05:30').split(',')[0]}.</h3><p>Caregiver concerns from WhatsApp and the family web page appear here.</p>{date===today&&<button disabled={busy} onClick={onExample}>Load an urgent example</button>}</div>:
+      sections.map(([key,title,rows])=>rows.length>0&&<div key={key} className={`queue-section ${key}`}><h2>{title}<span>{rows.length}</span></h2>{rows.map(r=>{const p=ws.patients.find(p=>p.id===r.patientId)!;return <button key={r.id} className={`patient-row ${chosen?.id===r.id?'selected':''}`} onClick={()=>setSelected(r.id)}><div className={`row-marker ${tier(r).toLowerCase()}`}/><div className="avatar">{p.initials}</div><div className="row-text"><strong>{p.name} <span>{p.age} yr</span></strong><p>{p.diagnosis}</p><div className="row-reason">{r.report.evaluation.traces.filter(t=>t.outcome===true).map(t=>t.label).join(' · ')||'Call to understand the concern'}</div></div><div className="row-status"><span className={`pill ${tier(r).toLowerCase()}`}>{tierLabel(tier(r))}</span><small>{stamp(r.createdAt)}</small><small>{statusLabel[r.status]}</small><Due r={r} now={now}/></div></button>;})}</div>)}
+      <div className="queue-footer"><span className="live-dot"/> {ws.storage==='supabase'?'Supabase storage':ws.storage==='local'?'Local file storage':'Connecting to storage'} <span>·</span> Oldest first within each urgency · updates every 5 seconds</div>
+    </section>
+    <section className="detail-panel" aria-label="Report details">{chosen&&patient?<>
+      <div className="demographics">
+        <div className="demo-top"><div><div className="eyebrow">PATIENT · SYNTHETIC</div><h2>{plan?.demographics.name??patient.name}</h2><p>{plan?`${plan.demographics.age} yr · ${plan.demographics.sex}`:`${patient.age} yr`} · {plan?.diagnosis??patient.diagnosis}</p></div><span className={`pill ${tier(chosen).toLowerCase()}`}>{tierLabel(tier(chosen))}</span></div>
+        <dl><div><dt>Hospital ID</dt><dd>{plan?.hospital.hospitalId??'Not checked in'}</dd></div><div><dt>ABHA (simulated)</dt><dd>{patient.abha}</dd></div><div><dt>Saathi ID</dt><dd>{patient.saathiId}</dd></div><div><dt>Phone</dt><dd>{phone?`+${phone}`:'No verified number'}</dd></div><div><dt>Caregiver</dt><dd>{plan?`${plan.demographics.caregiver} (${plan.demographics.relation})`:'—'}</dd></div><div><dt>Address</dt><dd>{plan?.demographics.address??'—'}</dd></div></dl>
+        <div className="call-buttons"><a className={`call ${phone?'':'disabled'}`} href={phone?`tel:+${phone}`:undefined}>📞 Phone call</a><a className={`call ${phone?'':'disabled'}`} href={phone?`https://wa.me/${phone}`:undefined} target="_blank" rel="noreferrer">WhatsApp call or video</a><a className="call timeline" href={`/patients/${patient.id}`} target="_blank" rel="noreferrer">Patient timeline ↗</a></div>
+      </div>
+      <div className="detail-body">
+        <div className="detail-meta"><span>Received {stamp(chosen.createdAt)} · {chosen.report.origin?`${chosen.report.origin.channel==='telegram'?'Telegram':'WhatsApp'} · `:'Web · '}{chosen.report.source==='buttons'?'Check-in answers':chosen.report.source==='voice'?'Voice note':chosen.report.source==='text'?'Typed concern':'Synthetic example'}</span><span>{statusLabel[chosen.status]} <Due r={chosen} now={now}/></span></div>
+        {chosen.report.processing&&chosen.report.processing.extraction.status!=='complete'&&<div className="processing-status"><strong>{chosen.report.processing.extraction.status==='failed'?'Extraction failed · transcript preserved':'Extraction pending · transcript preserved'}</strong><button disabled={busy} onClick={()=>perform(async()=>{await send(`/api/analysis/${chosen.id}`,{});setNotice('Extraction retry checked.');})}>Retry extraction</button></div>}
+        <h3>What the caregiver reported</h3>{chosen.report.input.messages.map(m=><blockquote key={m.id}>{m.text}</blockquote>)}
+        <div className="trace-heading"><h3>Why this reached the queue</h3><span>{chosen.report.evaluation.protocolVersion} · unsigned</span></div>{chosen.report.evaluation.traces.filter(t=>t.outcome===true).map(t=><div className="trace-card" key={t.ruleId}><div><strong>{t.ruleId}</strong><span>{t.label}</span></div>{t.evidence.filter(e=>e.quote).map((e,i)=><p key={`${e.path}-${i}`}><code>{e.path} = {String(e.value)}</code><q>{e.quote}</q></p>)}</div>)}{chosen.report.safetyNet.map((h,i)=><div className="trace-card" key={i}><strong>Keyword safety net · {h.language.toUpperCase()}</strong><p><q>{h.phrase}</q> matched {h.id}{h.possibleNegation?' · possible negation, check on the call':''}</p></div>)}
+        {tier(chosen)!=='RED'&&chosen.report.evaluation.traces.every(t=>t.outcome!==true)&&<p className="muted">No rule matched. Call to understand the concern.</p>}
+        {tier(chosen)==='RED'&&<div className="family-message"><div className="eyebrow">MESSAGE TO THE FAMILY · DR. RAO’S WORDING, PENDING WRITTEN SIGN-OFF</div><p>{RED_FAMILY_MESSAGE}</p></div>}
+        <p className="muted">{escalationStatus(chosen)}</p>
+        {chosen.status==='open'&&<div className="actions"><button className="primary" disabled={busy} onClick={()=>perform(async()=>{await send(`/api/alerts/${chosen.id}`,{action:'acknowledge',expectedRevision:chosen.revision});setNotice('Added to the call-back list as simulated Demo doctor 1.');})}>Acknowledge · add to call-back list</button><a className="export-link" href={`/api/fhir/${chosen.id}`} download>Export FHIR</a></div>}
+        {chosen.status==='acked'&&<form className="close-call" onSubmit={e=>{e.preventDefault();perform(async()=>{await send(`/api/alerts/${chosen.id}`,{action:'close',expectedRevision:chosen.revision,notes,advice});setNotice('Call closed with notes.');});}}>
+          <h3>After the call</h3><label>Call notes (what was discussed)<textarea required rows={4} maxLength={4000} value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Synthetic demo only"/></label><label>Advice given<textarea rows={2} maxLength={2000} value={advice} onChange={e=>setAdvice(e.target.value)}/></label>
+          <div className="actions"><button className="primary" disabled={busy||!notes.trim()} type="submit">Close call</button><a className="export-link" href={`/api/fhir/${chosen.id}`} download>Export FHIR</a></div></form>}
+        {chosen.status==='resolved'&&<div className="actions"><a className="export-link" href={`/api/fhir/${chosen.id}`} download>Export FHIR</a></div>}
+        {service.fees.enabled&&<div className="fee-row"><span>Teleconsult fee (₹{service.fees.audioCall}, demo · no payment collected)</span><select aria-label="Fee status" value={fee} disabled={busy||ws.storage!=='supabase'} onChange={e=>{const status=e.target.value;perform(async()=>{await send(`/api/alerts/${chosen.id}`,{action:'fee',status});setNotice(`Fee marked ${status}.`);});}}><option value="due">Fee due</option><option value="paid">Fee paid</option><option value="waived">Waived</option></select></div>}
+        <h3 className="audit-title">Call log</h3><ol className="audit">{chosen.events.map(e=><li key={e.id}><div><strong>{e.type==='resolved'?'call closed':e.type==='acknowledged'?'added to call-back list':e.type.replaceAll('_',' ')}</strong><time>{stamp(e.at)}</time></div><p>{e.details}</p><small>{e.actor}</small></li>)}</ol>
+      </div></>:<div className="empty detail-empty"><div className="empty-symbol">↗</div><h3>Select a report.</h3><p>See the patient, the family’s words, the matched rules and the call log.</p></div>}</section></div>
+  </>;
+}

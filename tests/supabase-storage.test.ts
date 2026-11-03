@@ -26,7 +26,7 @@ test('Supabase service-only storage transactions and grants',async t=>{
    create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
    grant usage on schema public,auth to anon,authenticated,service_role;
    alter default privileges in schema public grant execute on functions to anon,authenticated,service_role;`);
-  for(const file of ['supabase/migrations/202610230001_core.sql','supabase/migrations/202610230002_function_permissions.sql','supabase/seed/demo.sql','supabase/migrations/202610230003_demo_storage.sql','supabase/migrations/202610230004_conflict_responses.sql','supabase/migrations/202610230005_narrative_analysis.sql','supabase/migrations/202610230006_telegram_origin.sql','supabase/migrations/202610230007_whatsapp_intake.sql','supabase/migrations/202611030008_whatsapp_oncall.sql']) await db.exec(await readFile(new URL(file,root),'utf8'));
+  for(const file of ['supabase/migrations/202610230001_core.sql','supabase/migrations/202610230002_function_permissions.sql','supabase/seed/demo.sql','supabase/migrations/202610230003_demo_storage.sql','supabase/migrations/202610230004_conflict_responses.sql','supabase/migrations/202610230005_narrative_analysis.sql','supabase/migrations/202610230006_telegram_origin.sql','supabase/migrations/202610230007_whatsapp_intake.sql','supabase/migrations/202611030008_whatsapp_oncall.sql','supabase/migrations/202611030009_teleconsult.sql']) await db.exec(await readFile(new URL(file,root),'utf8'));
   await t.test('anonymous and authenticated roles cannot call any service-only RPC',async()=>{
    for(const role of ['anon','authenticated']){
     await db.exec(`set role ${role}`);
@@ -73,6 +73,24 @@ test('Supabase service-only storage transactions and grants',async t=>{
    const ack=await rpc<RecordEntry>('select public.saathi_demo_transition($1,$2,$3) as data',[record.id,'acknowledge',latest.revision]);assert.equal(ack.status,'acked');
    await assert.rejects(rpc('select public.saathi_demo_transition($1,$2,$3) as data',[record.id,'resolve',latest.revision]),/Revision conflict/);
    const done=await rpc<RecordEntry>('select public.saathi_demo_transition($1,$2,$3) as data',[record.id,'resolve',ack.revision]);assert.equal(done.status,'resolved');assert.equal(done.events.length,6);
+  });
+  await t.test('teleconsult: calls close only after acknowledgement with notes; care plans, doses and fees persist',async()=>{
+   const fresh=(await submit(randomUUID(),'f'.repeat(64))).record;
+   await assert.rejects(rpc('select public.saathi_demo_close($1,$2,$3,$4) as data',[fresh.id,fresh.revision,'Spoke to family','']),/Acknowledge the report/);
+   const ack=await rpc<RecordEntry>('select public.saathi_demo_transition($1,$2,$3) as data',[fresh.id,'acknowledge',fresh.revision]);
+   await assert.rejects(rpc('select public.saathi_demo_close($1,$2,$3,$4) as data',[fresh.id,ack.revision,'  ','']),/Call notes are required/);
+   const closed=await rpc<RecordEntry>('select public.saathi_demo_close($1,$2,$3,$4) as data',[fresh.id,ack.revision,'Invented call: family advised','Go to nearest hospital']);
+   assert.equal(closed.status,'resolved');assert.match(closed.events.at(-1)!.details,/Call notes: Invented call: family advised Advice given: Go to nearest hospital/);
+   const plan={hospitalId:'KMC-DEMO-0001',medications:[{key:'morphine_oral',name:'Invented medicine'}]};
+   const saved=await rpc<{plan:typeof plan}>('select public.saathi_demo_checkin($1,$2::jsonb) as data',['demo-ramesh',JSON.stringify(plan)]);assert.deepEqual(saved.plan,plan);
+   assert.deepEqual((await rpc<Record<string,{plan:unknown}>>('select public.saathi_demo_care_plans() as data'))['demo-ramesh']!.plan,plan);
+   await assert.rejects(rpc('select public.saathi_demo_checkin($1,$2::jsonb) as data',['demo-nobody','{}']),/Synthetic patient not found/);
+   const today=new Date().toISOString().slice(0,10);
+   await rpc('select public.saathi_demo_log_dose($1,$2,$3::date,$4,$5,$6) as data',['demo-ramesh','morphine_oral',today,'morning','not_given','whatsapp']);
+   await rpc('select public.saathi_demo_log_dose($1,$2,$3::date,$4,$5,$6) as data',['demo-ramesh','morphine_oral',today,'morning','given','whatsapp']);
+   const doses=await rpc<{status:string}[]>('select public.saathi_demo_dose_logs($1) as data',['demo-ramesh']);assert.equal(doses.length,1);assert.equal(doses[0]!.status,'given');
+   await assert.rejects(rpc('select public.saathi_demo_log_dose($1,$2,$3::date,$4,$5,$6) as data',['demo-ramesh','x','2000-01-01','morning','given','web']),/out of range/);
+   await rpc('select public.saathi_demo_set_fee($1,$2) as data',[fresh.id,'paid']);assert.equal((await rpc<Record<string,string>>('select public.saathi_demo_fees() as data'))[fresh.id],'paid');
   });
   await t.test('narrative leases, immutable evidence, reopening and check-in fields are atomic',async()=>{
    const request=randomUUID(),text='He dozes off in the middle of conversations.';

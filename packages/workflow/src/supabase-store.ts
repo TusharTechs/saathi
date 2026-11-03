@@ -5,6 +5,7 @@ import { adultProtocol } from '../../clinical-content/src/index.ts';
 import { intakeSchema, buttonInput, processReport, originSchema, type Origin, type Report } from './intake.ts';
 import { fixtureInput } from './fixtures.ts';
 import { savedSchema, WorkflowError, type Snapshot, type RecordEntry, type Patient } from './store.ts';
+import { carePlanSchema, type CarePlan, type CarePlanEntry, type DoseLog, type Slot } from './care-plan.ts';
 const queueSchema=savedSchema.extend({storage:z.literal('supabase'),patients:z.array(z.object({id:z.string(),name:z.string(),age:z.number(),language:z.string(),diagnosis:z.string(),initials:z.string()})),team:z.array(z.string())});
 const recordSchema=savedSchema.shape.records.element;
 /** Server-only, service-role adapter. Use only behind the existing loopback demo guard. */
@@ -71,4 +72,17 @@ export class SupabaseStore {
   return recordSchema.parse(await this.rpc('saathi_demo_transition',{target:id,action,expected_revision:expectedRevision})) as unknown as RecordEntry;
  }
  async tick(){return z.object({changed:z.number().int().nonnegative()}).parse(await this.rpc('saathi_demo_tick'));}
+ /** Closes an acknowledged call with the clinician's notes and the advice given. */
+ async close(id:string,expectedRevision:number,notes:string,advice:string):Promise<RecordEntry>{
+  if(!notes.trim()||notes.length>4000||advice.length>2000)throw new WorkflowError(400,'Write call notes (up to 4000 characters) before closing the call.');
+  return recordSchema.parse(await this.rpc('saathi_demo_close',{target:id,expected_revision:expectedRevision,p_notes:notes,p_advice:advice})) as unknown as RecordEntry;
+ }
+ async checkin(patientId:string,plan:CarePlan):Promise<CarePlanEntry>{
+  const r=z.object({plan:carePlanSchema,checkedInAt:z.string()}).parse(await this.rpc('saathi_demo_checkin',{p_patient_key:patientId,p_plan:carePlanSchema.parse(plan)}));return r;
+ }
+ async carePlans():Promise<Record<string,CarePlanEntry>>{return z.record(z.string(),z.object({plan:carePlanSchema,checkedInAt:z.string()})).parse(await this.rpc('saathi_demo_care_plans'));}
+ async logDose(patientId:string,doseKey:string,dueDate:string,slot:Slot,status:'given'|'not_given',source:'whatsapp'|'web'){await this.rpc('saathi_demo_log_dose',{p_patient_key:patientId,p_dose_key:doseKey,p_due:dueDate,p_slot:slot,p_status:status,p_source:source});}
+ async doseLogs(patientId:string):Promise<DoseLog[]>{return z.array(z.object({doseKey:z.string(),dueDate:z.string(),slot:z.enum(['morning','afternoon','evening','night']),status:z.enum(['given','not_given']),reportedAt:z.string()})).parse(await this.rpc('saathi_demo_dose_logs',{p_patient_key:patientId}));}
+ async setFee(id:string,status:'due'|'paid'|'waived'){await this.rpc('saathi_demo_set_fee',{target:id,p_status:status});}
+ async fees():Promise<Record<string,'due'|'paid'|'waived'>>{return z.record(z.string(),z.enum(['due','paid','waived'])).parse(await this.rpc('saathi_demo_fees'));}
 }

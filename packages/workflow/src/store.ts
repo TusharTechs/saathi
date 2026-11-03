@@ -75,6 +75,22 @@ export class DemoStore {
       r.status=next;r.revision++;r.events.push(this.event(action==='acknowledge'?'acknowledged':'resolved',`Status changed to ${next}.`,'Demo doctor 1'));return r;
     });
   }
+  async close(id:string,expectedRevision:number,notes:string,advice:string){
+    if(!notes.trim()||notes.length>4000||advice.length>2000) throw new WorkflowError(400,'Write call notes (up to 4000 characters) before closing the call.');
+    return this.transact(state=>{
+      const r=state.records.find(r=>r.id===id);if(!r) throw new WorkflowError(404,'Report not found');
+      if(r.revision!==expectedRevision) throw new WorkflowError(409,'Report changed. Refresh and try again.');
+      if(r.status!=='acked') throw new WorkflowError(409,'Acknowledge the report before closing the call.');
+      r.status='resolved';r.revision++;r.events.push(this.event('resolved',`Call completed. Call notes: ${notes.trim()}${advice.trim()?` Advice given: ${advice.trim()}`:''}`,'Demo doctor 1'));return r;
+    });
+  }
+  // Care plans, dose logs and fees are hosted-only features; local mode stays a minimal offline fallback.
+  async checkin():Promise<never>{throw new WorkflowError(503,'Check in to Saathi requires Supabase storage.');}
+  async carePlans(){return {};}
+  async logDose():Promise<never>{throw new WorkflowError(503,'Dose logging requires Supabase storage.');}
+  async doseLogs(){return [];}
+  async setFee():Promise<never>{throw new WorkflowError(503,'Fee tracking requires Supabase storage.');}
+  async fees(){return {};}
   async tick(){
     return this.transact(state=>{
       let changed=0;

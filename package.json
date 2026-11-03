@@ -22,6 +22,7 @@
     "supabase:telegram": "node scripts/supabase.mjs telegram",
     "supabase:whatsapp": "node scripts/supabase.mjs whatsapp",
     "supabase:oncall": "node scripts/supabase.mjs oncall",
+    "supabase:teleconsult": "node scripts/supabase.mjs teleconsult",
     "whatsapp:oncall": "tsx scripts/whatsapp.ts oncall",
     "whatsapp:check": "tsx scripts/whatsapp.ts check",
     "whatsapp:pair": "tsx scripts/whatsapp.ts pair",

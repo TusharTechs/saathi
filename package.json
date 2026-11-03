@@ -26,6 +26,7 @@
     "supabase:accounts": "node scripts/supabase.mjs accounts",
     "supabase:schedule": "node scripts/supabase.mjs schedule",
     "supabase:login-phone": "node scripts/supabase.mjs login-phone",
+    "supabase:teleconsult-2": "node scripts/supabase.mjs teleconsult-2",
     "accounts:seed-judges": "tsx scripts/seed-judges.ts",
     "whatsapp:oncall": "tsx scripts/whatsapp.ts oncall",
     "whatsapp:check": "tsx scripts/whatsapp.ts check",

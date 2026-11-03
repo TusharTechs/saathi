@@ -91,6 +91,12 @@ export class DemoStore {
   async doseLogs(){return [];}
   async setFee():Promise<never>{throw new WorkflowError(503,'Fee tracking requires Supabase storage.');}
   async fees(){return {};}
+  async assign():Promise<never>{throw new WorkflowError(503,'Assignments require Supabase storage.');}
+  async assignments(){return {};}
+  async careEvent():Promise<never>{throw new WorkflowError(503,'Family updates require Supabase storage.');}
+  async careEvents(){return [];}
+  async prescribe():Promise<never>{throw new WorkflowError(503,'Prescriptions require Supabase storage.');}
+  async prescriptions(){return [];}
   async tick(){
     return this.transact(state=>{
       let changed=0;

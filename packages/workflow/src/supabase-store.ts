@@ -1,3 +1,4 @@
+import {rxItem,type Prescription} from './prescription.ts';
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
 import { inputSchema } from '../../shared/src/index.ts';
@@ -88,4 +89,14 @@ export class SupabaseStore {
  async doseLogs(patientId:string):Promise<DoseLog[]>{return z.array(z.object({doseKey:z.string(),dueDate:z.string(),slot:z.enum(['morning','afternoon','evening','night']),status:z.enum(['given','not_given']),reportedAt:z.string()})).parse(await this.rpc('saathi_demo_dose_logs',{p_patient_key:patientId}));}
  async setFee(id:string,status:'due'|'paid'|'waived'){await this.rpc('saathi_demo_set_fee',{target:id,p_status:status});}
  async fees():Promise<Record<string,'due'|'paid'|'waived'>>{return z.record(z.string(),z.enum(['due','paid','waived'])).parse(await this.rpc('saathi_demo_fees'));}
+ // Migration 012: call assignments, family updates (pain, admitted, discharged) and signed teleconsult prescriptions.
+ async assign(id:string,assignee:Assignee,by:string){await this.rpc('saathi_demo_assign',{target:id,p_assignee:assignee,p_by:by});}
+ async assignments():Promise<Record<string,{assignee:Assignee;by:string;at:string}>>{return z.record(z.string(),z.object({assignee:z.enum(['doctor','nurse','psychologist']),by:z.string(),at:z.string()})).parse(await this.rpc('saathi_demo_assignments'));}
+ async careEvent(patientId:string,kind:CareEvent['kind'],value:number|null,note:string|null,source:CareEvent['source']){return careEventSchema.parse(await this.rpc('saathi_demo_care_event',{p_patient_key:patientId,p_kind:kind,p_value:value,p_note:note,p_source:source}));}
+ async careEvents(patientId:string):Promise<CareEvent[]>{return z.array(careEventSchema).parse(await this.rpc('saathi_demo_care_events',{p_patient_key:patientId}));}
+ async prescribe(r:Prescription){await this.rpc('saathi_demo_prescribe',{p_patient_key:r.patientId,p_alert:r.alertId,p_prescriber:r.prescriber,p_registration:r.registration,p_items:r.items,p_advice:r.advice,p_signature:r.signature,p_id:r.id,p_issued:r.issuedAt});}
+ async prescriptions(patientId:string|null):Promise<Prescription[]>{return z.array(z.object({id:z.string(),alertId:z.string().nullable(),patientId:z.string(),prescriber:z.string(),registration:z.string(),items:z.array(rxItem),advice:z.string().nullable(),signature:z.string(),issuedAt:z.string()})).parse(await this.rpc('saathi_demo_prescriptions',{p_patient_key:patientId}));}
 }
+export type Assignee='doctor'|'nurse'|'psychologist';
+export const careEventSchema=z.object({kind:z.enum(['pain','admitted','discharged']),value:z.number().nullable(),note:z.string().nullable(),source:z.enum(['web','whatsapp','staff']),at:z.string()});
+export type CareEvent=z.infer<typeof careEventSchema>;

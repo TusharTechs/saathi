@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 // Optimistic page routing by role. Every API route still verifies the signed session itself.
 const home:Record<string,string>={medical:'/',coordinator:'/coordinator',family:'/c'};
-const allowed:Record<string,RegExp>={medical:/^\/(?!c(\/|$))/,coordinator:/^\/(coordinator|login|terms)(\/|$)/,family:/^\/(c|login|terms)(\/|$)/};
+const allowed:Record<string,RegExp>={medical:/^\/(?!c(\/|$))/,coordinator:/^\/(coordinator|login|terms)(\/|$)/,family:/^\/(c|login|terms|rx)(\/|$)/};
 export function proxy(request:NextRequest){
   const path=request.nextUrl.pathname,raw=request.cookies.get('saathi_session')?.value;
   let role:string|undefined;try{role=raw?JSON.parse(Buffer.from(raw.split('.')[0]!,'base64url').toString('utf8')).role:undefined;}catch{role=undefined;}

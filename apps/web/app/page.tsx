@@ -1,5 +1,6 @@
 'use client';
 import JudgeSwitcher from '../components/JudgeSwitcher';
+import RedAlert from '../components/RedAlert';
 import { useCallback, useEffect, useState } from 'react';
 import ClinicalReview from '../components/ClinicalReview';
 import PatientWorkspace from '../components/PatientWorkspace';
@@ -45,6 +46,7 @@ export default function Page(){
   <main><div className="topbar"><span>KMC Manipal <span className="slash">/</span> Home care</span><span className="demo-chip">SYNTHETIC DATA ONLY</span></div>
    <div className="page-heading"><div><div className="eyebrow">HOME PALLIATIVE CARE</div><h1>{view==='queue'?'A little closer to home.':view==='review'?'Ready for a clinician’s review.':view==='patients'?'The whole story, in one place.':'Tell the care team how things are.'}</h1><p>{view==='queue'?'Caregiver updates, clear priorities, and the words behind every alert.':view==='review'?'Draft protocol, care cards and the decisions still awaiting sign-off.':view==='patients'?'A patient’s saved reports, source words and care-team activity.':'A demo check-in for a synthetic patient. Leave anything you do not know unanswered.'}</p></div><button className="primary" onClick={()=>setView(view==='intake'?'queue':'intake')}>{view==='intake'?'View care queue':'+ New check-in'}</button></div>
    <div className="demo-banner"><span>◈</span><div><strong>Demo protocol · awaiting clinical approval</strong><p>{queue.storage==='supabase'?'Synthetic reports are stored in your Supabase project.':queue.storage==='local'?'Synthetic reports are stored on this computer.':'Connecting to configured storage.'} Reports are triaged by the unsigned demo protocol into teleconsult call-backs. No real patient is connected.</p></div></div>
+   <RedAlert records={queue.records} patients={queue.patients} onOpen={id=>{setSelected(id);setView('queue');}}/>
    {error&&<div className="message error" role="alert">{error} <button onClick={()=>perform(refresh)}>Refresh</button></div>}{notice&&<div className="message success" role="status">{notice}</div>}
    {view==='intake'&&<div data-tour="voice"><VoiceIntake patients={queue.patients} patientId={patientId} setPatientId={setPatientId} enabled={queue.storage==='supabase'} onSaved={async(record)=>{setSelected(record.id);setView('queue');setNotice(record.report.processing?.extraction.status==='failed'?'Transcript saved. Extraction failed; human review is required.':record.report.processing?.extraction.status==='pending'?'Report saved; extraction is still pending.':'Report saved with validated source quotes. Human review is still required.');await refresh();}}/></div>}
    {view==='queue'?<>

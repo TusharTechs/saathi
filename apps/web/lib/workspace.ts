@@ -17,8 +17,9 @@ async function pairedNumbers(){
   return numbers;
 }
 export async function workspace(){
-  const [queue,plans,feeMap,numbers]=await Promise.all([store.queue(),store.carePlans(),store.fees(),pairedNumbers()]);
+  const [queue,plans,feeMap,numbers,assigned]=await Promise.all([store.queue(),store.carePlans(),store.fees(),pairedNumbers(),store.assignments()]);
   const carePlans:Record<string,CarePlanEntry>=plans,fees:Record<string,'due'|'paid'|'waived'>=feeMap;
   const patients=queue.patients.map(p=>({...p,saathiId:saathiId(p.id),abha:simulatedAbha(p.id),whatsapp:numbers[p.id]??null}));
-  return {...queue,patients,carePlans,fees,service};
+  const assignments:Record<string,{assignee:'doctor'|'nurse'|'psychologist';by:string;at:string}>=assigned;
+  return {...queue,patients,carePlans,fees,assignments,service};
 }

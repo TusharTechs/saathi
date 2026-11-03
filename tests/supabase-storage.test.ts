@@ -26,7 +26,7 @@ test('Supabase service-only storage transactions and grants',async t=>{
    create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
    grant usage on schema public,auth to anon,authenticated,service_role;
    alter default privileges in schema public grant execute on functions to anon,authenticated,service_role;`);
-  for(const file of ['supabase/migrations/202610230001_core.sql','supabase/migrations/202610230002_function_permissions.sql','supabase/seed/demo.sql','supabase/migrations/202610230003_demo_storage.sql','supabase/migrations/202610230004_conflict_responses.sql','supabase/migrations/202610230005_narrative_analysis.sql','supabase/migrations/202610230006_telegram_origin.sql','supabase/migrations/202610230007_whatsapp_intake.sql','supabase/migrations/202611030008_whatsapp_oncall.sql','supabase/migrations/202611030009_teleconsult.sql','supabase/migrations/202611040010_accounts_and_cloud_worker.sql','supabase/migrations/202611040011_login_expected_phone.sql']) await db.exec(await readFile(new URL(file,root),'utf8'));
+  for(const file of ['supabase/migrations/202610230001_core.sql','supabase/migrations/202610230002_function_permissions.sql','supabase/seed/demo.sql','supabase/migrations/202610230003_demo_storage.sql','supabase/migrations/202610230004_conflict_responses.sql','supabase/migrations/202610230005_narrative_analysis.sql','supabase/migrations/202610230006_telegram_origin.sql','supabase/migrations/202610230007_whatsapp_intake.sql','supabase/migrations/202611030008_whatsapp_oncall.sql','supabase/migrations/202611030009_teleconsult.sql','supabase/migrations/202611040010_accounts_and_cloud_worker.sql','supabase/migrations/202611040011_login_expected_phone.sql','supabase/migrations/202611040012_prescriptions_assignments_updates.sql']) await db.exec(await readFile(new URL(file,root),'utf8'));
   await t.test('anonymous and authenticated roles cannot call any service-only RPC',async()=>{
    for(const role of ['anon','authenticated']){
     await db.exec(`set role ${role}`);
@@ -233,6 +233,23 @@ test('Supabase service-only storage transactions and grants',async t=>{
    assert.equal(acked.events.at(-1)!.actor,'Dr. Judge');
    const closed=await rpc<RecordEntry>(`select public.saathi_demo_close_as('${fresh.id}',2,'Spoke to the son','Go to hospital','Dr. Judge') as data`);
    assert.equal(closed.status,'resolved');assert.match(closed.events.at(-1)!.details,/Call completed by Dr\. Judge/);
+  });
+  await t.test('assignments, family updates and prescriptions',async()=>{
+   const rec=(await submit(randomUUID(),createHash('sha256').update('assign-me').digest('hex'))).record;
+   await db.query(`select public.saathi_demo_assign('${rec.id}','nurse','Coordinator A')`);
+   await db.query(`select public.saathi_demo_assign('${rec.id}','psychologist','Coordinator B')`);
+   const map=await rpc<Record<string,{assignee:string;by:string}>>('select public.saathi_demo_assignments() as data');assert.equal(map[rec.id]!.assignee,'psychologist');assert.equal(map[rec.id]!.by,'Coordinator B');
+   await assert.rejects(db.query(`select public.saathi_demo_assign('${rec.id}','surgeon','X')`),/check constraint/);
+   await db.query(`select public.saathi_demo_care_event('demo-ramesh','pain',6,null,'web')`);
+   await db.query(`select public.saathi_demo_care_event('demo-ramesh','discharged',null,'District hospital','web')`);
+   await assert.rejects(db.query(`select public.saathi_demo_care_event('demo-ramesh','pain',11,null,'web')`),/check constraint/);
+   await assert.rejects(db.query(`select public.saathi_demo_care_event('demo-ramesh','pain',null,null,'web')`),/check constraint/);
+   const ev=await rpc<{kind:string;value:number|null}[]>(`select public.saathi_demo_care_events('demo-ramesh') as data`);assert.deepEqual(ev.map(e=>[e.kind,e.value]),[['pain',6],['discharged',null]]);
+   const id=randomUUID(),sig='a'.repeat(43);
+   await db.query(`select public.saathi_demo_prescribe('demo-ramesh','${rec.id}','Dr. Judge','KMC-1','[{"medicine":"Ondansetron","dose":"4 mg","frequency":"BD","days":3,"instructions":""}]'::jsonb,null,'${sig}','${id}',now())`);
+   const rx=await rpc<{id:string;items:unknown[]}[]>(`select public.saathi_demo_prescriptions('demo-ramesh') as data`);assert.equal(rx[0]!.id,id);
+   await assert.rejects(db.query(`select public.saathi_demo_prescribe('demo-meena','${rec.id}','Dr. Judge','KMC-1','[{"medicine":"X"}]'::jsonb,null,'${sig}','${randomUUID()}',now())`),/does not belong/);
+   await assert.rejects(db.query(`select public.saathi_demo_prescribe('demo-ramesh',null,'Dr. Judge','KMC-1','[]'::jsonb,null,'${sig}','${randomUUID()}',now())`),/check constraint/);
   });
  }finally{await db.close();}
 });

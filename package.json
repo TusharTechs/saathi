@@ -24,6 +24,8 @@
     "whatsapp:check": "tsx scripts/whatsapp.ts check",
     "whatsapp:pair": "tsx scripts/whatsapp.ts pair",
     "whatsapp:run": "tsx scripts/whatsapp.ts run",
+    "whatsapp:subscribe": "tsx scripts/whatsapp.ts subscribe",
+    "whatsapp:register": "tsx scripts/whatsapp.ts register",
     "whatsapp:plan": "node scripts/whatsapp-deploy.mjs plan",
     "whatsapp:prepare": "node scripts/whatsapp-deploy.mjs prepare",
     "whatsapp:deploy": "node scripts/whatsapp-deploy.mjs deploy",

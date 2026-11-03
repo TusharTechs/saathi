@@ -38,7 +38,7 @@ A local worker now supports privately paired, consenting synthetic Telegram chat
 
 ## WhatsApp intake prepared
 
-The signed Meta webhook, private Supabase inbox, patient consent flow, text/voice/button worker and deployment commands are implemented. Live activation is pending Meta test-app credentials, additional project-scoped Functions/Secrets permissions and approval to publish the receiver. No WhatsApp messages have been sent. See [the WhatsApp readiness guide](docs/11-WHATSAPP-INTAKE.md) for setup, verification and remaining checks.
+The signed Meta webhook, private Supabase inbox, patient consent flow, text/voice/button worker and deployment commands are implemented. Saathi connects to a shared WhatsApp Business Account: `pnpm whatsapp:check` audits the token, WABA, number registration and webhook subscription read-only, and `pnpm whatsapp:subscribe --confirm` / `pnpm whatsapp:register --confirm` make the two account changes explicitly. Live activation is pending a dedicated number with a system-user token, additional project-scoped Functions/Secrets permissions and approval to publish the receiver. No WhatsApp messages have been sent. See [the WhatsApp readiness guide](docs/11-WHATSAPP-INTAKE.md) for setup, verification and remaining checks.
 
 ## Complete daily intake and patient history
 

@@ -105,6 +105,8 @@ Other points from the call:
 | 23 Oct | Implement unsigned adult demo protocol only. Keep A15 disabled; reject paediatric evaluation. Separate follow-up status from tier; retain missing-data uncertainty. See docs/06 for implementation assumptions. |
 
 | 23 Oct | Add loopback-only demo workflow; poll local persistent queue. Supabase SQL is tested locally but unapplied. Authenticated shared storage and external delivery are deferred. See docs/07. |
+| 3 Nov | Move the workspace from `saathi/` to the repository root. |
+| 3 Nov | Connect WhatsApp through the doctor partner's shared WhatsApp Business Account, using a dedicated synthetic-demo number (never the clinic's patient-facing number) and a non-expiring system-user token. Replies stay inside the free 24-hour service window; no templates. See docs/11. |
 
 ## 8. Open items (batch these into one message to Dr. Rao)
 1. **13–15 breaths/min:** make it **AMBER** for adults? Proposed, not yet confirmed.
@@ -156,3 +158,7 @@ Completed the K1–K12 daily-topic questionnaire for web and shared channel inta
 Added 60 provisional multilingual evaluation cases, a keyword-only baseline and a real extraction runner with per-language metrics and explicit failed/unrun outcomes. Keyword baseline matched 10/30 expected REDs and overcalled four expected PENDING examples; live Groq evaluation completed one case then stopped on quota/rate-limit, leaving one failed and 58 unrun. This is not a completed model or speech evaluation. See docs/12 and output/evaluation.
 
 WhatsApp activation is deferred while the user expects the doctor partner to share an existing WhatsApp Business account. Meta's test-account creation returned API 200003 / code 2494067 (“Business WABA Limit reached”) despite TechTush's visible account list being empty; no payment or verification changes were made by the agent. The app remains private to loopback, with simulated operator identity. Public authentication/deployment, clinical approvals, prescription/reminder inputs and the optional features in docs/04 remain outstanding.
+
+## 17. WhatsApp Business Account support · 3 November 2026
+
+Moved the workspace to the repository root. Added read-only `pnpm whatsapp:check` readiness for a shared WhatsApp Business Account. It covers token validity, app, expiry, permissions and WABA grant; WABA membership; Cloud API registration; display name and quality; webhook subscription; and multi-number WABAs. It can also discover the app and WABA IDs from the token. Explicit `whatsapp:subscribe --confirm` and `whatsapp:register --confirm` handle the two account changes. 158 tests pass. The stored access token was rejected by Meta (HTTP 401), so a new system-user token, `WA_APP_ID` and `WA_BUSINESS_ACCOUNT_ID` are needed. Senders identified only by a business-scoped user ID are not yet supported. No account changes were made and no messages were sent.

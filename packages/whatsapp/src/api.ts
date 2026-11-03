@@ -16,7 +16,7 @@ export class WhatsAppAPI {
  async send(action:Action,receivedAt:number){
   if(action.method!=='sendMessage')return;
   if(!Number.isFinite(receivedAt)||Date.now()-receivedAt>=24*60*60*1000||receivedAt>Date.now()+300000)throw new WhatsAppError('rejected','The 24-hour reply window expired. No template or paid fallback was sent.');
-  const to=String(action.payload.chat_id);if(!/^\d{8,15}$/.test(to))throw new WhatsAppError('rejected','Invalid test recipient.');
+  const to=String(action.payload.chat_id);if(!/^\d{8,15}$/.test(to))throw new WhatsAppError('rejected','Invalid recipient.');
   const body=action.payload.text??'',buttons=action.payload.reply_markup?.inline_keyboard.flat()??[];
   let message:object={type:'text',text:{body}};
   if(buttons.length&&buttons.length<=3)message={type:'interactive',interactive:{type:'button',body:{text:body},action:{buttons:buttons.map(b=>({type:'reply',reply:{id:b.callback_data,title:b.text.includes('synthetic reports only')?'Agree synthetic only':b.text.slice(0,20)}}))}}};

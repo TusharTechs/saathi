@@ -4,15 +4,24 @@ import {fileURLToPath} from 'node:url';
 import {join} from 'node:path';
 import {z} from 'zod';
 import {TelegramState,patient} from '../packages/telegram/src/state.ts';
-import {WhatsAppAPI,WhatsAppError,WhatsAppStore,WhatsAppWorker,runWhatsAppTask,channelNumber} from '../packages/whatsapp/src/index.ts';
+import {WhatsAppAPI,WhatsAppBusiness,discover,WhatsAppError,WhatsAppStore,WhatsAppWorker,readiness,runWhatsAppTask,channelNumber} from '../packages/whatsapp/src/index.ts';
 const root=new URL('../',import.meta.url);const mode=process.argv[2]??'check';
 const option=(name:string)=>{const i=process.argv.indexOf(name);return i>=0?process.argv[i+1]:undefined;};
 try{
  loadEnvFile(new URL('apps/web/.env.local',root));
- const required=['WA_PHONE_NUMBER_ID','WA_ACCESS_TOKEN','WA_APP_SECRET','WA_VERIFY_TOKEN'];
+ const required=['WA_APP_ID','WA_APP_SECRET','WA_BUSINESS_ACCOUNT_ID','WA_PHONE_NUMBER_ID','WA_ACCESS_TOKEN','WA_VERIFY_TOKEN'];
+ const business=()=>new WhatsAppBusiness({appId:process.env.WA_APP_ID??'',appSecret:process.env.WA_APP_SECRET??'',wabaId:process.env.WA_BUSINESS_ACCOUNT_ID??'',phoneId:process.env.WA_PHONE_NUMBER_ID??''},process.env.WA_ACCESS_TOKEN??'',process.env.WA_GRAPH_VERSION??'v26.0');
  if(mode==='check'){
-  const missing=required.filter(k=>!process.env[k]);if(missing.length){console.log(JSON.stringify({ready:false,missing,externalMessagesSent:0}));process.exitCode=1;}
-  else{const api=new WhatsAppAPI(process.env.WA_PHONE_NUMBER_ID!,process.env.WA_ACCESS_TOKEN!,process.env.WA_GRAPH_VERSION??'v26.0');const info=await api.check();if(info.id!==api.phoneId)throw Error('Phone ID mismatch');console.log(JSON.stringify({ready:true,accessToken:'accepted',appSecret:'configured; live signature not verified',externalMessagesSent:0}));}
+  const missing=required.filter(k=>!process.env[k]);
+  if(missing.length){const found=process.env.WA_ACCESS_TOKEN&&(missing.includes('WA_APP_ID')||missing.includes('WA_BUSINESS_ACCOUNT_ID'))?await discover(process.env.WA_ACCESS_TOKEN,process.env.WA_GRAPH_VERSION??'v26.0'):undefined;
+   console.log(JSON.stringify({ready:false,missing,...(found?{tokenIssuedFor:{WA_APP_ID:found.appId??null,WA_BUSINESS_ACCOUNT_ID:found.wabaIds,tokenValid:found.isValid}}:{}),externalMessagesSent:0}));process.exitCode=1;}
+  else{const b=business(),result=readiness({appId:process.env.WA_APP_ID!,appSecret:'',wabaId:process.env.WA_BUSINESS_ACCOUNT_ID!,phoneId:process.env.WA_PHONE_NUMBER_ID!},await b.inspect());
+   for(const c of result.checks)console.log(`${c.level==='ok'?'ok   ':c.level==='warn'?'warn ':'BLOCK'} ${c.id.padEnd(18)} ${c.detail}`);
+   console.log(JSON.stringify({ready:result.ready,appSecret:'configured; live signature not verified',externalMessagesSent:0}));if(!result.ready)process.exitCode=1;}
+ }else if(mode==='subscribe'||mode==='register'){
+  if(!process.argv.includes('--confirm'))throw new WhatsAppError('configuration',`${mode} changes the WhatsApp Business Account. Review pnpm whatsapp:check, then re-run with --confirm. No changes made.`);
+  const result=mode==='subscribe'?await business().subscribe():await business().register(process.env.WA_TWO_STEP_PIN??'');
+  console.log(JSON.stringify({operation:mode,changed:result.changed,externalMessagesSent:0}));
  }else{
   const api=new WhatsAppAPI(process.env.WA_PHONE_NUMBER_ID??'',process.env.WA_ACCESS_TOKEN??'',process.env.WA_GRAPH_VERSION??'v26.0');
   const directory=join(fileURLToPath(new URL('apps/web/.saathi-demo/',root)),`whatsapp-${api.phoneId}`),id=channelNumber(api.phoneId),state=new TelegramState(directory,id,'whatsapp');
@@ -29,6 +38,6 @@ try{
    const controller=new AbortController(),stop=()=>controller.abort();process.once('SIGINT',stop);process.once('SIGTERM',stop);
    try{console.log('WhatsApp synthetic inbox worker active; replies enabled only within the incoming 24-hour window.');await new WhatsAppWorker(state,store,api,runWhatsAppTask(store,api,{sarvam:process.env.SARVAM_API_KEY??'',groq:process.env.GROQ_API_KEY??''}),e=>console.log(JSON.stringify(e))).poll(controller.signal);}
    finally{process.off('SIGINT',stop);process.off('SIGTERM',stop);await rm(lock,{force:true});}
-  }else throw Error('Use check, pair --patient demo-ramesh --language hi-IN, or run --send.');
+  }else throw Error('Use check, subscribe --confirm, register --confirm, pair --patient demo-ramesh --language hi-IN, or run --send.');
  }
 }catch(e){console.error(e instanceof WhatsAppError?e.message:'WhatsApp setup, worker state or storage could not be confirmed. Check configuration; existing state was preserved.');process.exitCode=1;}

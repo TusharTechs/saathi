@@ -20,7 +20,8 @@ export function readiness(config:BusinessConfig,inspection:Inspection,now=Date.n
  const missing=SCOPES.filter(s=>!token.scopes.includes(s));
  add('token.scopes',!missing.length,missing.length?`Token lacks ${missing.join(', ')}.`:'Token has messaging and management permissions.');
  const targets=token.granular_scopes.filter(g=>SCOPES.includes(g.scope)).map(g=>g.target_ids);
- const covered=assignedWabaIds.includes(config.wabaId)||(targets.length>0&&targets.every(ids=>ids?.includes(config.wabaId)));
+ // Messaging accounts can be reachable without appearing in the assigned list or granular targets.
+ const covered=account?.id===config.wabaId||assignedWabaIds.includes(config.wabaId)||(targets.length>0&&targets.every(ids=>ids?.includes(config.wabaId)));
  const assigned=assignedWabaIds.length?`assigned WhatsApp account IDs: ${assignedWabaIds.join(', ')}`:'no WhatsApp account is assigned to the system user';
  add('token.waba',covered,covered?'Token is granted on WA_BUSINESS_ACCOUNT_ID.':`Token is not granted on WA_BUSINESS_ACCOUNT_ID (${assigned}). In Business settings > System users > Assign assets > Messaging accounts, give the system user full control of the account whose "Messaging account ID" is shown in WhatsApp > API Setup, then generate a new token. The "WhatsApp accounts" asset type is not the API account.`);
  if(!account){add('waba.access',false,'Meta cannot load WA_BUSINESS_ACCOUNT_ID with this token, so number and webhook checks were skipped.');return {ready:false,checks};}

@@ -11,7 +11,7 @@ test('missing webhook subscription, foreign token app, wrong WABA grant or unreg
  for(const [id,change] of [
   ['webhook.subscribed',(i:Inspection)=>{i.subscribedApps=['999'];}],
   ['token.app',(i:Inspection)=>{i.token.app_id='999';}],
-  ['token.waba',(i:Inspection)=>{i.token.granular_scopes[0]!.target_ids=['999'];}],
+  ['token.waba',(i:Inspection)=>{i.token.granular_scopes[0]!.target_ids=['999'];i.account=null;}],
   ['token.scopes',(i:Inspection)=>{i.token.scopes=['whatsapp_business_messaging'];}],
   ['phone.in_waba',(i:Inspection)=>{i.phones=[{id:'444',platform_type:'CLOUD_API'}];}],
   ['phone.cloud_api',(i:Inspection)=>{i.phones[0]!.platform_type='NOT_APPLICABLE';}],
@@ -20,7 +20,8 @@ test('missing webhook subscription, foreign token app, wrong WABA grant or unreg
 test('a system user without the WhatsApp account assigned is reported, and later checks are skipped',()=>{
  const i=healthy();i.token.granular_scopes=[{scope:'whatsapp_business_messaging'},{scope:'whatsapp_business_management'}];i.account=null;i.phones=[];i.subscribedApps=[];
  const r=readiness(config,i);assert.equal(r.ready,false);assert.equal(level(r,'token.waba'),'block');assert.match(r.checks.find(c=>c.id==='token.waba')!.detail,/no WhatsApp account is assigned/);assert.equal(level(r,'waba.access'),'block');assert.equal(level(r,'webhook.subscribed'),undefined);
- i.assignedWabaIds=['222'];i.account={id:'222'};i.phones=healthy().phones;i.subscribedApps=['111'];assert.equal(readiness(config,i).ready,true);
+ i.account={id:'222'};i.phones=healthy().phones;i.subscribedApps=['111'];assert.equal(readiness(config,i).ready,true);
+ i.account=null;i.assignedWabaIds=['222'];assert.equal(level(readiness(config,i),'token.waba'),'ok');
 });
 test('expiring tokens, shared WABAs and pending display names warn without blocking',()=>{
  const i=healthy();i.token.expires_at=Math.floor(Date.now()/1000)+3600;i.phones.push({id:'555'});i.phones[0]!.name_status='PENDING_REVIEW';

@@ -1,28 +1,29 @@
 {
+  "complete": true,
   "mode": "live-extraction",
-  "createdAt": "2026-10-23T18:51:49.072Z",
+  "createdAt": "2026-11-03T11:12:59.402Z",
   "corpusSha256": "5785f2ffba580c4d911d579a2fe013aebe001517ce40c6aa4978fe1c661ba925",
   "labels": "engineering_authored_not_clinician_validated",
   "scope": "Text only. No STT, no real patients, no database writes or outbound messages. Confidence calibration, extra-field correctness and translation quality are not scored.",
   "overall": {
     "cases": 60,
-    "errors": 1,
-    "notRun": 58,
-    "redRecall": 0.03333333333333333,
-    "redPrecision": 1,
-    "fieldAccuracy": 0.016666666666666666,
-    "medianLatencyMs": 1134.5,
+    "errors": 0,
+    "notRun": 0,
+    "redRecall": 0.9,
+    "redPrecision": 0.8709677419354839,
+    "fieldAccuracy": 0.9166666666666666,
+    "medianLatencyMs": 1803,
     "confusion": {
       "RED": {
-        "RED": 1,
-        "ERROR": 1,
-        "NOT_RUN": 28
+        "RED": 27,
+        "PENDING": 3
       },
       "AMBER": {
-        "NOT_RUN": 15
+        "AMBER": 15
       },
       "PENDING": {
-        "NOT_RUN": 15
+        "PENDING": 11,
+        "RED": 4
       }
     }
   },
@@ -30,62 +31,65 @@
     "en": {
       "cases": 20,
       "errors": 0,
-      "notRun": 19,
-      "redRecall": 0.1,
-      "redPrecision": 1,
-      "fieldAccuracy": 0.05,
-      "medianLatencyMs": 2204,
+      "notRun": 0,
+      "redRecall": 1,
+      "redPrecision": 0.8333333333333334,
+      "fieldAccuracy": 1,
+      "medianLatencyMs": 1804.5,
       "confusion": {
         "RED": {
-          "RED": 1,
-          "NOT_RUN": 9
+          "RED": 10
         },
         "AMBER": {
-          "NOT_RUN": 5
+          "AMBER": 5
         },
         "PENDING": {
-          "NOT_RUN": 5
+          "PENDING": 3,
+          "RED": 2
         }
       }
     },
     "hi": {
       "cases": 20,
-      "errors": 1,
-      "notRun": 19,
-      "redRecall": 0,
-      "redPrecision": null,
-      "fieldAccuracy": 0,
-      "medianLatencyMs": 65,
+      "errors": 0,
+      "notRun": 0,
+      "redRecall": 0.8,
+      "redPrecision": 0.8888888888888888,
+      "fieldAccuracy": 0.9,
+      "medianLatencyMs": 1716.5,
       "confusion": {
         "RED": {
-          "ERROR": 1,
-          "NOT_RUN": 9
+          "RED": 8,
+          "PENDING": 2
         },
         "AMBER": {
-          "NOT_RUN": 5
+          "AMBER": 5
         },
         "PENDING": {
-          "NOT_RUN": 5
+          "PENDING": 4,
+          "RED": 1
         }
       }
     },
     "kn": {
       "cases": 20,
       "errors": 0,
-      "notRun": 20,
-      "redRecall": 0,
-      "redPrecision": null,
-      "fieldAccuracy": 0,
-      "medianLatencyMs": null,
+      "notRun": 0,
+      "redRecall": 0.9,
+      "redPrecision": 0.9,
+      "fieldAccuracy": 0.85,
+      "medianLatencyMs": 1867,
       "confusion": {
         "RED": {
-          "NOT_RUN": 10
+          "RED": 9,
+          "PENDING": 1
         },
         "AMBER": {
-          "NOT_RUN": 5
+          "AMBER": 5
         },
         "PENDING": {
-          "NOT_RUN": 5
+          "PENDING": 4,
+          "RED": 1
         }
       }
     }
@@ -100,7 +104,7 @@
         "R1",
         "safety_net:unresponsive:en"
       ],
-      "latencyMs": 2204,
+      "latencyMs": 2114,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -108,651 +112,689 @@
       "id": "hi-cannot-wake",
       "language": "hi",
       "expectedTier": "RED",
-      "actualTier": "ERROR",
-      "matched": [],
-      "latencyMs": 65,
+      "actualTier": "RED",
+      "matched": [
+        "R1",
+        "safety_net:unresponsive:hi"
+      ],
+      "latencyMs": 1530,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "quota"
+      "correctFields": 1
     },
     {
       "id": "kn-cannot-wake",
       "language": "kn",
       "expectedTier": "RED",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "RED",
+      "matched": [
+        "R1"
+      ],
+      "latencyMs": 2082,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "en-falls-asleep",
       "language": "en",
       "expectedTier": "RED",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "RED",
+      "matched": [
+        "R2",
+        "safety_net:sedation:en"
+      ],
+      "latencyMs": 1646,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "hi-falls-asleep",
       "language": "hi",
       "expectedTier": "RED",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "RED",
+      "matched": [
+        "R2"
+      ],
+      "latencyMs": 1869,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "kn-falls-asleep",
       "language": "kn",
       "expectedTier": "RED",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "RED",
+      "matched": [
+        "R2"
+      ],
+      "latencyMs": 1856,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "en-rate-boundary",
       "language": "en",
       "expectedTier": "RED",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "RED",
+      "matched": [
+        "R3"
+      ],
+      "latencyMs": 1801,
       "totalFields": 2,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 2
     },
     {
       "id": "hi-rate-boundary",
       "language": "hi",
       "expectedTier": "RED",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "RED",
+      "matched": [
+        "R3"
+      ],
+      "latencyMs": 1589,
       "totalFields": 2,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 2
     },
     {
       "id": "kn-rate-boundary",
       "language": "kn",
       "expectedTier": "RED",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "RED",
+      "matched": [
+        "R3"
+      ],
+      "latencyMs": 1698,
       "totalFields": 2,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 2
     },
     {
       "id": "en-slow-pauses",
       "language": "en",
       "expectedTier": "RED",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "RED",
+      "matched": [
+        "R3",
+        "safety_net:breathing:en"
+      ],
+      "latencyMs": 1641,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "hi-slow-pauses",
       "language": "hi",
       "expectedTier": "RED",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "RED",
+      "matched": [
+        "R3"
+      ],
+      "latencyMs": 1727,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "kn-slow-pauses",
       "language": "kn",
       "expectedTier": "RED",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "RED",
+      "matched": [
+        "R3"
+      ],
+      "latencyMs": 1693,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "en-sudden-confusion",
       "language": "en",
       "expectedTier": "RED",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "RED",
+      "matched": [
+        "R6"
+      ],
+      "latencyMs": 1488,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "hi-sudden-confusion",
       "language": "hi",
       "expectedTier": "RED",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "RED",
+      "matched": [
+        "R6"
+      ],
+      "latencyMs": 1529,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "kn-sudden-confusion",
       "language": "kn",
       "expectedTier": "RED",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "RED",
+      "matched": [
+        "R6"
+      ],
+      "latencyMs": 1815,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "en-hallucinations",
       "language": "en",
       "expectedTier": "RED",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "RED",
+      "matched": [
+        "R6"
+      ],
+      "latencyMs": 4138,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "hi-hallucinations",
       "language": "hi",
       "expectedTier": "RED",
-      "actualTier": "NOT_RUN",
+      "actualTier": "PENDING",
       "matched": [],
-      "latencyMs": 0,
+      "latencyMs": 1735,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 0
     },
     {
       "id": "kn-hallucinations",
       "language": "kn",
       "expectedTier": "RED",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "RED",
+      "matched": [
+        "R6"
+      ],
+      "latencyMs": 1805,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "en-blood-vomit",
       "language": "en",
       "expectedTier": "RED",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "RED",
+      "matched": [
+        "R8",
+        "safety_net:bleeding:en"
+      ],
+      "latencyMs": 1988,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "hi-blood-vomit",
       "language": "hi",
       "expectedTier": "RED",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "RED",
+      "matched": [
+        "R8",
+        "safety_net:bleeding:hi"
+      ],
+      "latencyMs": 1759,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "kn-blood-vomit",
       "language": "kn",
       "expectedTier": "RED",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "RED",
+      "matched": [
+        "R8",
+        "safety_net:bleeding:kn"
+      ],
+      "latencyMs": 2501,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "en-seizure",
       "language": "en",
       "expectedTier": "RED",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "RED",
+      "matched": [
+        "R7",
+        "safety_net:seizure:en"
+      ],
+      "latencyMs": 1842,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "hi-seizure",
       "language": "hi",
       "expectedTier": "RED",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "RED",
+      "matched": [
+        "R7",
+        "safety_net:seizure:hi"
+      ],
+      "latencyMs": 1331,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "kn-seizure",
       "language": "kn",
       "expectedTier": "RED",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "RED",
+      "matched": [
+        "safety_net:seizure:kn"
+      ],
+      "latencyMs": 2665,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 0
     },
     {
       "id": "en-double-dose",
       "language": "en",
       "expectedTier": "RED",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "RED",
+      "matched": [
+        "R12"
+      ],
+      "latencyMs": 2014,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "hi-double-dose",
       "language": "hi",
       "expectedTier": "RED",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "RED",
+      "matched": [
+        "R12"
+      ],
+      "latencyMs": 1645,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "kn-double-dose",
       "language": "kn",
       "expectedTier": "RED",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "RED",
+      "matched": [
+        "R12"
+      ],
+      "latencyMs": 2282,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "en-not-coping",
       "language": "en",
       "expectedTier": "RED",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "RED",
+      "matched": [
+        "R13"
+      ],
+      "latencyMs": 1593,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "hi-not-coping",
       "language": "hi",
       "expectedTier": "RED",
-      "actualTier": "NOT_RUN",
+      "actualTier": "PENDING",
       "matched": [],
-      "latencyMs": 0,
+      "latencyMs": 2335,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 0
     },
     {
       "id": "kn-not-coping",
       "language": "kn",
       "expectedTier": "RED",
-      "actualTier": "NOT_RUN",
+      "actualTier": "PENDING",
       "matched": [],
-      "latencyMs": 0,
+      "latencyMs": 1613,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 0
     },
     {
       "id": "en-rescue-three",
       "language": "en",
       "expectedTier": "AMBER",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "AMBER",
+      "matched": [
+        "A1"
+      ],
+      "latencyMs": 1615,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "hi-rescue-three",
       "language": "hi",
       "expectedTier": "AMBER",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "AMBER",
+      "matched": [
+        "A1"
+      ],
+      "latencyMs": 1702,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "kn-rescue-three",
       "language": "kn",
       "expectedTier": "AMBER",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "AMBER",
+      "matched": [
+        "A1"
+      ],
+      "latencyMs": 1878,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "en-rescue-four",
       "language": "en",
       "expectedTier": "AMBER",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "AMBER",
+      "matched": [
+        "A1"
+      ],
+      "latencyMs": 6677,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "hi-rescue-four",
       "language": "hi",
       "expectedTier": "AMBER",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "AMBER",
+      "matched": [
+        "A1"
+      ],
+      "latencyMs": 2171,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "kn-rescue-four",
       "language": "kn",
       "expectedTier": "AMBER",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "AMBER",
+      "matched": [
+        "A1"
+      ],
+      "latencyMs": 1607,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "en-vomit-three",
       "language": "en",
       "expectedTier": "AMBER",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "AMBER",
+      "matched": [
+        "A3"
+      ],
+      "latencyMs": 1885,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "hi-vomit-three",
       "language": "hi",
       "expectedTier": "AMBER",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "AMBER",
+      "matched": [
+        "A3"
+      ],
+      "latencyMs": 2573,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "kn-vomit-three",
       "language": "kn",
       "expectedTier": "AMBER",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "AMBER",
+      "matched": [
+        "A3"
+      ],
+      "latencyMs": 1912,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "en-missed-two",
       "language": "en",
       "expectedTier": "AMBER",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "AMBER",
+      "matched": [
+        "A11"
+      ],
+      "latencyMs": 1605,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "hi-missed-two",
       "language": "hi",
       "expectedTier": "AMBER",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "AMBER",
+      "matched": [
+        "A11"
+      ],
+      "latencyMs": 1706,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "kn-missed-two",
       "language": "kn",
       "expectedTier": "AMBER",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "AMBER",
+      "matched": [
+        "A11"
+      ],
+      "latencyMs": 1737,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "en-missed-four",
       "language": "en",
       "expectedTier": "AMBER",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "AMBER",
+      "matched": [
+        "A11"
+      ],
+      "latencyMs": 2189,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "hi-missed-four",
       "language": "hi",
       "expectedTier": "AMBER",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "AMBER",
+      "matched": [
+        "A11"
+      ],
+      "latencyMs": 1480,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "kn-missed-four",
       "language": "kn",
       "expectedTier": "AMBER",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "AMBER",
+      "matched": [
+        "A11"
+      ],
+      "latencyMs": 1605,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "en-low-pain",
       "language": "en",
       "expectedTier": "PENDING",
-      "actualTier": "NOT_RUN",
+      "actualTier": "PENDING",
       "matched": [],
-      "latencyMs": 0,
+      "latencyMs": 1724,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "hi-low-pain",
       "language": "hi",
       "expectedTier": "PENDING",
-      "actualTier": "NOT_RUN",
+      "actualTier": "PENDING",
       "matched": [],
-      "latencyMs": 0,
+      "latencyMs": 1685,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "kn-low-pain",
       "language": "kn",
       "expectedTier": "PENDING",
-      "actualTier": "NOT_RUN",
+      "actualTier": "PENDING",
       "matched": [],
-      "latencyMs": 0,
+      "latencyMs": 2649,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 0
     },
     {
       "id": "en-unknown",
       "language": "en",
       "expectedTier": "PENDING",
-      "actualTier": "NOT_RUN",
+      "actualTier": "PENDING",
       "matched": [],
-      "latencyMs": 0,
+      "latencyMs": 1808,
       "totalFields": 0,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 0
     },
     {
       "id": "hi-unknown",
       "language": "hi",
       "expectedTier": "PENDING",
-      "actualTier": "NOT_RUN",
+      "actualTier": "PENDING",
       "matched": [],
-      "latencyMs": 0,
+      "latencyMs": 1851,
       "totalFields": 0,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 0
     },
     {
       "id": "kn-unknown",
       "language": "kn",
       "expectedTier": "PENDING",
-      "actualTier": "NOT_RUN",
+      "actualTier": "PENDING",
       "matched": [],
-      "latencyMs": 0,
+      "latencyMs": 1966,
       "totalFields": 0,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 0
     },
     {
       "id": "en-stool-no-context",
       "language": "en",
       "expectedTier": "PENDING",
-      "actualTier": "NOT_RUN",
+      "actualTier": "PENDING",
       "matched": [],
-      "latencyMs": 0,
+      "latencyMs": 1718,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "hi-stool-no-context",
       "language": "hi",
       "expectedTier": "PENDING",
-      "actualTier": "NOT_RUN",
+      "actualTier": "PENDING",
       "matched": [],
-      "latencyMs": 0,
+      "latencyMs": 2115,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "kn-stool-no-context",
       "language": "kn",
       "expectedTier": "PENDING",
-      "actualTier": "NOT_RUN",
+      "actualTier": "PENDING",
       "matched": [],
-      "latencyMs": 0,
+      "latencyMs": 1646,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "en-negated-seizure",
       "language": "en",
       "expectedTier": "PENDING",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "RED",
+      "matched": [
+        "safety_net:seizure:en"
+      ],
+      "latencyMs": 1527,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "hi-negated-seizure",
       "language": "hi",
       "expectedTier": "PENDING",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "RED",
+      "matched": [
+        "safety_net:seizure:hi"
+      ],
+      "latencyMs": 1445,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "kn-negated-seizure",
       "language": "kn",
       "expectedTier": "PENDING",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "RED",
+      "matched": [
+        "safety_net:seizure:kn"
+      ],
+      "latencyMs": 2137,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "en-historical-bleeding",
       "language": "en",
       "expectedTier": "PENDING",
-      "actualTier": "NOT_RUN",
-      "matched": [],
-      "latencyMs": 0,
+      "actualTier": "RED",
+      "matched": [
+        "safety_net:bleeding:en"
+      ],
+      "latencyMs": 1986,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "hi-historical-bleeding",
       "language": "hi",
       "expectedTier": "PENDING",
-      "actualTier": "NOT_RUN",
+      "actualTier": "PENDING",
       "matched": [],
-      "latencyMs": 0,
+      "latencyMs": 2525,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     },
     {
       "id": "kn-historical-bleeding",
       "language": "kn",
       "expectedTier": "PENDING",
-      "actualTier": "NOT_RUN",
+      "actualTier": "PENDING",
       "matched": [],
-      "latencyMs": 0,
+      "latencyMs": 2191,
       "totalFields": 1,
-      "correctFields": 0,
-      "error": "stopped_after_provider_failure"
+      "correctFields": 1
     }
-  ],
-  "complete": false
+  ]
 }

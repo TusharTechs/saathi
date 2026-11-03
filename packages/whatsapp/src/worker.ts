@@ -1,10 +1,12 @@
 import {createHash} from 'node:crypto';
 import {NarrativePipeline} from '../../extraction/src/pipeline.ts';
 import {TelegramState,type Task,type State} from '../../telegram/src/state.ts';
-import {planUpdate,queueResult,finishUpdate,receipt} from '../../telegram/src/engine.ts';
+import {planUpdate,queueResult,finishUpdate} from '../../telegram/src/engine.ts';
+import {familyReply,GREETING} from '../../workflow/src/service-config.ts';
 import {WhatsAppAPI,WhatsAppError} from './api.ts';
 import {WhatsAppStore,type Inbound} from './store.ts';
 import type {OnCallAlerts} from './oncall.ts';
+export const isGreeting=(m:Inbound)=>m.kind==='text'&&/^(hi+|hello|hey|namaste|namaskar|namaskara|good (morning|evening))[\s!.]*$/i.test(m.text??'');
 export const channelNumber=(phone:string)=>createHash('sha256').update(phone).digest().readUInt32BE(0);
 export function planWhatsApp(state:State,id:number,message:Inbound,phone:string,now=Date.now()){
  const sender=Number(message.from),base={message_id:id,chat:{id:sender,type:'private'},from:{id:sender,is_bot:false}};
@@ -35,7 +37,7 @@ export class WhatsAppWorker {
   if(p.task){let text:string;
    const session=snapshot.chats[String(p.chatId)];
    if(!session?.consentAt||Date.now()-session.consentAt>=86400000||session.patientId!==p.task.patientId)text='Synthetic-only consent expired. Request a fresh patient link; this report was not processed.';
-   else try{text=receipt(await this.runTask(p.task));}catch{text='The report could not be confirmed. Check the dashboard before /retry. The same request ID will be retained.';}
+   else try{const record=await this.runTask(p.task);text=familyReply(record.report.evaluation.tier,record.report.processing?.extraction.status);}catch{text='The report could not be confirmed. Check the dashboard before /retry. The same request ID will be retained.';}
    await this.state.transact(s=>queueResult(s,text));
   }
   snapshot=await this.state.snapshot();
@@ -56,6 +58,13 @@ export class WhatsAppWorker {
   await this.oncall?.check().catch(()=>this.log({event:'oncall_check',status:'failed'}));
   const next=await this.store.next(this.api.phoneId,state.offset);if(!next)return false;
   if(await this.oncall?.inbound(next.message)){await this.state.transact(s=>{s.offset=next.id+1;});await this.store.complete(this.api.phoneId,next.id+1);return true;}
+  // A consented family's "Hi" opens the conversation instead of becoming an empty report.
+  const chat=state.chats[next.message.from];
+  if(isGreeting(next.message)&&chat?.consentAt&&Date.now()-chat.consentAt<86400000&&!chat.draft){
+   let status:'accepted'|'unknown'|'failed'='accepted';
+   try{await this.api.send({method:'sendMessage',status:'pending',payload:{chat_id:Number(next.message.from),text:GREETING}},next.message.timestamp*1000);}catch(e){status=e instanceof WhatsAppError&&e.kind!=='unknown'?'failed':'unknown';}
+   this.log({event:'whatsapp_greeting',status});await this.state.transact(s=>{s.offset=next.id+1;});await this.store.complete(this.api.phoneId,next.id+1);return true;
+  }
   await this.state.transact(s=>planWhatsApp(s,next.id,next.message,this.api.phoneId));await this.recover();return true;
  }
  async poll(signal:AbortSignal){while(!signal.aborted){if(!await this.once())await new Promise<void>(resolve=>{if(signal.aborted){resolve();return;}const end=()=>{clearTimeout(timer);signal.removeEventListener('abort',end);resolve();};const timer=setTimeout(end,2000);signal.addEventListener('abort',end,{once:true});});}}

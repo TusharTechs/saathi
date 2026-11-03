@@ -80,7 +80,7 @@ test('Supabase service-only storage transactions and grants',async t=>{
    const ack=await rpc<RecordEntry>('select public.saathi_demo_transition($1,$2,$3) as data',[fresh.id,'acknowledge',fresh.revision]);
    await assert.rejects(rpc('select public.saathi_demo_close($1,$2,$3,$4) as data',[fresh.id,ack.revision,'  ','']),/Call notes are required/);
    const closed=await rpc<RecordEntry>('select public.saathi_demo_close($1,$2,$3,$4) as data',[fresh.id,ack.revision,'Invented call: family advised','Go to nearest hospital']);
-   assert.equal(closed.status,'resolved');assert.match(closed.events.at(-1)!.details,/Call notes: Invented call: family advised Advice given: Go to nearest hospital/);
+   assert.equal(closed.status,'resolved');assert.match(closed.events.find(e=>e.type==='resolved')!.details,/Call notes: Invented call: family advised Advice given: Go to nearest hospital/);
    const plan={hospitalId:'KMC-DEMO-0001',medications:[{key:'morphine_oral',name:'Invented medicine'}]};
    const saved=await rpc<{plan:typeof plan}>('select public.saathi_demo_checkin($1,$2::jsonb) as data',['demo-ramesh',JSON.stringify(plan)]);assert.deepEqual(saved.plan,plan);
    assert.deepEqual((await rpc<Record<string,{plan:unknown}>>('select public.saathi_demo_care_plans() as data'))['demo-ramesh']!.plan,plan);

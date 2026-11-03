@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import {escalationStatus} from '../../../packages/workflow/src/escalation';
-import {callbackDue,service} from '../../../packages/workflow/src/service-config';
+import {callbackDue,service,RED_FAMILY_MESSAGE} from '../../../packages/workflow/src/service-config';
 import type { RecordEntry, CarePlanEntry } from '../../../packages/workflow/src/index';
 import type { Patient } from '../../../packages/workflow/src/store';
 export type WorkspacePatient=Patient&{saathiId:string;abha:string;whatsapp:string|null};
@@ -15,8 +15,6 @@ const clock=(at:number)=>new Date(at).toLocaleTimeString('en-IN',{timeZone:TZ,ho
 const tierLabel=(t:string)=>t==='PENDING'?'REVIEW':t;
 const statusLabel:Record<RecordEntry['status'],string>={open:'New · not acknowledged',acked:'In call-back list',resolved:'Call closed'};
 const minutes=(ms:number)=>{const m=Math.round(Math.abs(ms)/60000);return m>=2880?`${Math.round(m/1440)} days`:m>=120?`${Math.round(m/60)} h`:`${m} min`;};
-// The RED message is Dr. Rao's wording from the 3 Nov call, awaiting written confirmation (review pack B1).
-export const RED_FAMILY_MESSAGE='The patient’s condition may be critical and cannot be managed through teleconsultation. Please seek urgent medical care at the nearest hospital now. If breathing stops or you cannot wake the patient, call 108. Our on-call doctor has also been alerted.';
 function Due({r,now}:{r:RecordEntry;now:number}){
   if(r.status==='resolved')return null;const due=callbackDue(r.createdAt,r.report.evaluation.tier),left=due-now;
   return <span className={`due ${left<0?'late':left<15*60000?'soon':''}`}>{left<0?`Call overdue by ${minutes(left)}`:`Call by ${clock(due)} · ${minutes(left)} left`}</span>;

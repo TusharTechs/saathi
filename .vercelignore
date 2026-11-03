@@ -14,3 +14,4 @@ output/*.pdf
 output/evaluation/*.partial.json
 docs/review
 site
+HANDOFF-PROMPT.md

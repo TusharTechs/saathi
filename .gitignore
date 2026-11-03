@@ -11,3 +11,6 @@ coverage/
 *.tsbuildinfo
 output/evaluation/*.partial.json
 .vercel
+
+# Personal handoff notes stay on this machine
+HANDOFF-PROMPT.md

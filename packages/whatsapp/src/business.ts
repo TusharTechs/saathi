@@ -22,7 +22,7 @@ export function readiness(config:BusinessConfig,inspection:Inspection,now=Date.n
  const targets=token.granular_scopes.filter(g=>SCOPES.includes(g.scope)).map(g=>g.target_ids);
  const covered=assignedWabaIds.includes(config.wabaId)||(targets.length>0&&targets.every(ids=>ids?.includes(config.wabaId)));
  const assigned=assignedWabaIds.length?`assigned WhatsApp account IDs: ${assignedWabaIds.join(', ')}`:'no WhatsApp account is assigned to the system user';
- add('token.waba',covered,covered?'Token is granted on WA_BUSINESS_ACCOUNT_ID.':`Token is not granted on WA_BUSINESS_ACCOUNT_ID (${assigned}). In Business settings > System users > Assign assets, give the system user full control of the WhatsApp account, or correct the ID.`);
+ add('token.waba',covered,covered?'Token is granted on WA_BUSINESS_ACCOUNT_ID.':`Token is not granted on WA_BUSINESS_ACCOUNT_ID (${assigned}). In Business settings > System users > Assign assets > Messaging accounts, give the system user full control of the account whose "Messaging account ID" is shown in WhatsApp > API Setup, then generate a new token. The "WhatsApp accounts" asset type is not the API account.`);
  if(!account){add('waba.access',false,'Meta cannot load WA_BUSINESS_ACCOUNT_ID with this token, so number and webhook checks were skipped.');return {ready:false,checks};}
  add('waba.id',account.id===config.wabaId,account.id===config.wabaId?`WABA reachable${account.name?` (${account.name})`:''}.`:'Meta returned a different WABA.');
  const phone=phones.find(p=>p.id===config.phoneId);

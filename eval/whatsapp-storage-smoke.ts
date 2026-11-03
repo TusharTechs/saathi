@@ -3,7 +3,7 @@ import {loadEnvFile} from 'node:process';
 import {randomUUID} from 'node:crypto';
 import assert from 'node:assert/strict';
 import {WhatsAppStore} from '../packages/whatsapp/src/store.ts';
-loadEnvFile(new URL('../apps/web/.env.local',import.meta.url));
+loadEnvFile(new URL('../apps/web/env.local',import.meta.url));
 const store=new WhatsAppStore(process.env.NEXT_PUBLIC_SUPABASE_URL??'',process.env.SUPABASE_SECRET_KEY||process.env.SUPABASE_SERVICE_ROLE_KEY||'');
 const requestId=randomUUID(),origin={channel:'whatsapp' as const,externalId:'wamid.SAATHI_STORAGE_SMOKE_'+requestId};
 const result=await store.submit({requestId,patientId:'demo-suresh',answers:{wakefulness:'W4',rescue:4,concerns:'SIMULATED WhatsApp storage check. No live Meta message was received or sent.'}},origin);

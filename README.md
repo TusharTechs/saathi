@@ -22,11 +22,11 @@ The workspace contains shared Zod schemas, versioned adult protocol data, a pure
 
 Run `pnpm dev` and open http://127.0.0.1:3000. Submit a synthetic button check-in, inspect rule traces, acknowledge and resolve reports. The local queue persists across restarts. Run `pnpm build` for a production-build check.
 
-See [the local workflow guide](docs/07-LOCAL-WORKFLOW.md) for scope, database policies, verification and credential setup. Copy `apps/web/.env.example` to `apps/web/.env.local` when preparing service keys; voice/text reports now call Sarvam and Groq when configured (see below).
+See [the local workflow guide](docs/07-LOCAL-WORKFLOW.md) for scope, database policies, verification and credential setup. Copy `apps/web/.env.example` to `apps/web/env.local` when preparing service keys; voice/text reports now call Sarvam and Groq when configured (see below).
 
 ## Supabase storage connected
 
-The configured `.env.local` now uses `SAATHI_STORAGE=supabase`. The dashboard stores reports, actions and audit history in the configured project; three previous synthetic local reports have been copied with their history preserved. `SAATHI_STORAGE=local` remains an explicit offline option. See [the Supabase storage guide](docs/08-SUPABASE-STORAGE.md) for configuration, migration commands and verification.
+The configured `env.local` now uses `SAATHI_STORAGE=supabase`. The dashboard stores reports, actions and audit history in the configured project; three previous synthetic local reports have been copied with their history preserved. `SAATHI_STORAGE=local` remains an explicit offline option. See [the Supabase storage guide](docs/08-SUPABASE-STORAGE.md) for configuration, migration commands and verification.
 
 ## Voice and text extraction connected
 

@@ -26,7 +26,7 @@ Providers are not retried automatically. A speech failure occurs before a report
 
 ## Configuration and migrations
 
-Set `SAATHI_STORAGE=supabase`, `SARVAM_API_KEY`, `GROQ_API_KEY`, `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SECRET_KEY` in `apps/web/.env.local`, then restart. Legacy valid service-role keys are also supported. All provider and server keys remain server-side. Do not commit the environment file.
+Set `SAATHI_STORAGE=supabase`, `SARVAM_API_KEY`, `GROQ_API_KEY`, `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SECRET_KEY` in `apps/web/env.local`, then restart. Legacy valid service-role keys are also supported. All provider and server keys remain server-side. Do not commit the environment file.
 
 For an existing project with migrations 001–004, run `pnpm supabase:analysis` with the management access token configured. Migration 005 adds extraction leases and lookup/claim/complete RPCs. All nine demo RPCs deny PUBLIC, anon and authenticated execution and allow service_role only. Fresh `pnpm supabase:apply` includes all five migrations and seed. This is still loopback-only with a simulated doctor; public deployment requires real authentication and authorization.
 

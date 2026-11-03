@@ -1,7 +1,7 @@
 import {loadEnvFile} from 'node:process';
 import {readFile,writeFile,rename,rm} from 'node:fs/promises';
 import {createHash,randomBytes} from 'node:crypto';
-const root=new URL('../',import.meta.url),envFile=new URL('apps/web/.env.local',root),mode=process.argv[2]??'plan';
+const root=new URL('../',import.meta.url),envFile=new URL('apps/web/env.local',root),mode=process.argv[2]??'plan';
 try{
  loadEnvFile(envFile);
  const url=new URL(process.env.NEXT_PUBLIC_SUPABASE_URL??'');if(url.protocol!=='https:'||!/^([a-z0-9]+)\.supabase\.co$/.test(url.hostname))throw Error('Invalid project URL');
@@ -12,8 +12,8 @@ try{
  if(mode==='plan')console.log(JSON.stringify({callback,deployedByThisCommand:false,files:files.map(f=>f.name),checksum,authentication:'Meta HMAC-SHA256; verification token for GET only',publicDashboard:false,requiredSecrets:['WA_PHONE_NUMBER_ID','WA_APP_SECRET','WA_VERIFY_TOKEN'],missing:['WA_PHONE_NUMBER_ID','WA_ACCESS_TOKEN','WA_APP_SECRET','WA_VERIFY_TOKEN'].filter(k=>!process.env[k])},null,2));
  else if(mode==='prepare'){
   if(process.env.WA_VERIFY_TOKEN){console.log('WA_VERIFY_TOKEN already exists; it was preserved.');}
-  else{const source=await readFile(envFile,'utf8'),secret=randomBytes(32).toString('hex'),line=`WA_VERIFY_TOKEN=${secret}`,next=/^WA_VERIFY_TOKEN=.*$/m.test(source)?source.replace(/^WA_VERIFY_TOKEN=.*$/m,()=>line):source+'\n'+line+'\n',temporary=new URL('apps/web/.env.whatsapp.tmp',root);
-   try{await writeFile(temporary,next,{mode:0o600,flag:'wx'});await rename(temporary,envFile);}finally{await rm(temporary,{force:true});}console.log('Generated WA_VERIFY_TOKEN in apps/web/.env.local. Value withheld.');}
+  else{const source=await readFile(envFile,'utf8'),secret=randomBytes(32).toString('hex'),line=`WA_VERIFY_TOKEN=${secret}`,next=/^WA_VERIFY_TOKEN=.*$/m.test(source)?source.replace(/^WA_VERIFY_TOKEN=.*$/m,()=>line):source+'\n'+line+'\n',temporary=new URL('apps/web/env.local.tmp',root);
+   try{await writeFile(temporary,next,{mode:0o600,flag:'wx'});await rename(temporary,envFile);}finally{await rm(temporary,{force:true});}console.log('Generated WA_VERIFY_TOKEN in apps/web/env.local. Value withheld.');}
  }else if(mode==='deploy'){
   if(!process.argv.includes('--publish'))throw Error('Deployment requires --publish after reviewing whatsapp:plan. No changes made.');
   for(const name of ['WA_PHONE_NUMBER_ID','WA_APP_SECRET','WA_VERIFY_TOKEN'])if(!process.env[name])throw Error(`Missing ${name}; no deployment attempted.`);

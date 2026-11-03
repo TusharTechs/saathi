@@ -1,6 +1,9 @@
 node_modules/
 .env*
 !.env.example
+# Visible secrets file (apps/web/env.local) and its backups: never commit
+env.local
+env.local.*
 coverage/
 
 .next/

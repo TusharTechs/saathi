@@ -4,7 +4,7 @@ Implemented 23 October 2026. A local long-polling worker connects a private Tele
 
 ## Setup
 
-In `apps/web/.env.local`, configure `TELEGRAM_BOT_TOKEN` from BotFather alongside the existing Supabase, Groq and Sarvam credentials. Set `SAATHI_STORAGE=supabase`. Never paste tokens into chat or commit them. This worker does not use `TELEGRAM_WEBHOOK_SECRET`; that variable is reserved for a future deployed webhook adapter.
+In `apps/web/env.local`, configure `TELEGRAM_BOT_TOKEN` from BotFather alongside the existing Supabase, Groq and Sarvam credentials. Set `SAATHI_STORAGE=supabase`. Never paste tokens into chat or commit them. This worker does not use `TELEGRAM_WEBHOOK_SECRET`; that variable is reserved for a future deployed webhook adapter.
 
 1. `pnpm supabase:telegram` applies migration 006 after migrations 001–005. The management access token is used only for this migration. Fresh `pnpm supabase:apply` includes all six migrations and seed.
 2. `pnpm telegram:check` validates the token and checks for an existing webhook. It sends no messages and does not consume updates. Existing webhooks are left unchanged; use a separate demo bot if the bot is already used elsewhere.

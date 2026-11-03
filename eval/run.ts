@@ -6,7 +6,7 @@ import {metrics,score,type EvalResult} from './metrics.ts';
 import {extract,ProviderError} from '../packages/extraction/src/index.ts';
 import {processReport} from '../packages/workflow/src/intake.ts';
 const live=process.argv.includes('--live'),mode=live?'live-extraction':'keyword-only';
-if(live){try{loadEnvFile(new URL('../apps/web/.env.local',import.meta.url));}catch{throw Error('Save .env.local before a live evaluation.');}if(!process.env.GROQ_API_KEY)throw Error('GROQ_API_KEY is missing.');}
+if(live){try{loadEnvFile(new URL('../apps/web/env.local',import.meta.url));}catch{throw Error('Save apps/web/env.local before a live evaluation.');}if(!process.env.GROQ_API_KEY)throw Error('GROQ_API_KEY is missing.');}
 const results:EvalResult[]=[];let stopped=false;
 for(const item of corpus){
  const start=performance.now();

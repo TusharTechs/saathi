@@ -4,7 +4,7 @@ import {savedSchema,SupabaseStore,type Snapshot} from '../packages/workflow/src/
 import {inputSchema} from '../packages/shared/src/index.ts';
 const root=new URL('../',import.meta.url);
 try{
- loadEnvFile(new URL('apps/web/.env.local',root));
+ loadEnvFile(new URL('apps/web/env.local',root));
  let text:string;
  try{text=await readFile(new URL('apps/web/.saathi-demo/queue.json',root),'utf8');}
  catch(e){if((e as NodeJS.ErrnoException).code==='ENOENT'){console.log('No local queue exists. Nothing to import.');process.exit(0);}throw e;}

@@ -6,7 +6,7 @@ import {fileURLToPath} from 'node:url';
 import {TelegramAPI,TelegramError,TelegramState,TelegramWorker,taskRunner,patient} from '../packages/telegram/src/index.ts';
 import {SupabaseStore} from '../packages/workflow/src/supabase-store.ts';
 const root=new URL('../',import.meta.url);
-try{loadEnvFile(new URL('apps/web/.env.local',root));}catch{console.error('Save apps/web/.env.local before configuring Telegram.');process.exit(1);}
+try{loadEnvFile(new URL('apps/web/env.local',root));}catch{console.error('Save apps/web/env.local before configuring Telegram.');process.exit(1);}
 const mode=process.argv[2]??'check';
 const option=(key:string)=>{const i=process.argv.indexOf(key);return i>=0?process.argv[i+1]:undefined;};
 try{

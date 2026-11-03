@@ -2,7 +2,7 @@ import { loadEnvFile } from 'node:process';
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 const root=new URL('../',import.meta.url);
-try{loadEnvFile(new URL('apps/web/.env.local',root));}catch{throw new Error('Save apps/web/.env.local before running this command.');}
+try{loadEnvFile(new URL('apps/web/env.local',root));}catch{throw new Error('Save apps/web/env.local before running this command.');}
 const mode=process.argv[2]??'plan';
 const schema=await readFile(new URL('supabase/migrations/202610230001_core.sql',root),'utf8');
 const seed=await readFile(new URL('supabase/seed/demo.sql',root),'utf8');

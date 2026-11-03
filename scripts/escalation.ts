@@ -4,7 +4,7 @@ import {fileURLToPath} from 'node:url';
 import {join} from 'node:path';
 import {DemoStore,SupabaseStore} from '../packages/workflow/src/index.ts';
 import {runEscalations,escalationStatus} from '../packages/workflow/src/escalation.ts';
-try{loadEnvFile(new URL('../apps/web/.env.local',import.meta.url));}catch{/* Offline demo can run without service credentials. */}
+try{loadEnvFile(new URL('../apps/web/env.local',import.meta.url));}catch{/* Offline demo can run without service credentials. */}
 const directory=fileURLToPath(new URL('../apps/web/.saathi-demo/',import.meta.url));
 try{
  const mode=process.argv[2]??'check',storage=process.env.SAATHI_STORAGE??'local';

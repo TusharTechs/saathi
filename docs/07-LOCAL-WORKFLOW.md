@@ -25,7 +25,7 @@ The current form covers pain, rescue doses, wakefulness, breathing and an option
 
 ## Credentials for the next integrations
 
-Copy `apps/web/.env.example` to `apps/web/.env.local` and enter keys locally. Never paste secrets into chat or commit that file. The current app does not consume these placeholders or make API calls yet.
+Copy `apps/web/.env.example` to `apps/web/env.local` and enter keys locally. Never paste secrets into chat or commit that file. The current app does not consume these placeholders or make API calls yet.
 
 | Priority | Service | Values | Intended use |
 |---|---|---|---|

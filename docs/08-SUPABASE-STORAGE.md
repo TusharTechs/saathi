@@ -4,7 +4,7 @@ Completed 23 October 2026. The configured app now reads and writes its synthetic
 
 ## Configuration and running
 
-`apps/web/.env.local` now selects `SAATHI_STORAGE=supabase`. The server uses `NEXT_PUBLIC_SUPABASE_URL` plus `SUPABASE_SECRET_KEY` (preferred) or a valid legacy `SUPABASE_SERVICE_ROLE_KEY`. Credentials are not returned to the browser. Management access is used only by setup commands, not by dashboard requests.
+`apps/web/env.local` now selects `SAATHI_STORAGE=supabase`. The server uses `NEXT_PUBLIC_SUPABASE_URL` plus `SUPABASE_SECRET_KEY` (preferred) or a valid legacy `SUPABASE_SERVICE_ROLE_KEY`. Credentials are not returned to the browser. Management access is used only by setup commands, not by dashboard requests.
 
 Run `pnpm dev` from the project folder and open http://127.0.0.1:3000. The banner and queue footer identify Supabase storage. `pnpm build` and `pnpm start` also work, with the same loopback restriction. Queue refresh still polls every five seconds; Supabase Realtime is not connected.
 

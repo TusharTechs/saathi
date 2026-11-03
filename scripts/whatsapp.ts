@@ -8,7 +8,7 @@ import {WhatsAppAPI,WhatsAppBusiness,discover,WhatsAppError,WhatsAppStore,WhatsA
 const root=new URL('../',import.meta.url);const mode=process.argv[2]??'check';
 const option=(name:string)=>{const i=process.argv.indexOf(name);return i>=0?process.argv[i+1]:undefined;};
 try{
- loadEnvFile(new URL('apps/web/.env.local',root));
+ loadEnvFile(new URL('apps/web/env.local',root));
  const required=['WA_APP_ID','WA_APP_SECRET','WA_BUSINESS_ACCOUNT_ID','WA_PHONE_NUMBER_ID','WA_ACCESS_TOKEN','WA_VERIFY_TOKEN'];
  const business=()=>new WhatsAppBusiness({appId:process.env.WA_APP_ID??'',appSecret:process.env.WA_APP_SECRET??'',wabaId:process.env.WA_BUSINESS_ACCOUNT_ID??'',phoneId:process.env.WA_PHONE_NUMBER_ID??''},process.env.WA_ACCESS_TOKEN??'',process.env.WA_GRAPH_VERSION??'v26.0');
  if(mode==='check'){

@@ -106,7 +106,7 @@ Other points from the call:
 
 | 23 Oct | Add loopback-only demo workflow; poll local persistent queue. Supabase SQL is tested locally but unapplied. Authenticated shared storage and external delivery are deferred. See docs/07. |
 | 3 Nov | Move the workspace from `saathi/` to the repository root. |
-| 3 Nov | Connect WhatsApp through the doctor partner's shared WhatsApp Business Account, using a dedicated synthetic-demo number (never the clinic's patient-facing number) and a non-expiring system-user token. Replies stay inside the free 24-hour service window; no templates. See docs/11. |
+| 3 Nov | Connect WhatsApp through a Saathi app and WABA created in a friend's Meta business portfolio, where Tushar can create apps, using a dedicated synthetic-demo number (never the clinic's patient-facing number) and a non-expiring system-user token. Replies stay inside the free 24-hour service window; no templates. See docs/11. |
 
 ## 8. Open items (batch these into one message to Dr. Rao)
 1. **13–15 breaths/min:** make it **AMBER** for adults? Proposed, not yet confirmed.

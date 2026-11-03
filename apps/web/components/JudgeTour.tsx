@@ -64,6 +64,14 @@ const steps:Step[]=[
   {target:'review',view:'review',title:'The protocol belongs to the doctors',body:<p>Rules, care cards and thresholds are data, so the palliative-care team edits them without code. Anything not yet signed is labelled <b>draft</b>, and nothing is presented as clinically approved until it is.</p>},
   {target:'coord-link',view:'queue',title:'Three separate logins',body:<>
     <p><b>Medical staff</b> see everything you have seen. A <b>call manager</b> sees only daily counts, status, missed calls and fees, with no clinical details, and can export a daily PDF report. <b>Families</b> sign in with a one-time code by phone or email.</p></>,cta:{label:'Open the call manager report ↗',href:'/coordinator'}},
+  {title:'Who it is for, and who pays',body:<>
+    <p>India has only about 120–130 MD palliative-medicine specialists, yet care has to continue across hospital, home and hospice. The same gap exists across low- and middle-income countries.</p>
+    <ul className="tour-list">
+      <li><b>Home-care organisations</b> triage home visits and use staff time better.</li>
+      <li><b>Hospitals</b> add Saathi beside their hospital information system as a ready-made product.</li>
+      <li><b>NGOs and community services</b> run it with fees switched off.</li>
+    </ul>
+    <p>Organisations charge families per teleconsult (for example a full first fee and half for a follow-up within 15 days). Saathi’s running cost per family message is a fraction of a rupee, against consult fees of ₹500–2,000.</p></>},
   {title:'Safety by design',body:null},
   {title:'That’s Saathi',body:<>
     <p>One line for families, one queue for the care team, and a record of every contact, with doctors making every clinical decision.</p>

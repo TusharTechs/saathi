@@ -1,0 +1,20 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {processReport} from '../packages/workflow/src/intake.ts';
+import {toFhirBundle,simulatedAbha,patients,type RecordEntry} from '../packages/workflow/src/index.ts';
+const field=(value:unknown,quote:string)=>({value,confidence:0.9,quote,messageId:'m1'});
+const report=processReport({context:{pack:'adult'},messages:[{id:'m1',text:'Invented: 10 breaths in a full minute, pain 6, drowsy.'}],fields:{resp_rate_per_min:field(10,'10 breaths'),resp_count_full_minute:field(true,'full minute'),pain_now:field(6,'pain 6'),wakefulness:field('W3','drowsy')}} as never,'text',false);
+const record={id:'r-1',patientId:'demo-ramesh',requestId:'q-1',fingerprint:'f',createdAt:'2026-11-03T10:00:00.000Z',status:'open',revision:1,escalationLevel:0,lastEscalatedAt:'2026-11-03T10:00:00.000Z',exhausted:false,report:{...report,origin:{channel:'whatsapp',externalId:'wamid.TEST'}},events:[]} as RecordEntry;
+test('FHIR export is a labelled synthetic R4 collection with a simulated ABHA and caregiver quotes',()=>{
+ const bundle=toFhirBundle(record,patients[0]!),types=bundle.entry.map(e=>e.resource.resourceType);
+ assert.equal(bundle.resourceType,'Bundle');assert.equal(bundle.type,'collection');assert.deepEqual([types[0],types.at(-2),types.at(-1)],['Patient','Flag','Provenance']);
+ assert.ok(bundle.entry.every(e=>e.resource.meta.security[0]!.code==='HTEST'));
+ const patient=bundle.entry[0]!.resource as {identifier:{value:string;type?:{text:string}}[]};
+ assert.match(patient.identifier[0]!.value,/^\d{2}-\d{4}-\d{4}-\d{4}$/);assert.match(patient.identifier[0]!.type!.text,/Simulated ABHA/);assert.equal(simulatedAbha('demo-ramesh'),patient.identifier[0]!.value);
+ const obs=bundle.entry.filter(e=>e.resource.resourceType==='Observation').map(e=>e.resource as Record<string,any>);
+ assert.equal(obs.length,4);assert.ok(obs.every(o=>o.status==='preliminary'&&/Caregiver's words: "/.test(o.note[0].text)));
+ const rr=obs.find(o=>o.code.coding[0].code==='9279-1')!;assert.equal(rr.valueQuantity.value,10);
+ assert.equal(obs.find(o=>o.code.coding[0].code==='72514-3')!.valueInteger,6);assert.equal(obs.find(o=>o.code.text==='Wakefulness')!.valueCodeableConcept.coding[0].code,'W3');
+ assert.match((bundle.entry.at(-2)!.resource as {code:{text:string}}).code.text,/RED.*R3.*unsigned demo/);
+ assert.equal((bundle.entry.at(-1)!.resource as Record<string,any>).entity[0].what.identifier.value,'wamid.TEST');
+});

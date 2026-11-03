@@ -5,3 +5,4 @@ export * from './supabase-store.ts';
 export * from './fhir.ts';
 export * from './care-plan.ts';
 export * from './service-config.ts';
+export * from './demo-case.ts';

@@ -1,4 +1,6 @@
 import {guard,body,json} from '../../../lib/server';
 import {pipeline,narrativeFail} from '../../../lib/narrative';
 export const runtime='nodejs';
-export async function POST(request:Request){try{guard(request,true);return json(await pipeline().text(await body(request)));}catch(e){return narrativeFail(e);}}
+export async function POST(request:Request){try{const session=guard(request,true,'json',['medical','family']);const input=await body(request);
+ // A signed-in family can only report for their own patient.
+ return json(await pipeline().text(session.role==='family'?{...input,patientId:session.patientId}:input));}catch(e){return narrativeFail(e);}}

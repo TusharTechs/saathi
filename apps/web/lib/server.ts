@@ -6,18 +6,27 @@ if(!['local','supabase'].includes(storageMode))throw new Error('Unsupported SAAT
 export const store=storageMode==='supabase'
  ? new SupabaseStore(process.env.NEXT_PUBLIC_SUPABASE_URL??'',process.env.SUPABASE_SECRET_KEY||process.env.SUPABASE_SERVICE_ROLE_KEY||'')
  : new DemoStore(resolve(process.cwd(),'.saathi-demo'));
-export function guard(request:Request,write=false,format:'json'|'multipart'='json'){
-  if(process.env.SAATHI_LOCAL_DEMO!=='1') throw new WorkflowError(503,'Local demo is disabled. Start with pnpm dev.');
+import { requireRole, publicDemo, type Role, type Session } from './session';
+const loopback=(hostname:string)=>['localhost','127.0.0.1'].includes(hostname);
+/**
+ * Same-origin checks, then the caller's role (medical staff unless a route allows others).
+ * Local mode (pnpm dev) accepts loopback only. Public demo mode (SAATHI_PUBLIC_DEMO=1) accepts any host,
+ * but only with a session signing secret and a staff access code configured, so synthetic data stays behind sign-in.
+ */
+export function guard(request:Request,write=false,format:'json'|'multipart'='json',roles:Role[]=['medical']):Session{
+  const open=publicDemo();
+  if(!open&&process.env.SAATHI_LOCAL_DEMO!=='1') throw new WorkflowError(503,'Local demo is disabled. Start with pnpm dev.');
   const url=new URL(request.url);
   const host=request.headers.get('host');
-  if(!host || !['localhost','127.0.0.1'].includes(new URL(`http://${host}`).hostname)) throw new WorkflowError(403,'Loopback access only');
+  if(!host) throw new WorkflowError(400,'Host header required');
+  if(!open&&(!loopback(new URL(`http://${host}`).hostname)||!loopback(url.hostname))) throw new WorkflowError(403,'Loopback access only');
   if(write){
     const origin=request.headers.get('origin');
     if(!origin || ![`http://${host}`,`https://${host}`].includes(origin)) throw new WorkflowError(403,'Same-origin request required');
     const expected=format==='json'?'application/json':'multipart/form-data';
     if(!request.headers.get('content-type')?.startsWith(expected)) throw new WorkflowError(415,format==='json'?'JSON required':'Audio form required');
   }
-  if(!['localhost','127.0.0.1'].includes(url.hostname)) throw new WorkflowError(403,'Loopback access only');
+  return requireRole(request,roles);
 }
 export async function body(request:Request){
   const reader=request.body?.getReader(); if(!reader) throw new WorkflowError(400,'JSON body required');

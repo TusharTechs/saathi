@@ -1,6 +1,6 @@
 import { readdir, readFile } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
-import { simulatedAbha, saathiId, service } from '../../../packages/workflow/src/index';
+import { simulatedAbha, saathiId, service, type CarePlanEntry } from '../../../packages/workflow/src/index';
 import { store } from './server';
 // The local WhatsApp worker keeps caregiver chat bindings on this computer; they give the call buttons a real tester number.
 async function pairedNumbers(){
@@ -16,7 +16,8 @@ async function pairedNumbers(){
   return numbers;
 }
 export async function workspace(){
-  const [queue,carePlans,fees,numbers]=await Promise.all([store.queue(),store.carePlans(),store.fees(),pairedNumbers()]);
+  const [queue,plans,feeMap,numbers]=await Promise.all([store.queue(),store.carePlans(),store.fees(),pairedNumbers()]);
+  const carePlans:Record<string,CarePlanEntry>=plans,fees:Record<string,'due'|'paid'|'waived'>=feeMap;
   const patients=queue.patients.map(p=>({...p,saathiId:saathiId(p.id),abha:simulatedAbha(p.id),whatsapp:numbers[p.id]??null}));
   return {...queue,patients,carePlans,fees,service};
 }

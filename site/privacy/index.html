@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Saathi Privacy Policy</title>
+<meta name="description" content="Privacy policy and data deletion instructions for the Saathi home palliative-care companion demo.">
+<style>
+:root{--bg:#fbfaf7;--text:#1f2328;--muted:#5b6169;--line:#e4e1da;--accent:#2f6f5e;--note:#f1efe8}
+@media (prefers-color-scheme:dark){:root{--bg:#14171a;--text:#e8e6e1;--muted:#a3a8ae;--line:#2c3136;--accent:#7cc4ad;--note:#1d2226}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans",sans-serif}
+main{max-width:720px;margin:0 auto;padding:48px 16px 72px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 4px}
+h2{font-size:1.15rem;margin:36px 0 8px;padding-top:12px;border-top:1px solid var(--line)}
+p,li{color:var(--text)}
+.meta{color:var(--muted);margin:0 0 24px}
+.note{background:var(--note);border-left:3px solid var(--accent);padding:12px 16px;border-radius:4px}
+ul{padding-left:22px}
+li{margin:4px 0}
+a{color:var(--accent)}
+code{font:0.92em ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--note);padding:1px 5px;border-radius:3px}
+</style>
+</head>
+<body>
+<main>
+<h1>Saathi Privacy Policy</h1>
+<p class="meta">Effective 3 November 2026 · Operated by Tushar Agarwal</p>
+
+<p class="note"><strong>Saathi is a hackathon demonstration, not a medical service.</strong> It is being built for Health-a-thon 2026 and is used only with invented (synthetic) patient information. Do not send real health information, and do not use Saathi in an emergency. In India, call <strong>112</strong> or <strong>108</strong> for emergency help.</p>
+
+<h2>What Saathi is</h2>
+<p>Saathi is a prototype companion for families caring for palliative-care patients at home. Invited testers send short daily check-ins through WhatsApp (and, separately, Telegram) using a synthetic demo patient. A fixed, rule-based protocol sorts each check-in for a care-team dashboard. Saathi does not diagnose, recommend treatment or give medical advice.</p>
+
+<h2>Who can use it</h2>
+<p>Only testers who open a private, time-limited pairing link and then agree to synthetic-only use can submit reports. Messages from anyone else are discarded without being stored, except for a short pairing command. Saathi is not intended for children.</p>
+
+<h2>Information we process</h2>
+<ul>
+<li><strong>WhatsApp identifiers:</strong> your WhatsApp phone number and message IDs, to link your chat to a synthetic demo patient and avoid processing a message twice.</li>
+<li><strong>What you send:</strong> text messages, button answers and short voice notes for a check-in.</li>
+<li><strong>Consent and session state:</strong> when you agreed to synthetic-only use, your chosen language and the current step of a check-in.</li>
+<li><strong>Derived check-in records:</strong> the transcript of a voice note, extracted check-in answers with the quoted words they came from, the protocol rule that applied, and the actions taken by the demo care team.</li>
+</ul>
+<p>Saathi does not read your WhatsApp profile name or picture, contacts, location or photos, and does not use advertising or tracking cookies.</p>
+
+<h2>How it is used</h2>
+<p>Information is used only to run the demonstration: receiving a check-in, transcribing and structuring it, applying the protocol, showing it on the demo dashboard and sending fixed status replies. It is never sold, never used for advertising, and never used to train AI models by us.</p>
+
+<h2>Service providers</h2>
+<ul>
+<li><strong>Meta (WhatsApp Business Platform):</strong> delivers messages between you and Saathi.</li>
+<li><strong>Supabase:</strong> hosts the message receiver and the demo database.</li>
+<li><strong>Sarvam AI:</strong> transcribes voice notes into text.</li>
+<li><strong>Groq:</strong> extracts check-in answers from text into a fixed format.</li>
+</ul>
+<p>Each provider processes data under its own terms. Voice-note audio is sent for transcription and is not saved to disk or storage by Saathi.</p>
+
+<h2>How long it is kept</h2>
+<ul>
+<li>Incoming message content is cleared from the inbox once processed; only message IDs remain, to prevent duplicates.</li>
+<li>Consent lasts 24 hours and pairing links expire after 15 minutes.</li>
+<li>Synthetic check-in records and their audit history are kept for the duration of the hackathon demonstration, and deleted when the demo ends or when you ask.</li>
+</ul>
+
+<h2 id="data-deletion">Data deletion</h2>
+<p>To stop and remove your link to Saathi, send <code>/stop</code> in the WhatsApp chat. This removes your chat session and its stored consent link straight away.</p>
+<p>To have check-in records created from your messages deleted, email <a href="mailto:tusharaggarwal274@gmail.com?subject=Saathi%20data%20deletion">tusharaggarwal274@gmail.com</a> with the subject “Saathi data deletion” and the WhatsApp number you used. We will delete them within 30 days and confirm by email.</p>
+
+<h2>Security</h2>
+<p>Webhook requests are accepted only with a valid signature from Meta. Database tables are closed to public access and reachable only by server-side code. Credentials are kept out of source code. No system is perfectly secure, which is another reason to send only invented information.</p>
+
+<h2>Changes and contact</h2>
+<p>If this policy changes, the effective date above will be updated. Questions: <a href="mailto:tusharaggarwal274@gmail.com">tusharaggarwal274@gmail.com</a>.</p>
+</main>
+</body>
+</html>

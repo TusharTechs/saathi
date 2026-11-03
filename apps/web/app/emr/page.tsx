@@ -6,7 +6,7 @@ import { saathiId } from '../../../../packages/workflow/src/service-config';
 type Patient={id:string;name:string};
 /** Stand-in for a hospital EMR: the doctor finishes the OPD note and clicks "Check in to Saathi". Synthetic only. */
 export default function DemoEMR(){
-  const [patients,setPatients]=useState<Patient[]>([]),[patientId,setPatientId]=useState('demo-ramesh'),[plan,setPlan]=useState<CarePlan>(demoCase()),[checked,setChecked]=useState<string>(''),[error,setError]=useState(''),[busy,setBusy]=useState(false);
+  const [patients,setPatients]=useState<Patient[]>([]),[patientId,setPatientId]=useState('demo-ramesh'),[plan,setPlan]=useState<CarePlan>(demoCase()),[checked,setChecked]=useState<string>(''),[error,setError]=useState(''),[busy,setBusy]=useState(false),[slot,setSlot]=useState<typeof SLOTS[number]>('morning'),[queued,setQueued]=useState('');
   useEffect(()=>{fetch('/api/queue',{cache:'no-store'}).then(r=>r.json()).then(q=>{setPatients(q.patients??[]);const existing=q.carePlans?.['demo-ramesh'];if(existing){setPlan(existing.plan);setChecked(existing.checkedInAt);}}).catch(()=>setError('Saathi is not reachable.'));},[]);
   const set=<K extends keyof CarePlan>(k:K,v:CarePlan[K])=>setPlan({...plan,[k]:v});
   const demo=(k:keyof CarePlan['demographics'],v:string|number)=>setPlan({...plan,demographics:{...plan.demographics,[k]:v}});
@@ -47,6 +47,9 @@ export default function DemoEMR(){
       {error&&<p className="message error">{error}</p>}
       <div className="emr-submit"><button className="primary" disabled={busy||!plan.consent.consented} onClick={checkIn}>{busy?'Checking in…':checked?'Update Saathi check-in':'Submit notes · Check in to Saathi'}</button>
         {checked&&<p className="message success">Checked in to Saathi at {new Date(checked).toLocaleString('en-IN',{timeZone:'Asia/Kolkata'})}. Saathi ID <b>{saathiId(patientId)}</b>. Medicine reminders and follow-ups now run from this plan. <a href={`/patients/${patientId}`} target="_blank" rel="noreferrer">Open the Saathi record ↗</a></p>}</div>
+      {checked&&<section className="emr-demo"><h2>Demo: send a medicine reminder now</h2><p className="muted">Reminders normally go at 08:00, 14:00, 20:00 and 22:00 IST. The family must have messaged Saathi in the last 24 hours (WhatsApp’s free window), and the WhatsApp worker must be running.</p>
+        <label>Slot<select value={slot} onChange={e=>setSlot(e.target.value as typeof slot)}>{SLOTS.map(s=><option key={s} value={s}>{s}</option>)}</select></label>
+        <button disabled={busy} onClick={async()=>{setQueued('');const r=await fetch('/api/reminders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({patientId,slot})});const d=await r.json();setQueued(r.ok?`The ${slot} reminder will be sent within 30 seconds.`:d.error);}}>Send reminder now</button>{queued&&<p className="message success">{queued}</p>}</section>}
     </main>
   </div>;
 }

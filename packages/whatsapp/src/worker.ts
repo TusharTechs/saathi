@@ -6,6 +6,7 @@ import {familyReply,GREETING} from '../../workflow/src/service-config.ts';
 import {WhatsAppAPI,WhatsAppError} from './api.ts';
 import {WhatsAppStore,type Inbound} from './store.ts';
 import type {OnCallAlerts} from './oncall.ts';
+import type {Reminders} from './reminders.ts';
 export const isGreeting=(m:Inbound)=>m.kind==='text'&&/^(hi+|hello|hey|namaste|namaskar|namaskara|good (morning|evening))[\s!.]*$/i.test(m.text??'');
 export const channelNumber=(phone:string)=>createHash('sha256').update(phone).digest().readUInt32BE(0);
 export function planWhatsApp(state:State,id:number,message:Inbound,phone:string,now=Date.now()){
@@ -30,7 +31,7 @@ export function runWhatsAppTask(store:WhatsAppStore,api:WhatsAppAPI,keys:{sarvam
  };
 }
 export class WhatsAppWorker {
- constructor(private state:TelegramState,private store:WhatsAppStore,private api:WhatsAppAPI,private runTask:ReturnType<typeof runWhatsAppTask>,private log:(event:object)=>void=()=>{},private oncall?:OnCallAlerts){}
+ constructor(private state:TelegramState,private store:WhatsAppStore,private api:WhatsAppAPI,private runTask:ReturnType<typeof runWhatsAppTask>,private log:(event:object)=>void=()=>{},private oncall?:OnCallAlerts,private reminders?:Reminders){}
  async recover(){
   let snapshot=await this.state.snapshot();const p=snapshot.pending;if(!p)return;
   await this.store.binding(this.api.phoneId,p.chatId,snapshot.chats[String(p.chatId)]);
@@ -56,7 +57,12 @@ export class WhatsAppWorker {
   await this.recover();const state=await this.state.snapshot();await this.store.complete(this.api.phoneId,state.offset);
   // An alert failure must not hold up family reports; it is retried on the next check.
   await this.oncall?.check().catch(()=>this.log({event:'oncall_check',status:'failed'}));
+  await this.reminders?.check(state.chats).catch(()=>this.log({event:'reminder_check',status:'failed'}));
   const next=await this.store.next(this.api.phoneId,state.offset);if(!next)return false;
+  // Every family message reopens WhatsApp's free 24-hour window for reminders.
+  if(state.chats[next.message.from])await this.reminders?.seen(next.message);
+  const consume=async()=>{await this.state.transact(s=>{s.offset=next.id+1;});await this.store.complete(this.api.phoneId,next.id+1);return true;};
+  if(await this.reminders?.inbound(next.message,state.chats))return consume();
   if(await this.oncall?.inbound(next.message)){await this.state.transact(s=>{s.offset=next.id+1;});await this.store.complete(this.api.phoneId,next.id+1);return true;}
   // A consented family's "Hi" opens the conversation instead of becoming an empty report.
   const chat=state.chats[next.message.from];

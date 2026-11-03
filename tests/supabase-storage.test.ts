@@ -26,7 +26,7 @@ test('Supabase service-only storage transactions and grants',async t=>{
    create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
    grant usage on schema public,auth to anon,authenticated,service_role;
    alter default privileges in schema public grant execute on functions to anon,authenticated,service_role;`);
-  for(const file of ['supabase/migrations/202610230001_core.sql','supabase/migrations/202610230002_function_permissions.sql','supabase/seed/demo.sql','supabase/migrations/202610230003_demo_storage.sql','supabase/migrations/202610230004_conflict_responses.sql','supabase/migrations/202610230005_narrative_analysis.sql','supabase/migrations/202610230006_telegram_origin.sql','supabase/migrations/202610230007_whatsapp_intake.sql','supabase/migrations/202611030008_whatsapp_oncall.sql','supabase/migrations/202611030009_teleconsult.sql','supabase/migrations/202611040010_accounts_and_cloud_worker.sql','supabase/migrations/202611040011_login_expected_phone.sql','supabase/migrations/202611040012_prescriptions_assignments_updates.sql']) await db.exec(await readFile(new URL(file,root),'utf8'));
+  for(const file of ['supabase/migrations/202610230001_core.sql','supabase/migrations/202610230002_function_permissions.sql','supabase/seed/demo.sql','supabase/migrations/202610230003_demo_storage.sql','supabase/migrations/202610230004_conflict_responses.sql','supabase/migrations/202610230005_narrative_analysis.sql','supabase/migrations/202610230006_telegram_origin.sql','supabase/migrations/202610230007_whatsapp_intake.sql','supabase/migrations/202611030008_whatsapp_oncall.sql','supabase/migrations/202611030009_teleconsult.sql','supabase/migrations/202611040010_accounts_and_cloud_worker.sql','supabase/migrations/202611040011_login_expected_phone.sql','supabase/migrations/202611040012_prescriptions_assignments_updates.sql','supabase/migrations/202611040013_clinical_review_form.sql']) await db.exec(await readFile(new URL(file,root),'utf8'));
   await t.test('anonymous and authenticated roles cannot call any service-only RPC',async()=>{
    for(const role of ['anon','authenticated']){
     await db.exec(`set role ${role}`);
@@ -250,6 +250,14 @@ test('Supabase service-only storage transactions and grants',async t=>{
    const rx=await rpc<{id:string;items:unknown[]}[]>(`select public.saathi_demo_prescriptions('demo-ramesh') as data`);assert.equal(rx[0]!.id,id);
    await assert.rejects(db.query(`select public.saathi_demo_prescribe('demo-meena','${rec.id}','Dr. Judge','KMC-1','[{"medicine":"X"}]'::jsonb,null,'${sig}','${randomUUID()}',now())`),/does not belong/);
    await assert.rejects(db.query(`select public.saathi_demo_prescribe('demo-ramesh',null,'Dr. Judge','KMC-1','[]'::jsonb,null,'${sig}','${randomUUID()}',now())`),/check constraint/);
+  });
+  await t.test('clinical review form autosaves and keeps every submission',async()=>{
+   await db.query(`select public.saathi_review_save('clinical-lead','Dr. K','{"A1":{"choice":"Approve"}}'::jsonb,false)`);
+   let cur=await rpc<{answers:Record<string,unknown>;submittedAt:string|null}>(`select public.saathi_review_get('clinical-lead') as data`);assert.equal(cur.submittedAt,null);
+   await db.query(`select public.saathi_review_save('clinical-lead','Dr. K','{"A1":{"choice":"Approve"},"D2":{"choice":"Yes, AMBER","details":"13-15"}}'::jsonb,true)`);
+   await db.query(`select public.saathi_review_save('clinical-lead','Dr. K','{"A1":{"choice":"Change (write below)"}}'::jsonb,false)`);
+   cur=await rpc(`select public.saathi_review_get('clinical-lead') as data`);assert.ok(cur.submittedAt);assert.deepEqual(Object.keys(cur.answers),['A1']);
+   const all=await rpc<{submissions:unknown[]}>('select public.saathi_review_all() as data');assert.equal(all.submissions.length,1,'drafts are not submissions');
   });
  }finally{await db.close();}
 });

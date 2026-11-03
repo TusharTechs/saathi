@@ -28,11 +28,11 @@ export function guard(request:Request,write=false,format:'json'|'multipart'='jso
   }
   return requireRole(request,roles);
 }
-export async function body(request:Request){
+export async function body(request:Request,limit=16000){
   const reader=request.body?.getReader(); if(!reader) throw new WorkflowError(400,'JSON body required');
   let length=0;const chunks:Uint8Array[]=[];
   while(true){const result=await reader.read(); if(result.done) break;length+=result.value.byteLength;
-    if(length>16000){await reader.cancel();throw new WorkflowError(413,'Request exceeds 16 KB');}chunks.push(result.value);}
+    if(length>limit){await reader.cancel();throw new WorkflowError(413,`Request exceeds ${Math.round(limit/1000)} KB`);}chunks.push(result.value);}
   try{return JSON.parse(Buffer.concat(chunks).toString('utf8'));}catch{throw new WorkflowError(400,'Invalid JSON');}
 }
 export function fail(error:unknown){

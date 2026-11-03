@@ -203,3 +203,7 @@ Checked the build against the call transcript and added what was missing (migrat
 - **Doctor-side voice:** in-browser recording removed; staff upload a voice note or type what the family said.
 - Sign-in no longer uses WhatsApp (Meta blocked the app); mobile number or email with a password.
 Still waiting on Dr. Rao: approved automatic nursing replies, care-card texts and videos, the restricted-drug list, her synthetic case, and the legal wording of the terms.
+
+## 22. Online review form for Dr. Rao · 3 November 2026
+
+Replaced the PDF review pack with an online form at `/review` (private link with `SAATHI_REVIEW_TOKEN`, no login). 60 questions in five sections (call decisions, family messages, every triage rule generated from the protocol data, open questions, and new items: the restricted-drug list, automatic nursing replies and legal wording). Each question has tappable choices and an optional note; answers autosave (server and browser) and Submit keeps a copy (migration 013). Tushar reads answers at `/review/responses` (with `SAATHI_REVIEW_ADMIN_TOKEN`), can copy them as Markdown, and `pnpm review:export` writes them to `output/review/`. Review pack v2's sign-in (A6) and prescription delivery (A8) items are corrected in the form. Both links are in `apps/web/env.local`.

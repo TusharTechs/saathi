@@ -96,6 +96,10 @@ export class SupabaseStore {
  async careEvents(patientId:string):Promise<CareEvent[]>{return z.array(careEventSchema).parse(await this.rpc('saathi_demo_care_events',{p_patient_key:patientId}));}
  async prescribe(r:Prescription){await this.rpc('saathi_demo_prescribe',{p_patient_key:r.patientId,p_alert:r.alertId,p_prescriber:r.prescriber,p_registration:r.registration,p_items:r.items,p_advice:r.advice,p_signature:r.signature,p_id:r.id,p_issued:r.issuedAt});}
  async prescriptions(patientId:string|null):Promise<Prescription[]>{return z.array(z.object({id:z.string(),alertId:z.string().nullable(),patientId:z.string(),prescriber:z.string(),registration:z.string(),items:z.array(rxItem),advice:z.string().nullable(),signature:z.string(),issuedAt:z.string()})).parse(await this.rpc('saathi_demo_prescriptions',{p_patient_key:patientId}));}
+ // Migration 013: the clinical lead's review form.
+ async reviewGet(reviewer:string){return z.object({name:z.string().nullable(),answers:z.record(z.string(),z.unknown()),updatedAt:z.string(),submittedAt:z.string().nullable()}).nullable().parse(await this.rpc('saathi_review_get',{p_reviewer:reviewer}));}
+ async reviewSave(reviewer:string,name:string,answers:Record<string,unknown>,submit:boolean){return z.object({updatedAt:z.string(),submittedAt:z.string().nullable()}).parse(await this.rpc('saathi_review_save',{p_reviewer:reviewer,p_name:name,p_answers:answers,p_submit:submit}));}
+ async reviewAll(){return z.object({current:z.array(z.object({reviewer:z.string(),name:z.string().nullable(),answers:z.record(z.string(),z.unknown()),updatedAt:z.string(),submittedAt:z.string().nullable()})),submissions:z.array(z.object({id:z.number(),reviewer:z.string(),name:z.string().nullable(),submittedAt:z.string()}))}).parse(await this.rpc('saathi_review_all'));}
 }
 export type Assignee='doctor'|'nurse'|'psychologist';
 export const careEventSchema=z.object({kind:z.enum(['pain','admitted','discharged']),value:z.number().nullable(),note:z.string().nullable(),source:z.enum(['web','whatsapp','staff']),at:z.string()});

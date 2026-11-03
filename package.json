@@ -28,6 +28,8 @@
     "supabase:login-phone": "node scripts/supabase.mjs login-phone",
     "supabase:teleconsult-2": "node scripts/supabase.mjs teleconsult-2",
     "accounts:seed-judges": "tsx scripts/seed-judges.ts",
+    "review:export": "tsx scripts/review-export.ts",
+    "supabase:review": "node scripts/supabase.mjs review",
     "whatsapp:oncall": "tsx scripts/whatsapp.ts oncall",
     "whatsapp:check": "tsx scripts/whatsapp.ts check",
     "whatsapp:pair": "tsx scripts/whatsapp.ts pair",

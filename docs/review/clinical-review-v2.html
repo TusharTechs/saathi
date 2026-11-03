@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Saathi Clinical Review v2</title>
+<style>
+@page{size:A4;margin:16mm 14mm}
+*{box-sizing:border-box}
+body{font:10.5pt/1.5 -apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#1f2a28;margin:0}
+h1{font:400 24pt/1.2 Georgia,serif;margin:0 0 4px;color:#214f46}
+h2{font:400 15pt/1.3 Georgia,serif;color:#214f46;margin:22px 0 6px;padding-top:8px;border-top:2px solid #214f46;break-after:avoid}
+h3{font-size:11pt;margin:14px 0 4px;break-after:avoid}
+p{margin:4px 0}
+.meta{color:#5f6b68;margin-bottom:12px}
+.how{background:#f1f4f0;border-left:3px solid #214f46;padding:8px 12px;margin:10px 0}
+.item{border:1px solid #cfd8d3;border-radius:6px;padding:9px 11px;margin:8px 0;break-inside:avoid}
+.item .q{font-weight:600}
+.msg{background:#fbf8f1;border:1px solid #e8dcc2;border-radius:4px;padding:7px 10px;margin:6px 0;white-space:pre-wrap}
+.boxes{display:flex;gap:16px;margin-top:6px;font-size:9.5pt;color:#3b4744}
+.boxes span::before{content:"☐ ";font-size:12pt}
+.lines{border-bottom:1px solid #b9c4bf;height:20px}
+table{width:100%;border-collapse:collapse;font-size:9.5pt;margin-top:6px}
+th,td{border:1px solid #cfd8d3;padding:5px 6px;vertical-align:top;text-align:left}
+th{background:#eef2ef}
+tr{break-inside:avoid}
+td.id{font-weight:700;white-space:nowrap}
+td.red{color:#a5453b;font-weight:700}td.amber{color:#8a6420;font-weight:700}
+td.box{width:92px;font-size:9pt;line-height:1.7}
+td.note{width:150px}
+.tag{display:inline-block;font-size:8.5pt;padding:1px 6px;border-radius:9px;background:#eef2ef;color:#214f46;font-weight:600}
+</style>
+</head>
+<body>
+<h1>Saathi clinical review</h1>
+<p class="meta">Version 2 · 3 November 2026 · For Dr. Krithika S Rao · Prepared by Tushar Agarwal · Synthetic demo, not for real patients</p>
+<div class="how"><b>How to review:</b> for each item, tick <b>Approve</b>, <b>Change</b> or <b>Remove</b> and write any correction underneath. You can annotate this PDF, or reply on WhatsApp with the item number (for example "B1 change: …"). Nothing here is shown to families or treated as approved until you confirm it.</div>
+
+<h2>A. Decisions from our call on 3 November: please confirm</h2>
+<p>I wrote these down during our call. Tick Approve if I understood correctly.</p>
+<div class="item"><p class="q">A1. What Saathi is</p><p>An extended, out-of-hours support and continuity service. It triages caregiver concerns into a teleconsultation call-back; it does not give treatment by chat.</p><div class="boxes"><span>Approve</span><span>Change</span></div><div class="lines"></div></div>
+<div class="item"><p class="q">A2. Check in to Saathi from the hospital record</p><p>At the end of an OPD visit, the doctor clicks "Check in to Saathi" in the hospital system. Saathi receives the patient's details, prescription, notes and follow-up plan (for example a phone follow-up in 2 weeks and an OPD visit in 1 month). For the demo, a dummy hospital page will hold one synthetic case that you write.</p><div class="boxes"><span>Approve</span><span>Change</span></div><div class="lines"></div></div>
+<div class="item"><p class="q">A3. Reminders on WhatsApp</p><p>Morning and evening medicine reminders listed by medicine, refill reminders, OPD appointment reminders and phone follow-up reminders. Families tap "Given" or "Not given", which builds the medicine-compliance chart.</p><div class="boxes"><span>Approve</span><span>Change</span></div><div class="lines"></div></div>
+<div class="item"><p class="q">A4. What "Acknowledge" means</p><p>The on-call doctor acknowledging a report means it is accepted into the call-back list. It does not close the report. The report closes only after the call, when the doctor writes call notes and the advice given.</p><div class="boxes"><span>Approve</span><span>Change</span></div><div class="lines"></div></div>
+<div class="item"><p class="q">A5. Call-back targets</p><table><tr><th>Urgency</th><th>Who</th><th>Call back within</th></tr><tr><td class="red">RED</td><td>On-call doctor (junior doctor / PG after 5 pm)</td><td>1 hour</td></tr><tr><td class="amber">AMBER</td><td>Nurse in charge assigns doctor, nurse or psychologist</td><td>6 hours (you mentioned 6 or 8)</td></tr><tr><td>GREEN</td><td>Next working day</td><td>24 hours</td></tr></table><p>Please write the exact numbers you want:</p><div class="boxes"><span>Approve</span><span>Change</span></div><div class="lines"></div></div>
+<div class="item"><p class="q">A6. Three kinds of login</p><p>(1) Doctors, nurses and psychologists see full medical details. (2) Non-medical staff (call manager) see only date-wise counts, urgency, status, patient name and hospital ID, and can export a daily PDF report. (3) Patients and families sign in with a one-time code by phone number or email.</p><div class="boxes"><span>Approve</span><span>Change</span></div><div class="lines"></div></div>
+<div class="item"><p class="q">A7. Fees (optional per organisation)</p><p>Paid services can ask for a call-back fee when the family requests a call (audio or video), with follow-up pricing (for example the first follow-up within 15 days at half fee). Free services such as NGOs switch fees off. The admin sees a "fee paid" checklist. No payment is collected in the demo.</p><div class="boxes"><span>Approve</span><span>Change</span></div><div class="lines"></div></div>
+<div class="item"><p class="q">A8. Prescriptions after a teleconsult</p><p>After the call the doctor may write a prescription with a digital signature, sent to the family on WhatsApp. Following the Telemedicine Practice Guidelines, Saathi blocks Schedule X, narcotic and psychotropic drugs and anti-cancer drugs on teleconsult prescriptions. Records are kept for 3 years under the DPDP Act and IT rules.</p><div class="boxes"><span>Approve</span><span>Change</span></div><div class="lines"></div></div>
+<div class="item"><p class="q">A9. Demo language and channel</p><p>English only for the demo. WhatsApp and a web page for families. Telegram is not needed.</p><div class="boxes"><span>Approve</span><span>Change</span></div><div class="lines"></div></div>
+
+<h2>B. Messages families would receive</h2>
+<div class="item"><p class="q">B1. Message on any RED report (your wording from the call)</p><div class="msg">The patient's condition may be critical and cannot be managed through teleconsultation. Please seek urgent medical care at the nearest hospital now. If breathing stops or you cannot wake the patient, call 108. Our on-call doctor has also been alerted.</div><p>Should this go for every RED rule, or only some (for example R3 breathing and R1/R2 drowsiness)? Should "caregiver not coping" (R13) get a different message?</p><div class="boxes"><span>Approve</span><span>Change</span><span>Remove</span></div><div class="lines"></div><div class="lines"></div></div>
+<div class="item"><p class="q">B2. Message on AMBER or GREEN (drafted by Tushar)</p><div class="msg">Thank you. Your concern has been recorded and the care team will call you within [6 hours / 24 hours]. If the patient becomes very sick, please go to the nearest hospital or call 108.</div><div class="boxes"><span>Approve</span><span>Change</span><span>Remove</span></div><div class="lines"></div></div>
+<div class="item"><p class="q">B3. Rider shown at registration and in every reply (drafted; legal review pending)</p><div class="msg">Saathi is a support service for patients already under our care. It is not an emergency service. If the patient is very sick, go to the nearest hospital or call 108 immediately.</div><div class="boxes"><span>Approve</span><span>Change</span></div><div class="lines"></div></div>
+<div class="item"><p class="q">B4. Emergency card (older draft; may now be replaced by B1)</p><div class="msg">1. Your care team has been alerted. A doctor will call you within [N] minutes. You can also call the on-call doctor now: [on-call number].
+2. Do not give another extra dose of pain medicine until the doctor speaks to you.
+3. Stay with the patient. If they are lying down, turn them gently onto their side.
+4. If breathing becomes very slow or stops, or you cannot wake them, call 108 now.
+5. Keep the medicine box and this phone with you.</div><div class="boxes"><span>Approve</span><span>Change</span><span>Remove</span></div><div class="lines"></div></div>
+<div class="item"><p class="q">B5. C6 Constipation while taking morphine</p><div class="msg">1. Morphine almost always causes constipation.
+2. Give the laxative every day, even if the patient has passed stool.
+3. Offer fluids often.
+4. Gentle movement helps.
+5. Tell the team if there is no stool for 3 days, or if there is belly pain or vomiting.</div><div class="boxes"><span>Approve</span><span>Change</span><span>Remove</span></div><div class="lines"></div></div>
+<div class="item"><p class="q">B6. C12 Counting breaths and checking drowsiness</p><div class="msg">Counting breaths: wait until the patient is resting quietly. Watch or feel the chest or tummy rise. Count each rise for one full minute by the phone timer.
+• 12 or fewer → RED: the doctor is alerted.
+• 13–15 → the team reviews today (pending your decision, see D2).
+Checking drowsiness: call their name and talk to them. If they keep falling asleep while talking or eating, or are hard to wake, the doctor is alerted immediately.</div><div class="boxes"><span>Approve</span><span>Change</span><span>Remove</span></div><div class="lines"></div></div>
+<div class="item"><p class="q">B7. C2 Giving opioid medicines and applying a fentanyl patch</p><p>The full draft is long (liquid morphine steps, nine fentanyl patch steps). It is in the clinical review desk of the app; I can send it separately. Should families receive this card at all, given the guidance not to advise on medicines by WhatsApp?</p><div class="boxes"><span>Keep</span><span>Change</span><span>Remove</span></div><div class="lines"></div></div>
+
+<h2>C. Triage rules: when is a report RED or AMBER?</h2>
+<p>Saathi applies these rules exactly as written; the AI never decides urgency. "Drowsiness" levels: W1 awake and talking · W2 sleeping, wakes easily · W3 a little drowsy, stays awake · W4 keeps falling asleep while talking or eating · W5 very hard to wake or cannot be woken.</p>
+<table>
+<thead><tr><th>Rule</th><th>Urgency</th><th>Becomes this urgency when the family reports…</th><th>Your decision</th><th>Comments</th></tr></thead>
+<tbody>
+<tr><td class="id">R1</td><td class="red">RED</td><td>Patient is very hard to wake or cannot be woken (W5).</td><td class="box">☐ Approve<br>☐ Change<br>☐ Remove</td><td class="note"></td></tr>
+<tr><td class="id">R2</td><td class="red">RED</td><td>Patient keeps falling asleep while talking or eating (W4).</td><td class="box">☐ Approve<br>☐ Change<br>☐ Remove</td><td class="note"></td></tr>
+<tr><td class="id">R3</td><td class="red">RED</td><td>Any of: breaths counted over a full minute are 12 or fewer; breathing is very slow or has pauses; or new noisy or rattling breathing while the patient is drowsy (W3–W5).</td><td class="box">☐ Approve<br>☐ Change<br>☐ Remove</td><td class="note"></td></tr>
+<tr><td class="id">R4</td><td class="red">RED</td><td>Any of: sudden severe breathlessness at rest; blue lips; or face or neck swelling with breathlessness.</td><td class="box">☐ Approve<br>☐ Change<br>☐ Remove</td><td class="note"></td></tr>
+<tr><td class="id">R5</td><td class="red">RED</td><td>New back pain with leg weakness, or new loss of bladder or bowel control.</td><td class="box">☐ Approve<br>☐ Change<br>☐ Remove</td><td class="note"></td></tr>
+<tr><td class="id">R6</td><td class="red">RED</td><td>Sudden confusion, or seeing or hearing things that are not there.</td><td class="box">☐ Approve<br>☐ Change<br>☐ Remove</td><td class="note"></td></tr>
+<tr><td class="id">R7</td><td class="red">RED</td><td>A seizure (fit).</td><td class="box">☐ Approve<br>☐ Change<br>☐ Remove</td><td class="note"></td></tr>
+<tr><td class="id">R8</td><td class="red">RED</td><td>Any of: heavy bleeding; vomiting blood or coffee-ground material; black stools.</td><td class="box">☐ Approve<br>☐ Change<br>☐ Remove</td><td class="note"></td></tr>
+<tr><td class="id">R9</td><td class="red">RED</td><td>Vomiting 2 or more times in 24 hours, with a swollen belly and no stool or wind. <span class="tag">Is "repeated" 2 or more?</span></td><td class="box">☐ Approve<br>☐ Change<br>☐ Remove</td><td class="note"></td></tr>
+<tr><td class="id">R10</td><td class="red">RED</td><td>Temperature 38 °C or more, with chemotherapy in the last 6 weeks.</td><td class="box">☐ Approve<br>☐ Change<br>☐ Remove</td><td class="note"></td></tr>
+<tr><td class="id">R11</td><td class="red">RED</td><td>Sudden pain of 8/10 or more, not helped by the rescue dose.</td><td class="box">☐ Approve<br>☐ Change<br>☐ Remove</td><td class="note"></td></tr>
+<tr><td class="id">R12</td><td class="red">RED</td><td>A medicine mistake (wrong dose, wrong medicine or double dose).</td><td class="box">☐ Approve<br>☐ Change<br>☐ Remove</td><td class="note"></td></tr>
+<tr><td class="id">R13</td><td class="red">RED</td><td>Thoughts of self-harm or a crisis, or the caregiver says they are not coping at all.</td><td class="box">☐ Approve<br>☐ Change<br>☐ Remove</td><td class="note"></td></tr>
+<tr><td class="id">A1</td><td class="amber">AMBER</td><td>3 or more rescue doses in 24 hours (your confirmed rule).</td><td class="box">☐ Approve<br>☐ Change<br>☐ Remove</td><td class="note"></td></tr>
+<tr><td class="id">A2</td><td class="amber">AMBER</td><td>Pain 7/10 or more despite medicines, or pain 3 or more points above the patient's usual score.</td><td class="box">☐ Approve<br>☐ Change<br>☐ Remove</td><td class="note"></td></tr>
+<tr><td class="id">A3</td><td class="amber">AMBER</td><td>Vomiting 3 or more times in 24 hours, or unable to keep medicines down.</td><td class="box">☐ Approve<br>☐ Change<br>☐ Remove</td><td class="note"></td></tr>
+<tr><td class="id">A4</td><td class="amber">AMBER</td><td>No stool for 3 days while on morphine.</td><td class="box">☐ Approve<br>☐ Change<br>☐ Remove</td><td class="note"></td></tr>
+<tr><td class="id">A5</td><td class="amber">AMBER</td><td>Only sips or mouthfuls, or nothing, for 24 hours or more.</td><td class="box">☐ Approve<br>☐ Change<br>☐ Remove</td><td class="note"></td></tr>
+<tr><td class="id">A6</td><td class="amber">AMBER</td><td>Newly a little drowsy (W3) within 72 hours of a dose increase.</td><td class="box">☐ Approve<br>☐ Change<br>☐ Remove</td><td class="note"></td></tr>
+<tr><td class="id">A7</td><td class="amber">AMBER</td><td>New jerking movements.</td><td class="box">☐ Approve<br>☐ Change<br>☐ Remove</td><td class="note"></td></tr>
+<tr><td class="id">A8</td><td class="amber">AMBER</td><td>Confusion that has come on gradually.</td><td class="box">☐ Approve<br>☐ Change<br>☐ Remove</td><td class="note"></td></tr>
+<tr><td class="id">A9</td><td class="amber">AMBER</td><td>Wound changes (more bleeding, stronger smell, new discharge or spreading redness), when a wound photo is available. <span class="tag">Should a missing photo matter?</span></td><td class="box">☐ Approve<br>☐ Change<br>☐ Remove</td><td class="note"></td></tr>
+<tr><td class="id">A10</td><td class="amber">AMBER</td><td>New breathlessness at rest.</td><td class="box">☐ Approve<br>☐ Change<br>☐ Remove</td><td class="note"></td></tr>
+<tr><td class="id">A11</td><td class="amber">AMBER</td><td>2 or more regular doses missed, or morphine supply for 5 days or fewer.</td><td class="box">☐ Approve<br>☐ Change<br>☐ Remove</td><td class="note"></td></tr>
+<tr><td class="id">A12</td><td class="amber">AMBER</td><td>Caregiver says they are struggling on 2 check-ins in a row.</td><td class="box">☐ Approve<br>☐ Change<br>☐ Remove</td><td class="note"></td></tr>
+<tr><td class="id">A13</td><td class="amber">AMBER</td><td>A family question is still unanswered after 2 care-card attempts.</td><td class="box">☐ Approve<br>☐ Change<br>☐ Remove</td><td class="note"></td></tr>
+<tr><td class="id">A14</td><td class="amber">AMBER</td><td>No check-in for 2 days.</td><td class="box">☐ Approve<br>☐ Change<br>☐ Remove</td><td class="note"></td></tr>
+<tr><td class="id">A15</td><td class="amber">AMBER</td><td>Breaths counted over a full minute are 13 to 15. <span class="tag">Currently switched off, see D2</span></td><td class="box">☐ Switch on<br>☐ Change<br>☐ Remove</td><td class="note"></td></tr>
+</tbody>
+</table>
+
+<h2>D. Questions only you can answer</h2>
+<div class="item"><p class="q">D1. Is anything missing?</p><p>Are there palliative emergencies that should be RED or AMBER but are not listed above (for example uncontrolled agitation, inability to swallow, a fall)?</p><div class="lines"></div><div class="lines"></div></div>
+<div class="item"><p class="q">D2. 13–15 breaths per minute in adults: AMBER?</p><div class="boxes"><span>Yes, AMBER</span><span>No</span><span>Other</span></div><div class="lines"></div></div>
+<div class="item"><p class="q">D3. Safety test results (60 invented messages in English, Hindi and Kannada)</p><p>Saathi caught 27 of 30 expected REDs. It missed "seeing people who are not there" in Hindi and "I am not coping at all" in Hindi and Kannada. Could you check the test labels and add about 20 cases from your experience, with details changed?</p><div class="boxes"><span>Yes</span><span>Later</span></div><div class="lines"></div></div>
+<div class="item"><p class="q">D4. The dummy hospital case</p><p>Please write one synthetic case: name, age, address, diagnosis, current prescription (medicine, dose, morning/evening timing, rescue dose), notes and follow-up plan.</p><div class="lines"></div><div class="lines"></div></div>
+<div class="item"><p class="q">D5. Videos</p><p>Which of the shortlisted videos should families receive? (Karunashraya Kannada, NHSRC Hindi, hospital English videos for fentanyl patch, liquid morphine, counting breaths, constipation, mouth care, pressure care.)</p><div class="lines"></div><div class="lines"></div></div>
+<div class="item"><p class="q">D6. Children's pack</p><p>Adult rules are never applied to children. Should the demo leave children out entirely?</p><div class="boxes"><span>Leave out for demo</span><span>Include</span></div><div class="lines"></div></div>
+</body>
+</html>

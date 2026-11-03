@@ -10,7 +10,7 @@ export async function POST(request:Request,context:{params:Promise<{id:string}>}
   try{const session=guard(request,true,'json',['medical','coordinator']);const {id}=await context.params;const input=schema.parse(await body(request));
     // The call manager may only update fee status; clinical actions stay with medical staff.
     if(session.role==='coordinator'&&input.action!=='fee')return json({error:'Only medical staff can acknowledge or close calls.'},403);
-    if(input.action==='close')return json(await store.close(id,input.expectedRevision,input.notes,input.advice));
+    if(input.action==='close')return json(await store.close(id,input.expectedRevision,input.notes,input.advice,session.name));
     if(input.action==='fee'){await store.setFee(id,input.status);return json({id,status:input.status});}
-    return json(await store.transition(id,input.action,input.expectedRevision));}catch(e){return fail(e);}
+    return json(await store.transition(id,input.action,input.expectedRevision,session.name));}catch(e){return fail(e);}
 }

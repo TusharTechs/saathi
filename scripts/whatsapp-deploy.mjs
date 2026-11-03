@@ -20,7 +20,7 @@ try{
   if(!/^\d{1,40}$/.test(process.env.WA_PHONE_NUMBER_ID)||process.env.WA_APP_SECRET.length<32||process.env.WA_VERIFY_TOKEN.length<32)throw Error('Phone ID or webhook secrets failed configuration validation; no deployment attempted.');
   const existing=await(await call('functions')).json();if(!Array.isArray(existing))throw Error('Unexpected function listing');
   if(existing.some(f=>f.slug===slug)&&!process.argv.includes('--replace'))throw Error('Function already exists; inspect it before explicitly using --replace.');
-  await call('secrets',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(['WA_PHONE_NUMBER_ID','WA_APP_SECRET','WA_VERIFY_TOKEN'].map(name=>({name,value:process.env[name]})))});
+  await call('secrets',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(['WA_PHONE_NUMBER_ID','WA_APP_SECRET','WA_VERIFY_TOKEN','SAATHI_APP_URL','SAATHI_WORKER_SECRET'].filter(name=>process.env[name]).map(name=>({name,value:process.env[name]})))});
   const form=new FormData();form.set('metadata',JSON.stringify({name:slug,entrypoint_path:'index.ts',verify_jwt:false}));for(const file of files)form.append('file',new File([file.source],file.name,{type:'application/typescript'}));
   await call('functions/deploy?slug='+slug,{method:'POST',body:form});console.log(JSON.stringify({callback,checksum,deployed:true,publicDashboard:false}));
  }else throw Error('Use plan, prepare or deploy --publish.');

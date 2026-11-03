@@ -68,14 +68,17 @@ export class SupabaseStore {
   const result=await this.rpc('saathi_demo_import',{p_record:record,p_protocol:adultProtocol});
   return z.object({record:recordSchema,duplicate:z.boolean()}).parse(result) as unknown as {record:RecordEntry;duplicate:boolean};
  }
- async transition(id:string,action:'acknowledge'|'resolve',expectedRevision:number):Promise<RecordEntry>{
-  return recordSchema.parse(await this.rpc('saathi_demo_transition',{target:id,action,expected_revision:expectedRevision})) as unknown as RecordEntry;
+ /** With an actor, the signed-in person's name is written to the call log (migration 010). */
+ async transition(id:string,action:'acknowledge'|'resolve',expectedRevision:number,actor?:string):Promise<RecordEntry>{
+  const raw=actor?await this.rpc('saathi_demo_transition_as',{target:id,action,expected_revision:expectedRevision,p_actor:actor}):await this.rpc('saathi_demo_transition',{target:id,action,expected_revision:expectedRevision});
+  return recordSchema.parse(raw) as unknown as RecordEntry;
  }
  async tick(){return z.object({changed:z.number().int().nonnegative()}).parse(await this.rpc('saathi_demo_tick'));}
  /** Closes an acknowledged call with the clinician's notes and the advice given. */
- async close(id:string,expectedRevision:number,notes:string,advice:string):Promise<RecordEntry>{
+ async close(id:string,expectedRevision:number,notes:string,advice:string,actor?:string):Promise<RecordEntry>{
   if(!notes.trim()||notes.length>4000||advice.length>2000)throw new WorkflowError(400,'Write call notes (up to 4000 characters) before closing the call.');
-  return recordSchema.parse(await this.rpc('saathi_demo_close',{target:id,expected_revision:expectedRevision,p_notes:notes,p_advice:advice})) as unknown as RecordEntry;
+  const raw=actor?await this.rpc('saathi_demo_close_as',{target:id,expected_revision:expectedRevision,p_notes:notes,p_advice:advice,p_actor:actor}):await this.rpc('saathi_demo_close',{target:id,expected_revision:expectedRevision,p_notes:notes,p_advice:advice});
+  return recordSchema.parse(raw) as unknown as RecordEntry;
  }
  async checkin(patientId:string,plan:CarePlan):Promise<CarePlanEntry>{
   const r=z.object({plan:carePlanSchema,checkedInAt:z.string()}).parse(await this.rpc('saathi_demo_checkin',{p_patient_key:patientId,p_plan:carePlanSchema.parse(plan)}));return r;

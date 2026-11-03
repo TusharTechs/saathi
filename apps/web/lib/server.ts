@@ -37,6 +37,8 @@ export async function body(request:Request){
 }
 export function fail(error:unknown){
   const status=error instanceof WorkflowError?error.code:error instanceof z.ZodError?400:500;
+  // Unexpected failures are logged server-side (never sent to the browser).
+  if(status===500)console.error('saathi_api_error',error instanceof Error?`${error.name}: ${error.message}\n${error.stack??''}`:String(error));
   return Response.json({error:error instanceof WorkflowError?error.message:error instanceof z.ZodError?'Invalid request fields':'Operation failed. Refresh the queue to check its current status.'},{status,headers:{'Cache-Control':'no-store'}});
 }
 export const json=(data:unknown,status=200)=>Response.json(data,{status,headers:{'Cache-Control':'no-store'}});

@@ -66,22 +66,22 @@ export class DemoStore {
       state.records.push(record);return {record,duplicate:false};
     });
   }
-  async transition(id:string,action:'acknowledge'|'resolve',expectedRevision:number){
+  async transition(id:string,action:'acknowledge'|'resolve',expectedRevision:number,actor='Demo doctor 1'){
     return this.transact(state=>{
       const r=state.records.find(r=>r.id===id);if(!r) throw new WorkflowError(404,'Report not found');
       if(r.revision!==expectedRevision) throw new WorkflowError(409,'Report changed. Refresh and try again.');
       const next=action==='acknowledge'?'acked':'resolved';
       if((action==='acknowledge' && r.status!=='open') || (action==='resolve' && r.status!=='acked')) throw new WorkflowError(409,'Acknowledge an open report before resolving it.');
-      r.status=next;r.revision++;r.events.push(this.event(action==='acknowledge'?'acknowledged':'resolved',`Status changed to ${next}.`,'Demo doctor 1'));return r;
+      r.status=next;r.revision++;r.events.push(this.event(action==='acknowledge'?'acknowledged':'resolved',`Status changed to ${next}.`,actor));return r;
     });
   }
-  async close(id:string,expectedRevision:number,notes:string,advice:string){
+  async close(id:string,expectedRevision:number,notes:string,advice:string,actor='Demo doctor 1'){
     if(!notes.trim()||notes.length>4000||advice.length>2000) throw new WorkflowError(400,'Write call notes (up to 4000 characters) before closing the call.');
     return this.transact(state=>{
       const r=state.records.find(r=>r.id===id);if(!r) throw new WorkflowError(404,'Report not found');
       if(r.revision!==expectedRevision) throw new WorkflowError(409,'Report changed. Refresh and try again.');
       if(r.status!=='acked') throw new WorkflowError(409,'Acknowledge the report before closing the call.');
-      r.status='resolved';r.revision++;r.events.push(this.event('resolved',`Call completed. Call notes: ${notes.trim()}${advice.trim()?` Advice given: ${advice.trim()}`:''}`,'Demo doctor 1'));return r;
+      r.status='resolved';r.revision++;r.events.push(this.event('resolved',`Call completed. Call notes: ${notes.trim()}${advice.trim()?` Advice given: ${advice.trim()}`:''}`,actor));return r;
     });
   }
   // Care plans, dose logs and fees are hosted-only features; local mode stays a minimal offline fallback.

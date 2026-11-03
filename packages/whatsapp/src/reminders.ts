@@ -19,9 +19,11 @@ const nice=(d:string)=>new Date(d+'T12:00:00+05:30').toLocaleDateString('en-IN',
 const sentSchema=z.object({key:z.string(),at:z.string(),status:z.enum(['sending','accepted','failed','unknown','window_closed'])});
 const stateSchema=z.object({version:z.literal(1),lastInbound:z.record(z.string(),z.number()),sent:z.array(sentSchema),demoRequests:z.array(z.object({patientId:z.string(),slot:z.enum(SLOTS)})).default([])});
 type State=z.infer<typeof stateSchema>;
+import type {Cloud} from '../../workflow/src/cloud-docs.ts';
 export class ReminderState {
- constructor(private directory:string){}
+ constructor(private directory:string,private cloud?:Cloud){}
  async transact<T>(operation:(s:State)=>T):Promise<T>{
+  if(this.cloud)return this.cloud.docs.transact(this.cloud.key,raw=>raw==null?{version:1 as const,lastInbound:{},sent:[],demoRequests:[]}:stateSchema.parse(raw),operation,true,s=>{s.sent=s.sent.slice(-1000);return stateSchema.parse(s);});
   await mkdir(this.directory,{recursive:true,mode:0o700});const lock=join(this.directory,'reminders.lock');let acquired=false;
   for(let i=0;i<100;i++){try{await mkdir(lock);acquired=true;break;}catch(e){if((e as NodeJS.ErrnoException).code!=='EEXIST')throw Error('Reminder state lock failed.');await new Promise(r=>setTimeout(r,25));}}
   if(!acquired)throw Error('Reminder state is locked. Stop workers before inspecting a stale lock.');

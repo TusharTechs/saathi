@@ -26,7 +26,7 @@ test('Supabase service-only storage transactions and grants',async t=>{
    create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
    grant usage on schema public,auth to anon,authenticated,service_role;
    alter default privileges in schema public grant execute on functions to anon,authenticated,service_role;`);
-  for(const file of ['supabase/migrations/202610230001_core.sql','supabase/migrations/202610230002_function_permissions.sql','supabase/seed/demo.sql','supabase/migrations/202610230003_demo_storage.sql','supabase/migrations/202610230004_conflict_responses.sql','supabase/migrations/202610230005_narrative_analysis.sql','supabase/migrations/202610230006_telegram_origin.sql','supabase/migrations/202610230007_whatsapp_intake.sql','supabase/migrations/202611030008_whatsapp_oncall.sql','supabase/migrations/202611030009_teleconsult.sql']) await db.exec(await readFile(new URL(file,root),'utf8'));
+  for(const file of ['supabase/migrations/202610230001_core.sql','supabase/migrations/202610230002_function_permissions.sql','supabase/seed/demo.sql','supabase/migrations/202610230003_demo_storage.sql','supabase/migrations/202610230004_conflict_responses.sql','supabase/migrations/202610230005_narrative_analysis.sql','supabase/migrations/202610230006_telegram_origin.sql','supabase/migrations/202610230007_whatsapp_intake.sql','supabase/migrations/202611030008_whatsapp_oncall.sql','supabase/migrations/202611030009_teleconsult.sql','supabase/migrations/202611040010_accounts_and_cloud_worker.sql']) await db.exec(await readFile(new URL(file,root),'utf8'));
   await t.test('anonymous and authenticated roles cannot call any service-only RPC',async()=>{
    for(const role of ['anon','authenticated']){
     await db.exec(`set role ${role}`);
@@ -202,6 +202,35 @@ test('Supabase service-only storage transactions and grants',async t=>{
    const call=()=>rpc<{record:RecordEntry;duplicate:boolean}>('select public.saathi_demo_import($1::jsonb,$2::jsonb) as data',[JSON.stringify(local),JSON.stringify(adultProtocol)]);
    const first=await call();assert.equal(first.record.id,localId);assert.equal(first.record.status,'acked');assert.equal(first.record.revision,2);assert.equal(Date.parse(first.record.createdAt),Date.parse(local.createdAt));assert.equal(first.record.events.length,3);assert.equal(first.record.events[0]!.id,local.events[0]!.id);assert.equal(first.record.events[2]!.type,'imported');
    const retry=await call();assert.equal(retry.duplicate,true);assert.equal(retry.record.events.length,3);
+  });
+  await t.test('accounts, WhatsApp login challenges, worker state, leases and named actors',async()=>{
+   const acct=await rpc<{id:string;role:string}>("select public.saathi_account_create('family','Asha','Son@Example.com',null,'scrypt$a$b','demo-ramesh','demo-org') as data");assert.equal(acct.role,'family');
+   const found=await rpc<{id:string;email:string;patientKey:string}>("select public.saathi_account_find('son@example.com',null) as data");assert.equal(found.id,acct.id);assert.equal(found.patientKey,'demo-ramesh');
+   await assert.rejects(db.query("select public.saathi_account_create('medical','Dup','son@example.com',null,'scrypt$a$b',null,'demo-org')"),/duplicate key|unique/);
+   await assert.rejects(db.query("select public.saathi_account_create('medical','NoPw','x@y.in',null,null,null,'demo-org')"),/check constraint/);
+   await assert.rejects(db.query("select public.saathi_account_create('family','Ghost',null,'919800000000',null,'not-a-patient','demo-org')"),/not found/);
+   const challenge=await rpc<string>("select public.saathi_login_challenge('482913',600) as data");
+   assert.equal((await rpc<{verified:boolean}>(`select public.saathi_login_status('${challenge}') as data`)).verified,false);
+   assert.equal(await rpc<number>(`select public.saathi_wa_login('[{"kind":"text","from":"919845012345","text":"login 000000"},{"kind":"text","from":"919845012345","text":" LOGIN 482913 "}]'::jsonb) as data`),1);
+   assert.equal(await rpc<number>(`select public.saathi_wa_login('[{"kind":"text","from":"919800000001","text":"LOGIN 482913"}]'::jsonb) as data`),0,'a verified code cannot be taken over');
+   const status=await rpc<{verified:boolean;phone:string}>(`select public.saathi_login_status('${challenge}') as data`);assert.equal(status.phone,'919845012345');
+   assert.equal(await rpc<string>(`select public.saathi_login_consume('${challenge}') as data`),'919845012345');
+   assert.equal(await rpc<string|null>(`select public.saathi_login_consume('${challenge}') as data`),null,'a challenge signs in once');
+   assert.equal(await rpc<boolean>(`select public.saathi_worker_put('wa:state','{"n":1}'::jsonb,0) as data`),true);
+   assert.equal(await rpc<boolean>(`select public.saathi_worker_put('wa:state','{"n":2}'::jsonb,0) as data`),false);
+   const doc=await rpc<{doc:{n:number};version:number}>("select public.saathi_worker_get('wa:state') as data");assert.equal(doc.version,1);
+   assert.equal(await rpc<boolean>(`select public.saathi_worker_put('wa:state','{"n":2}'::jsonb,1) as data`),true);
+   assert.equal(await rpc<boolean>(`select public.saathi_worker_put('wa:state','{"n":3}'::jsonb,1) as data`),false,'a stale writer is refused');
+   const a=randomUUID(),b=randomUUID();
+   assert.equal(await rpc<boolean>(`select public.saathi_worker_acquire('wa','${a}',60) as data`),true);
+   assert.equal(await rpc<boolean>(`select public.saathi_worker_acquire('wa','${b}',60) as data`),false);
+   await db.query(`select public.saathi_worker_release('wa','${a}')`);
+   assert.equal(await rpc<boolean>(`select public.saathi_worker_acquire('wa','${b}',60) as data`),true);
+   const fresh=(await submit(randomUUID(),createHash('sha256').update('named-actor').digest('hex'))).record;
+   const acked=await rpc<RecordEntry>(`select public.saathi_demo_transition_as('${fresh.id}','acknowledge',1,'Dr. Judge') as data`);
+   assert.equal(acked.events.at(-1)!.actor,'Dr. Judge');
+   const closed=await rpc<RecordEntry>(`select public.saathi_demo_close_as('${fresh.id}',2,'Spoke to the son','Go to hospital','Dr. Judge') as data`);
+   assert.equal(closed.status,'resolved');assert.match(closed.events.at(-1)!.details,/Call completed by Dr\. Judge/);
   });
  }finally{await db.close();}
 });

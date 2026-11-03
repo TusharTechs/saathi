@@ -14,7 +14,8 @@ const telegram=(await readFile(new URL('supabase/migrations/202610230006_telegra
 const whatsapp=(await readFile(new URL('supabase/migrations/202610230007_whatsapp_intake.sql',root),'utf8')).replace(/^begin;\s*$/m,'').replace(/^commit;\s*$/m,'');
 const oncall=(await readFile(new URL('supabase/migrations/202611030008_whatsapp_oncall.sql',root),'utf8')).replace(/^begin;\s*$/m,'').replace(/^commit;\s*$/m,'');
 const teleconsult=(await readFile(new URL('supabase/migrations/202611030009_teleconsult.sql',root),'utf8')).replace(/^begin;\s*$/m,'').replace(/^commit;\s*$/m,'');
-const query=schema.replace(/commit;\s*$/i,()=>`${hardening}\n${seed}\n${storage}\n${conflicts}\n${analysis}\n${telegram}\n${whatsapp}\n${oncall}\n${teleconsult}\ncommit;`);
+const accounts=(await readFile(new URL('supabase/migrations/202611040010_accounts_and_cloud_worker.sql',root),'utf8')).replace(/^begin;\s*$/m,'').replace(/^commit;\s*$/m,'');
+const query=schema.replace(/commit;\s*$/i,()=>`${hardening}\n${seed}\n${storage}\n${conflicts}\n${analysis}\n${telegram}\n${whatsapp}\n${oncall}\n${teleconsult}\n${accounts}\ncommit;`);
 const hash=createHash('sha256').update(query).digest('hex').slice(0,12);
 const tables=['care_team_members','patients','patient_care_team','protocol_versions','messages','checkins','alerts','alert_events'];
 function project(){
@@ -115,6 +116,29 @@ try{
    const query=await readFile(new URL('supabase/migrations/202611030009_teleconsult.sql',root),'utf8');
    await management(ref,'migrations',{name:'saathi_202611030009_teleconsult',query});
    console.log('Teleconsult migration applied: call notes, care plans, dose logs and fees.');
+  }
+ }else if(mode==='schedule'){
+  // Calls the serverless WhatsApp worker every 2 minutes (reminders, on-call alerts, escalations). The secret stays in Vault.
+  const {ref}=project(),app=process.env.SAATHI_APP_URL??'',secret=process.env.SAATHI_WORKER_SECRET??'';
+  if(!/^https:\/\/[a-z0-9.-]+$/.test(app)||!/^[0-9a-f]{64}$/.test(secret))throw new Error('Set SAATHI_APP_URL (https origin) and SAATHI_WORKER_SECRET in env.local first.');
+  const query=`create extension if not exists pg_cron;create extension if not exists pg_net;
+do $s$ begin
+ if exists(select 1 from vault.secrets where name='saathi_worker_secret') then perform vault.update_secret((select id from vault.secrets where name='saathi_worker_secret'),'${secret}');
+ else perform vault.create_secret('${secret}','saathi_worker_secret');end if;
+ if exists(select 1 from cron.job where jobname='saathi-worker') then perform cron.unschedule('saathi-worker');end if;
+end $s$;
+select cron.schedule('saathi-worker','*/2 * * * *',$job$select net.http_post(url:='${app}/api/worker',headers:=jsonb_build_object('Authorization','Bearer '||(select decrypted_secret from vault.decrypted_secrets where name='saathi_worker_secret')),body:='{}'::jsonb,timeout_milliseconds:=55000)$job$);`;
+  await management(ref,'query',{query});
+  console.log(JSON.stringify(await management(ref,'query',{query:"select jobname,schedule,active from cron.job where jobname='saathi-worker'",read_only:true})));
+ }else if(mode==='accounts'){
+  const {ref}=project();
+  const state=await management(ref,'query',{query:"select to_regprocedure('public.saathi_demo_close_as(uuid,integer,text,text,text)') is not null as ready",read_only:true});
+  if(!Array.isArray(state))throw new Error('Unexpected accounts migration inspection response.');
+  if(state[0]?.ready)console.log('Accounts and cloud worker migration is already present. No migration was repeated.');
+  else{
+   const query=await readFile(new URL('supabase/migrations/202611040010_accounts_and_cloud_worker.sql',root),'utf8');
+   await management(ref,'migrations',{name:'saathi_202611040010_accounts_and_cloud_worker',query});
+   console.log('Accounts, WhatsApp login, cloud worker state and named call-log actors applied.');
   }
  }else if(mode==='apply'){
   const {ref}=project();

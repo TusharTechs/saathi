@@ -27,9 +27,11 @@ export const hashCode=(code:string)=>createHash('sha256').update(code).digest('h
 export const nonce=()=>randomBytes(9).toString('base64url');
 export function requestId(botId:number|string,updateId:number|string,namespace='telegram'){const h=createHash('sha256').update(`saathi:${namespace}:${botId}:${updateId}`).digest('hex');return `${h.slice(0,8)}-${h.slice(8,12)}-5${h.slice(13,16)}-a${h.slice(17,20)}-${h.slice(20,32)}`;}
 /** Local single-host worker sessions, consent, cursor and outbox. No bot token is stored here. */
+import type {Cloud} from '../../workflow/src/cloud-docs.ts';
 export class TelegramState {
- constructor(public directory:string,public botId:number,private channel:'telegram'|'whatsapp'='telegram'){}
+ constructor(public directory:string,public botId:number,private channel:'telegram'|'whatsapp'='telegram',private cloud?:Cloud){}
  async transact<T>(operation:(state:State)=>T,write=true):Promise<T>{
+  if(this.cloud)return this.cloud.docs.transact(this.cloud.key,raw=>raw==null?emptyState():stateSchema.parse(raw),operation,write,s=>stateSchema.parse(s));
   await mkdir(this.directory,{recursive:true,mode:0o700});const lock=join(this.directory,`${this.channel}-${this.botId}.transaction.lock`);let acquired=false;
   for(let i=0;i<100;i++){try{await mkdir(lock);acquired=true;break;}catch(e){if((e as NodeJS.ErrnoException).code!=='EEXIST')throw Error('Telegram state lock failed.');await new Promise(r=>setTimeout(r,25));}}
   if(!acquired)throw Error('Telegram state is locked. Stop workers before inspecting a stale transaction lock.');

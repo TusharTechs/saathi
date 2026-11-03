@@ -4,3 +4,4 @@ export * from './oncall.ts';
 export * from './reminders.ts';
 export * from './store.ts';
 export * from './worker.ts';
+export * from './cloud.ts';

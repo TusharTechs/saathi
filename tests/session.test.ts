@@ -1,9 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { sessionCookie, readSession, requireRole, checkStaffCode, publicDemo, issueCode, checkCode, normalizeContact } from '../apps/web/lib/session.ts';
+import { sessionCookie, readSession, requireRole, publicDemo, normalizePhone } from '../apps/web/lib/session.ts';
+import { hashPassword, verifyPassword } from '../apps/web/lib/accounts.ts';
 
 const env={...process.env};
-const reset=()=>{process.env={...env,SAATHI_SESSION_SECRET:'x'.repeat(40)};delete process.env.SAATHI_PUBLIC_DEMO;delete process.env.SAATHI_STAFF_CODE;};
+const reset=()=>{process.env={...env,SAATHI_SESSION_SECRET:'x'.repeat(40)};delete process.env.SAATHI_PUBLIC_DEMO;};
 const req=(cookie?:string)=>new Request('http://127.0.0.1:3000/api/queue',{headers:cookie?{cookie}:{}});
 const cookieOf=(set:string)=>set.split(';')[0]!;
 
@@ -26,16 +27,18 @@ test('signing refuses to run without a secret',()=>{
   reset();delete process.env.SAATHI_SESSION_SECRET;delete process.env.SUPABASE_SECRET_KEY;delete process.env.SUPABASE_SERVICE_ROLE_KEY;
   assert.throws(()=>sessionCookie({role:'medical',name:'d'}),/SAATHI_SESSION_SECRET/);
 });
-test('public demo mode needs both a secret and a staff code, then checks the code',()=>{
-  reset();assert.equal(publicDemo(),false);assert.doesNotThrow(()=>checkStaffCode(undefined));
-  process.env.SAATHI_PUBLIC_DEMO='1';assert.throws(()=>publicDemo(),/SAATHI_STAFF_CODE/);
-  process.env.SAATHI_STAFF_CODE='judges-2026';assert.equal(publicDemo(),true);
-  assert.throws(()=>checkStaffCode('wrong'),/not correct/);assert.doesNotThrow(()=>checkStaffCode('judges-2026'));
+test('hosted mode needs a dedicated signing secret',()=>{
+  reset();assert.equal(publicDemo(),false);
+  process.env.SAATHI_PUBLIC_DEMO='1';assert.equal(publicDemo(),true);
+  process.env.SAATHI_SESSION_SECRET='short';assert.throws(()=>publicDemo(),/SAATHI_SESSION_SECRET/);
 });
-test('one-time codes work once and accept phone or email',()=>{
-  reset();assert.equal(normalizeContact('+91 98450-12345'),'919845012345');assert.equal(normalizeContact(' Son@Example.com '),'son@example.com');
-  assert.throws(()=>normalizeContact('hello'));
-  const code=issueCode('son@example.com');assert.throws(()=>checkCode('son@example.com','000000'===code?'111111':'000000'),/not correct/);
-  checkCode('son@example.com',code);assert.throws(()=>checkCode('son@example.com',code),/expired/);
+test('mobile numbers are stored with the country code',()=>{
+  assert.equal(normalizePhone('98450 12345'),'919845012345');assert.equal(normalizePhone('+91 98450-12345'),'919845012345');assert.equal(normalizePhone('+44 7700 900123'),'447700900123');
+  assert.throws(()=>normalizePhone('123'));
+});
+test('passwords are salted scrypt hashes and verify only the right password',async()=>{
+  const a=await hashPassword('correct horse'),b=await hashPassword('correct horse');
+  assert.match(a,/^scrypt\$/);assert.notEqual(a,b);
+  assert.equal(await verifyPassword('correct horse',a),true);assert.equal(await verifyPassword('wrong horse',a),false);assert.equal(await verifyPassword('x',null),false);
 });
 test.after(()=>{process.env=env;});

@@ -8,7 +8,9 @@ export const updateSchema=z.object({update_id:z.number().int().nonnegative(),mes
 export type Update=z.infer<typeof updateSchema>;
 import {checkinQuestions as questions,parseCheckinAnswer} from '../../workflow/src/checkin.ts';
 const send=(chatId:number,text:string,buttons?:{text:string;callback_data:string}[][]):Action=>({method:'sendMessage',payload:{chat_id:chatId,text,...(buttons?{reply_markup:{inline_keyboard:buttons}}:{})},status:'pending'});
-const help='Synthetic demo only. Send an invented text report or a voice note up to 30 seconds / 2 MB. /checkin starts English buttons; /submit saves partial answers; /cancel discards the draft; /retry retries your last report; /language en|hi|kn|auto selects language; /stop unlinks this chat. No clinician, emergency response or clinical guidance is connected.';
+const help='You are connected to Saathi (synthetic demo). Tell us what is worrying you in your own words, in English, Hindi or Kannada, or send a voice note of up to 30 seconds. The care team will call you back. If the patient is very sick, go to the nearest hospital or call 108. Send /stop to leave.';
+/** Language of a typed message from its script: Devanagari is Hindi, Kannada script is Kannada, otherwise the chat's setting. */
+export function scriptLanguage(text:string,fallback:string){const deva=(text.match(/[\u0900-\u097F]/g)??[]).length,kan=(text.match(/[\u0C80-\u0CFF]/g)??[]).length;return kan>deva&&kan>0?'kn-IN':deva>0?'hi-IN':fallback==='unknown'?'en-IN':fallback;}
 export function receipt(record:{id:string;report:{evaluation:{tier:string|null};processing?:{extraction:{status:string}}}}){return `Synthetic report saved (${record.id}). Demo tier: ${record.report.evaluation.tier??'needs clarification'}. ${record.report.processing?.extraction.status==='failed'?'Extraction failed; the source and any keyword flags remain in the queue. Use /retry or review it on the dashboard.':record.report.processing?.extraction.status==='pending'?'Extraction is still pending; the source and any keyword flags are saved. Check the dashboard before retrying.':'Review the source wording and observations on the dashboard.'} No clinician has been contacted. This bot is a test tool, not a clinical service.`;}
 function prompt(chatId:number,draft:NonNullable<State['chats'][string]['draft']>):Action{
  const q=questions[draft.step]!;const choices=q.choices.map(([text,value])=>({text,callback_data:`q:${draft.nonce}:${draft.step}:${value}`}));
@@ -58,8 +60,8 @@ export function planUpdate(state:State,raw:unknown,botId:number,now=Date.now(),c
   draft.step++;if(evaluated.evaluation.tier==='RED'||draft.step===questions.length)submit();else p.actions.push(prompt(chatId,draft));return;
  }
  if(text.startsWith('/')){reply(help);return;}
- if(update.message?.voice){const v=update.message.voice;if((v.duration!==undefined&&(v.duration<1||v.duration>30))||(v.file_size??0)>2*1024*1024){reply('Use a synthetic voice note of at most 30 seconds and 2 MB.');return;}p.task={...identity,kind:'voice',fileId:v.file_id,duration:v.duration,...(v.file_size!==undefined?{size:v.file_size}:{})};}
- else if(text&&text.length<=4000)p.task={...identity,kind:'text',text};
+ if(update.message?.voice){const v=update.message.voice;if((v.duration!==undefined&&(v.duration<1||v.duration>30))||(v.file_size??0)>2*1024*1024){reply('Use a synthetic voice note of at most 30 seconds and 2 MB.');return;}p.task={...identity,language:'unknown',kind:'voice',fileId:v.file_id,duration:v.duration,...(v.file_size!==undefined?{size:v.file_size}:{})};}
+ else if(text&&text.length<=4000)p.task={...identity,kind:'text',text,language:scriptLanguage(text,session.language) as typeof session.language};
  else reply('Use an invented text report up to 4,000 characters, a short Telegram voice note or /checkin. Other attachments and edited messages are not processed.');
  if(p.task)session.lastTask=structuredClone(p.task);
 }

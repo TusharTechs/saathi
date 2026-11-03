@@ -1,0 +1,16 @@
+# Never upload secrets or local runtime data to Vercel.
+**/env.local
+**/env.local.*
+**/.env
+**/.env.*
+!**/.env.example
+**/.saathi-demo
+**/node_modules
+**/.next
+.git
+assets
+output/*.png
+output/*.pdf
+output/evaluation/*.partial.json
+docs/review
+site

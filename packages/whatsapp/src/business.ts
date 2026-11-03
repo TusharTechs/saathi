@@ -6,11 +6,12 @@ export const tokenSchema=z.object({data:z.object({app_id:z.string().optional(),i
 export const phoneSchema=z.object({id:z.string(),display_phone_number:z.string().optional(),verified_name:z.string().optional(),platform_type:z.string().optional(),status:z.string().optional(),name_status:z.string().optional(),quality_rating:z.string().optional(),code_verification_status:z.string().optional(),messaging_limit_tier:z.string().optional()});
 export const accountSchema=z.object({id:z.string(),name:z.string().optional()});
 export const subscriptionsSchema=z.object({data:z.array(z.object({whatsapp_business_api_data:z.object({id:z.string()}).partial().optional()})).default([])});
-export type Inspection={token:z.infer<typeof tokenSchema>['data'];account:z.infer<typeof accountSchema>;phones:z.infer<typeof phoneSchema>[];subscribedApps:string[]};
+export type Inspection={token:z.infer<typeof tokenSchema>['data'];assignedWabaIds:string[];account:z.infer<typeof accountSchema>|null;phones:z.infer<typeof phoneSchema>[];subscribedApps:string[]};
+const assignedSchema=z.object({data:z.array(z.object({id:z.string()})).default([])});
 export type Check={id:string;level:'ok'|'warn'|'block';detail:string};
 const SCOPES=['whatsapp_business_messaging','whatsapp_business_management'];
 export function readiness(config:BusinessConfig,inspection:Inspection,now=Date.now()):{ready:boolean;checks:Check[]}{
- const {token,account,phones,subscribedApps}=inspection,checks:Check[]=[];
+ const {token,assignedWabaIds,account,phones,subscribedApps}=inspection,checks:Check[]=[];
  const add=(id:string,pass:boolean,detail:string,fail:'warn'|'block'='block')=>checks.push({id,level:pass?'ok':fail,detail});
  add('token.valid',token.is_valid,token.is_valid?'Access token accepted by Meta.':'Access token is invalid or revoked.');
  add('token.app',token.app_id===config.appId,token.app_id===config.appId?'Token belongs to WA_APP_ID.':'Token was issued for a different Meta app than WA_APP_ID; webhook signatures would not match.');
@@ -19,8 +20,10 @@ export function readiness(config:BusinessConfig,inspection:Inspection,now=Date.n
  const missing=SCOPES.filter(s=>!token.scopes.includes(s));
  add('token.scopes',!missing.length,missing.length?`Token lacks ${missing.join(', ')}.`:'Token has messaging and management permissions.');
  const targets=token.granular_scopes.filter(g=>SCOPES.includes(g.scope)).map(g=>g.target_ids);
- const covered=targets.length>0&&targets.every(ids=>!ids||ids.includes(config.wabaId));
- add('token.waba',covered,covered?'Token is granted on WA_BUSINESS_ACCOUNT_ID.':'Token is not granted on WA_BUSINESS_ACCOUNT_ID; assign the WABA to the system user and regenerate the token.');
+ const covered=assignedWabaIds.includes(config.wabaId)||(targets.length>0&&targets.every(ids=>ids?.includes(config.wabaId)));
+ const assigned=assignedWabaIds.length?`assigned WhatsApp account IDs: ${assignedWabaIds.join(', ')}`:'no WhatsApp account is assigned to the system user';
+ add('token.waba',covered,covered?'Token is granted on WA_BUSINESS_ACCOUNT_ID.':`Token is not granted on WA_BUSINESS_ACCOUNT_ID (${assigned}). In Business settings > System users > Assign assets, give the system user full control of the WhatsApp account, or correct the ID.`);
+ if(!account){add('waba.access',false,'Meta cannot load WA_BUSINESS_ACCOUNT_ID with this token, so number and webhook checks were skipped.');return {ready:false,checks};}
  add('waba.id',account.id===config.wabaId,account.id===config.wabaId?`WABA reachable${account.name?` (${account.name})`:''}.`:'Meta returned a different WABA.');
  const phone=phones.find(p=>p.id===config.phoneId);
  add('phone.in_waba',Boolean(phone),phone?'WA_PHONE_NUMBER_ID belongs to this WABA.':'WA_PHONE_NUMBER_ID is not a number in this WABA.');
@@ -40,7 +43,9 @@ export async function discover(token:string,version='v26.0',transport:typeof fet
  let r:Response;try{r=await transport(`https://graph.facebook.com/${version}/debug_token?input_token=${encodeURIComponent(token)}`,{headers:{Authorization:`Bearer ${token}`},redirect:'error',signal:AbortSignal.timeout(20000)});}catch{throw new WhatsAppError('unknown','Meta did not confirm the token lookup.');}
  if(!r.ok)throw new WhatsAppError('configuration',`Meta could not inspect WA_ACCESS_TOKEN (HTTP ${r.status}). Response details were withheld.`);
  const data=tokenSchema.parse(await r.json()).data;
- const wabaIds=[...new Set(data.granular_scopes.filter(g=>SCOPES.includes(g.scope)).flatMap(g=>g.target_ids??[]))];
+ let assigned:string[]=[];
+ try{const a=await transport(`https://graph.facebook.com/${version}/me/assigned_whatsapp_business_accounts?fields=id`,{headers:{Authorization:`Bearer ${token}`},redirect:'error',signal:AbortSignal.timeout(20000)});if(a.ok)assigned=assignedSchema.parse(await a.json()).data.map(w=>w.id);}catch{/* Granular scopes remain the fallback. */}
+ const wabaIds=[...new Set([...assigned,...data.granular_scopes.filter(g=>SCOPES.includes(g.scope)).flatMap(g=>g.target_ids??[])])];
  return {appId:data.app_id,wabaIds,isValid:data.is_valid};
 }
 export class WhatsAppBusiness {
@@ -50,21 +55,28 @@ export class WhatsAppBusiness {
  private async graph(path:string,options:{method?:'GET'|'POST';payload?:object;bearer?:string}={}){
   const method=options.method??'GET';let r:Response;
   try{r=await this.transport(`https://graph.facebook.com/${this.version}/${path}`,{method,headers:{Authorization:`Bearer ${options.bearer??this.token}`,...(options.payload?{'Content-Type':'application/json'}:{})},body:options.payload?JSON.stringify(options.payload):undefined,redirect:'error',signal:AbortSignal.timeout(20000)});}catch{throw new WhatsAppError('unknown','Meta did not confirm the request. No automatic retry was made.');}
-  if(!r.ok)throw new WhatsAppError(r.status>=500?'unknown':r.status===401||r.status===403?'configuration':'rejected',`Meta rejected ${method} ${path.split('?')[0]!.replace(/\d{5,}/g,'<id>')} (HTTP ${r.status}). Response details were withheld.`);
+  if(!r.ok){
+   // Meta's numeric error code is safe to show; its message text is withheld.
+   const code=z.object({error:z.object({code:z.number().optional(),error_subcode:z.number().optional()})}).safeParse(await r.json().catch(()=>null)),e=code.success?code.data.error:{};
+   throw new WhatsAppError(r.status>=500?'unknown':r.status===401||r.status===403?'configuration':'rejected',`Meta rejected ${method} ${path.split('?')[0]!.replace(/\d{5,}/g,'<id>')} (HTTP ${r.status}${e.code?`, code ${e.code}${e.error_subcode?'/'+e.error_subcode:''}`:''}). Response details were withheld.`);
+  }
   try{return await r.json() as unknown;}catch{throw new WhatsAppError('unknown','Meta returned an unreadable response.');}
  }
  async inspect():Promise<Inspection>{
   const {appId,appSecret,wabaId}=this.config;
   // App access token travels only in the Authorization header, never in a URL.
   const token=tokenSchema.parse(await this.graph(`debug_token?input_token=${encodeURIComponent(this.token)}`,{bearer:`${appId}|${appSecret}`})).data;
-  const account=accountSchema.parse(await this.graph(`${wabaId}?fields=id,name`));
+  const assignedWabaIds=await this.graph('me/assigned_whatsapp_business_accounts?fields=id').then(r=>assignedSchema.parse(r).data.map(w=>w.id),()=>[]);
+  let account:Inspection['account'];
+  try{account=accountSchema.parse(await this.graph(`${wabaId}?fields=id,name`));}catch(e){if(e instanceof WhatsAppError&&e.kind==='rejected')return {token,assignedWabaIds,account:null,phones:[],subscribedApps:[]};throw e;}
   const phones=z.object({data:z.array(phoneSchema)}).parse(await this.graph(`${wabaId}/phone_numbers?fields=id,display_phone_number,verified_name,platform_type,status,name_status,quality_rating,code_verification_status,messaging_limit_tier`)).data;
   const subscribedApps=subscriptionsSchema.parse(await this.graph(`${wabaId}/subscribed_apps`)).data.map(a=>a.whatsapp_business_api_data?.id).filter((id):id is string=>Boolean(id));
-  return {token,account,phones,subscribedApps};
+  return {token,assignedWabaIds,account,phones,subscribedApps};
  }
  /** Subscribes this app to the WABA's webhooks. Leaves other subscribed apps and any callback overrides untouched. */
  async subscribe(){
   const current=await this.inspect();
+  if(!current.account)throw new WhatsAppError('configuration','This token cannot load WA_BUSINESS_ACCOUNT_ID. Nothing was subscribed.');
   if(current.subscribedApps.includes(this.config.appId))return {changed:false};
   z.object({success:z.literal(true)}).parse(await this.graph(`${this.config.wabaId}/subscribed_apps`,{method:'POST'}));return {changed:true};
  }

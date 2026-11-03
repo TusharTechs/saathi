@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {WhatsAppBusiness,WhatsAppError,discover,readiness,type Inspection} from '../packages/whatsapp/src/index.ts';
 const config={appId:'111',appSecret:'a'.repeat(32),wabaId:'222',phoneId:'333'},token='private-system-user-token';
-const healthy=():Inspection=>({token:{app_id:'111',is_valid:true,expires_at:0,scopes:['whatsapp_business_messaging','whatsapp_business_management'],granular_scopes:[{scope:'whatsapp_business_messaging',target_ids:['222']},{scope:'whatsapp_business_management',target_ids:['222']}]},account:{id:'222',name:'Synthetic demo WABA'},phones:[{id:'333',platform_type:'CLOUD_API',status:'CONNECTED',name_status:'APPROVED',quality_rating:'GREEN'}],subscribedApps:['111']});
+const healthy=():Inspection=>({token:{app_id:'111',is_valid:true,expires_at:0,scopes:['whatsapp_business_messaging','whatsapp_business_management'],granular_scopes:[{scope:'whatsapp_business_messaging',target_ids:['222']},{scope:'whatsapp_business_management',target_ids:['222']}]},assignedWabaIds:[],account:{id:'222',name:'Synthetic demo WABA'},phones:[{id:'333',platform_type:'CLOUD_API',status:'CONNECTED',name_status:'APPROVED',quality_rating:'GREEN'}],subscribedApps:['111']});
 const level=(r:ReturnType<typeof readiness>,id:string)=>r.checks.find(c=>c.id===id)?.level;
 test('a dedicated, subscribed Cloud API number with a permanent scoped token is ready',()=>{
  const r=readiness(config,healthy());assert.equal(r.ready,true);assert.ok(r.checks.every(c=>c.level==='ok'));
@@ -17,6 +17,11 @@ test('missing webhook subscription, foreign token app, wrong WABA grant or unreg
   ['phone.cloud_api',(i:Inspection)=>{i.phones[0]!.platform_type='NOT_APPLICABLE';}],
  ] as const){const i=healthy();change(i);const r=readiness(config,i);assert.equal(r.ready,false,id);assert.equal(level(r,id),'block',id);}
 });
+test('a system user without the WhatsApp account assigned is reported, and later checks are skipped',()=>{
+ const i=healthy();i.token.granular_scopes=[{scope:'whatsapp_business_messaging'},{scope:'whatsapp_business_management'}];i.account=null;i.phones=[];i.subscribedApps=[];
+ const r=readiness(config,i);assert.equal(r.ready,false);assert.equal(level(r,'token.waba'),'block');assert.match(r.checks.find(c=>c.id==='token.waba')!.detail,/no WhatsApp account is assigned/);assert.equal(level(r,'waba.access'),'block');assert.equal(level(r,'webhook.subscribed'),undefined);
+ i.assignedWabaIds=['222'];i.account={id:'222'};i.phones=healthy().phones;i.subscribedApps=['111'];assert.equal(readiness(config,i).ready,true);
+});
 test('expiring tokens, shared WABAs and pending display names warn without blocking',()=>{
  const i=healthy();i.token.expires_at=Math.floor(Date.now()/1000)+3600;i.phones.push({id:'555'});i.phones[0]!.name_status='PENDING_REVIEW';
  const r=readiness(config,i);assert.equal(r.ready,true);for(const id of ['token.permanent','phone.dedicated','phone.display_name'])assert.equal(level(r,id),'warn',id);
@@ -29,8 +34,10 @@ test('inspection keeps the app secret out of URLs and withholds Meta error bodie
   if(u.includes('/subscribed_apps'))return Response.json({data:[{whatsapp_business_api_data:{id:'111',name:'Saathi'}}]});return Response.json({id:'222'});});
  const inspection=await business.inspect();assert.equal(readiness(config,inspection).ready,true);
  assert.ok(urls.every(u=>u.startsWith('https://graph.facebook.com/v26.0/')&&!u.includes(config.appSecret)));assert.equal(auth[0],`Bearer 111|${config.appSecret}`);assert.ok(auth.slice(1).every(a=>a===`Bearer ${token}`));
- const failing=new WhatsAppBusiness(config,token,'v26.0',async()=>Response.json({error:{message:'secret detail '+token}},{status:400}));
- await assert.rejects(failing.inspect(),e=>e instanceof WhatsAppError&&!e.message.includes(token)&&!e.message.includes('secret detail'));
+ const failing=new WhatsAppBusiness(config,token,'v26.0',async()=>Response.json({error:{code:100,error_subcode:33,message:'secret detail '+token}},{status:400}));
+ await assert.rejects(failing.inspect(),e=>e instanceof WhatsAppError&&e.message.includes('code 100/33')&&!e.message.includes(token)&&!e.message.includes('secret detail'));
+ const unassigned=new WhatsAppBusiness(config,token,'v26.0',async url=>String(url).includes('debug_token')?Response.json({data:healthy().token}):String(url).includes('assigned_')?Response.json({data:[]}):Response.json({error:{code:100}},{status:400}));
+ const partial=await unassigned.inspect();assert.equal(partial.account,null);assert.deepEqual(partial.assignedWabaIds,[]);await assert.rejects(unassigned.subscribe(),WhatsAppError);
 });
 test('subscribe and register are idempotent and refuse unsafe registration',async()=>{
  const posts:string[]=[];let state=healthy();
@@ -44,6 +51,6 @@ test('subscribe and register are idempotent and refuse unsafe registration',asyn
  assert.throws(()=>new WhatsAppBusiness({...config,appSecret:'short'},token),WhatsAppError);
 });
 test('discovery reports the app and WABA IDs a token is granted on, without secrets',async()=>{
- const found=await discover(token,'v26.0',async(url,options)=>{assert.ok(String(url).includes('debug_token'));assert.equal((options?.headers as Record<string,string>).Authorization,`Bearer ${token}`);return Response.json({data:healthy().token});});
- assert.deepEqual(found,{appId:'111',wabaIds:['222'],isValid:true});
+ const found=await discover(token,'v26.0',async(url,options)=>{assert.equal((options?.headers as Record<string,string>).Authorization,`Bearer ${token}`);return String(url).includes('assigned_whatsapp_business_accounts')?Response.json({data:[{id:'777'}]}):Response.json({data:healthy().token});});
+ assert.deepEqual(found,{appId:'111',wabaIds:['777','222'],isValid:true});
 });

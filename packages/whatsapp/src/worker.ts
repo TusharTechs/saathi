@@ -8,6 +8,7 @@ import {WhatsAppStore,type Inbound} from './store.ts';
 import type {OnCallAlerts} from './oncall.ts';
 import type {Reminders} from './reminders.ts';
 export const isGreeting=(m:Inbound)=>m.kind==='text'&&/^(hi+|hello|hey|namaste|namaskar|namaskara|good (morning|evening))[\s!.]*$/i.test(m.text??'');
+export const isLoginCode=(m:Inbound)=>m.kind==='text'&&/^\s*login\s+\d{6}\s*$/i.test(m.text??'');
 export const channelNumber=(phone:string)=>createHash('sha256').update(phone).digest().readUInt32BE(0);
 export function planWhatsApp(state:State,id:number,message:Inbound,phone:string,now=Date.now()){
  const sender=Number(message.from),base={message_id:id,chat:{id:sender,type:'private'},from:{id:sender,is_bot:false}};
@@ -62,6 +63,8 @@ export class WhatsAppWorker {
   // Every family message reopens WhatsApp's free 24-hour window for reminders.
   if(state.chats[next.message.from])await this.reminders?.seen(next.message);
   const consume=async()=>{await this.state.transact(s=>{s.offset=next.id+1;});await this.store.complete(this.api.phoneId,next.id+1);return true;};
+  // Website sign-in codes are verified by the receiver; they are never reports.
+  if(isLoginCode(next.message))return consume();
   if(await this.reminders?.inbound(next.message,state.chats))return consume();
   if(await this.oncall?.inbound(next.message)){await this.state.transact(s=>{s.offset=next.id+1;});await this.store.complete(this.api.phoneId,next.id+1);return true;}
   // A consented family's "Hi" opens the conversation instead of becoming an empty report.

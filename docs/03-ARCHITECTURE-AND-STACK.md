@@ -73,7 +73,7 @@
 
 ## 3. Repo layout (pnpm monorepo)
 ```
-saathi/
+<repository root>/
   apps/
     web/                     # Next.js (App Router): doctor dashboard + caregiver PWA (/c/*)
   supabase/

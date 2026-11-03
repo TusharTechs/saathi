@@ -6,7 +6,7 @@ Implemented 23 October 2026. This phase adds a Next.js app and persistent **synt
 
 ## Start and review
 
-From the `saathi/` project folder:
+From the repository root:
 
 ```sh
 pnpm install --frozen-lockfile

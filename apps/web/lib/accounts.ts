@@ -1,9 +1,9 @@
-import { randomBytes, randomInt, scrypt as scryptCallback, timingSafeEqual } from 'node:crypto';
+import { randomBytes, scrypt as scryptCallback, timingSafeEqual } from 'node:crypto';
 import { z } from 'zod';
 import { SupabaseStore, WorkflowError } from '../../../packages/workflow/src/index';
 import type { Role } from './session';
 /**
- * Saathi accounts: email and password (scrypt), or a mobile number proven by a WhatsApp message.
+ * Saathi accounts: a mobile number or email address with a password (scrypt).
  * Stored in Supabase behind service-only functions (migration 010).
  */
 const SCRYPT={N:16384,r:8,p:1,maxmem:64*1024*1024};
@@ -25,13 +25,6 @@ export class AccountStore extends SupabaseStore {
   }
   async find(by:{email?:string;phone?:string}){return account.nullable().parse(await this.rpc('saathi_account_find',{p_email:by.email??null,p_phone:by.phone??null}));}
   async touch(id:string){await this.rpc('saathi_account_touch',{p_id:id});}
-  /** A six-digit code the person sends from WhatsApp as "LOGIN 123456". Retries on the rare clash with an active code. */
-  async challenge(phone:string){
-    for(let i=0;i<5;i++){const code=String(randomInt(100000,1000000));try{return {id:z.uuid().parse(await this.rpc('saathi_login_challenge',{p_code:code,p_seconds:600,p_phone:phone})),code};}catch(e){if(!(e instanceof WorkflowError&&e.code===409))throw e;}}
-    throw new WorkflowError(503,'Could not create a sign-in code. Try again.');
-  }
-  async status(id:string){return z.object({verified:z.boolean(),expired:z.boolean(),mismatch:z.boolean().optional(),phone:z.string().nullable()}).nullable().parse(await this.rpc('saathi_login_status',{p_id:id}));}
-  async consume(id:string){return z.string().nullable().parse(await this.rpc('saathi_login_consume',{p_id:id}));}
 }
 export function accounts(){
   if((process.env.SAATHI_STORAGE??'local')!=='supabase')throw new WorkflowError(503,'Accounts need Supabase storage. Use a demo account, or set SAATHI_STORAGE=supabase.');

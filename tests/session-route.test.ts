@@ -7,10 +7,11 @@ const post=(payload:object)=>POST(new Request(`${B}/api/session`,{method:'POST',
 test('session API: every request shape parses, and demo accounts sign in per role',async()=>{
   for(const role of ['medical','coordinator','family']){const r=await post({kind:'demo',role});assert.equal(r.status,200);assert.match(r.headers.get('set-cookie')??'',/saathi_session=/);}
   // Without Supabase, account routes fail cleanly with 503 rather than a schema or server error.
-  for(const payload of [{kind:'challenge',phone:'9845012345'},{kind:'email-login',email:'a@b.in',password:'x'},{kind:'whatsapp-login',challengeId:crypto.randomUUID()},
+  for(const payload of [{kind:'login',login:'a@b.in',password:'x'},{kind:'login',login:'98450 12345',password:'x'},{kind:'signup',role:'medical',name:'D',method:'phone',phone:'9845012345',password:'longenough',orgCode:'SAATHI-DEMO',agreed:true},
     {kind:'signup',role:'family',name:'A',method:'email',email:'a@b.in',password:'longenough',saathiId:'SA-QFH9YB',agreed:true}]){
     const r=await post(payload);assert.ok([400,503].includes(r.status),`${payload.kind} -> ${r.status} ${await r.text()}`);}
   assert.equal((await post({kind:'signup',role:'family',name:'A',method:'email',email:'a@b.in',password:'longenough',saathiId:'SA-QFH9YB'})).status,400,'terms must be accepted');
+  assert.equal((await post({kind:'challenge',phone:'9845012345'})).status,400,'WhatsApp sign-in codes are gone');
   assert.equal((await post({kind:'nope'})).status,400);
   const info=await (await GET(new Request(`${B}/api/session`,{headers:{host:'127.0.0.1:3000'}}))).json();assert.equal(info.session,null);
 });

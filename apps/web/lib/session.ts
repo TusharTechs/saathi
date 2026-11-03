@@ -2,11 +2,11 @@ import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
 import { WorkflowError } from '../../../packages/workflow/src/index';
 /**
  * Sessions for the three roles from Dr. Rao's direction: medical staff, call managers and families.
- * People sign in with an account (email and password, or a mobile proven by WhatsApp) or a shared demo account for judges.
+ * People sign in with an account (mobile number or email, with a password) or the judge demo access.
  * Sessions are HMAC-signed cookies; every API route checks the role.
  */
 export type Role='medical'|'coordinator'|'family';
-export type Method='demo'|'email'|'whatsapp';
+export type Method='demo'|'email'|'phone';
 /** `judge` sessions (demo buttons and the judge test login) may switch between the three role views. */
 export type Session={role:Role;name:string;patientId?:string;agreedAt?:string;accountId?:string;method?:Method;judge?:boolean};
 const COOKIE='saathi_session';

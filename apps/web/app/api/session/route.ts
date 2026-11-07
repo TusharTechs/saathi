@@ -11,19 +11,19 @@ import { JUDGE_EMAIL, JUDGE_NAME, JUDGE_PATIENT } from '../../../lib/judge-accou
 const role=z.enum(['medical','coordinator','family']);
 const schema=z.discriminatedUnion('kind',[
   // Shared demo accounts so judges can explore every role in one click.
-  z.object({kind:z.literal('demo'),role}).strict(),
+  z.object({kind:z.literal('demo'),role,staff:z.enum(['doctor','nurse','psychologist']).optional()}).strict(),
   // Judges switch views without signing in again.
-  z.object({kind:z.literal('switch'),role}).strict(),
+  z.object({kind:z.literal('switch'),role,staff:z.enum(['doctor','nurse','psychologist']).optional()}).strict(),
   z.object({kind:z.literal('login'),login:z.string().trim().min(3).max(120),password:z.string().min(1).max(128)}).strict(),
-  z.object({kind:z.literal('signup'),role,name:z.string().trim().min(1).max(80),method:z.enum(['phone','email']),phone:z.string().trim().max(20).optional(),email:emailRule.optional(),password:passwordRule,orgCode:z.string().trim().max(40).optional(),saathiId:z.string().trim().max(20).optional(),agreed:z.literal(true)}).strict(),
+  z.object({kind:z.literal('signup'),role,name:z.string().trim().min(1).max(80),method:z.enum(['phone','email']),phone:z.string().trim().max(20).optional(),email:emailRule.optional(),password:passwordRule,orgCode:z.string().trim().max(40).optional(),staff:z.enum(['doctor','nurse','psychologist']).optional(),saathiId:z.string().trim().max(20).optional(),agreed:z.literal(true)}).strict(),
 ]);
-// One judge identity viewed through each role; the family view is the synthetic patient Ramesh K.
-const judgeView=(role:Role,base:Partial<Session>={}):Session=>({name:JUDGE_NAME,method:'demo',...base,role,judge:true,...(role==='family'?{patientId:JUDGE_PATIENT,agreedAt:new Date().toISOString()}:{})});
+// One judge identity viewed through each role; the family view is the synthetic patient Arjun Mehta (key demo-ramesh).
+const judgeView=(role:Role,base:Partial<Session>={}):Session=>({name:JUDGE_NAME,method:'demo',...base,role,judge:true,...(role==='medical'?{staff:base.staff??'doctor'}:{}),...(role==='family'?{patientId:JUDGE_PATIENT,agreedAt:new Date().toISOString()}:{})});
 const ORG_CODE=()=>process.env.SAATHI_ORG_CODE||'SAATHI-DEMO';
 export const runtime='nodejs';
 const withCookie=(data:unknown,session:Session)=>{const r=json(data);r.headers.append('Set-Cookie',sessionCookie(session));return r;};
 const preflight=(request:Request)=>{try{guard(request,true);}catch(e){if(!(e instanceof Error)||!/Sign in|role/.test(e.message))throw e;}};
-const sessionFor=(a:Account,method:'email'|'phone'):Session=>({role:a.role,name:a.name,accountId:a.id,method,...(a.patientKey?{patientId:a.patientKey,agreedAt:new Date().toISOString()}:{})});
+const sessionFor=(a:Account,method:'email'|'phone'):Session=>({role:a.role,name:a.name,accountId:a.id,method,...(a.role==='medical'?{staff:a.staffType??'doctor'}:{}),...(a.patientKey?{patientId:a.patientKey,agreedAt:new Date().toISOString()}:{})});
 /** A login is an email address if it contains @, otherwise a mobile number. */
 const parseLogin=(login:string)=>login.includes('@')?{email:emailRule.parse(login)}:{phone:normalizePhone(login)};
 export async function GET(request:Request){
@@ -33,9 +33,9 @@ export async function GET(request:Request){
 export async function POST(request:Request){
   try{
     preflight(request);const input=schema.parse(await body(request));
-    if(input.kind==='demo')return withCookie({role:input.role},judgeView(input.role));
+    if(input.kind==='demo')return withCookie({role:input.role},judgeView(input.role,{staff:input.staff}));
     if(input.kind==='switch'){const current=readSession(request);if(!current?.judge)throw new WorkflowError(403,'Only judge test sessions can switch views.');
-      return withCookie({role:input.role},judgeView(input.role,{name:current.name,method:current.method,accountId:current.accountId}));}
+      return withCookie({role:input.role},judgeView(input.role,{name:current.name,method:current.method,accountId:current.accountId,staff:input.staff??current.staff}));}
     const db=accounts();
     if(input.kind==='login'){
       const by=parseLogin(input.login),key='login:'+(by.email??by.phone);limitAttempts(key);
@@ -55,6 +55,7 @@ export async function POST(request:Request){
     const email=input.method==='email'?input.email??null:null,phone=input.method==='phone'?normalizePhone(input.phone??''):null;
     if(input.method==='email'&&!email)throw new WorkflowError(400,'Enter an email address.');
     const a=await db.create({role:input.role,name:input.name,email,phone,passwordHash:await hashPassword(input.password),patientKey});
+    if(a.role==='medical'){const staff=input.staff??'doctor';await db.setStaff(a.id,staff);a.staffType=staff;}
     return withCookie({role:a.role,created:true},sessionFor(a,input.method));
   }catch(e){return fail(e);}
 }

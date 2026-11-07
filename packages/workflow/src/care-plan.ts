@@ -18,6 +18,8 @@ export const carePlanSchema=z.object({
   diagnosis:z.string().max(200),summary:z.string().max(2000),usualPainScore:z.number().int().min(0).max(10).optional(),
   medications:z.array(medicationSchema).max(20),appointments:z.array(appointmentSchema).max(20),
   consent:z.object({leafletGiven:z.boolean(),consented:z.boolean(),recordedBy:z.string().max(80)}).strict(),
+  // Dr. Rao (7 Nov): follow-up is closed when the patient dies or moves to another primary palliative care team.
+  closure:z.object({reason:z.enum(['died','transferred','other']),note:z.string().max(300).default(''),closedAt:z.string(),closedBy:z.string().max(80)}).strict().optional(),
 }).strict();
 export type CarePlan=z.infer<typeof carePlanSchema>;
 export type CarePlanEntry={plan:CarePlan;checkedInAt:string};

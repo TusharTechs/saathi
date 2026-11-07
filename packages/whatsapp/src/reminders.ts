@@ -85,7 +85,7 @@ export class Reminders {
   const s=await this.state.transact(x=>{for(const a of x.sent)if(a.status==='sending')a.status='unknown';const demo=x.demoRequests;x.demoRequests=[];return {...x,demo};});
   const plans=await this.store.carePlans(),sentKeys=new Set(s.sent.map(x=>x.key));
   for(const [sender,chat] of Object.entries(chats)){
-   const entry=chat.patientId?plans[chat.patientId]:undefined;if(!entry||!chat.consentAt)continue;
+   const entry=chat.patientId?plans[chat.patientId]:undefined;if(!entry||!chat.consentAt||entry.plan.closure)continue;
    const demo=s.demo.filter(d=>d.patientId===chat.patientId).map(d=>d.slot);
    for(const due of dueReminders(entry,chat.patientId!,sender,now,sentKeys,demo)){
     const last=s.lastInbound[sender]??0,open=now-last<DAY-60000;

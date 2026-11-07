@@ -34,7 +34,7 @@ function Chat(){
 const steps:Step[]=[
   {title:'Hello, I’m Dr. Asha, your guide',body:<>
     <p>I’m a fictional doctor who will walk you through Saathi in about two minutes. Everything here is synthetic data.</p>
-    <p><b>Saathi is an out-of-hours support line</b> for families caring for a palliative-care patient at home. It sorts their concerns into teleconsultation call-backs, so the care team calls the sickest patients first and never loses a patient after discharge.</p>
+    <p><b>Saathi is a care continuity service</b> for families caring for a palliative-care patient at home. It sorts their concerns into teleconsultation call-backs, so the care team calls the sickest patients first and never loses a patient after discharge.</p>
     <p className="tour-motto">AI listens. The doctor decides.</p>
     <p className="muted">Use Next or the → key. Press Esc to skip the tour at any time.</p></>},
   {target:'emr-link',title:'It starts at the hospital',body:<>

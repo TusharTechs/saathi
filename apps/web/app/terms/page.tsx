@@ -13,7 +13,7 @@ export default function Terms(){
     <h1>Service terms and consent</h1>
     <p className="terms-rider"><b>Saathi is not an emergency service.</b> {RIDER}</p>
     <h2>1. What Saathi is</h2>
-    <p>Saathi is an out-of-hours support line from your palliative care team. You tell us what is worrying you, by WhatsApp or on this website, in your own words or as a voice note. The care team then calls you back. Saathi helps the team keep in touch with the patient between hospital visits and keeps a record of every contact.</p>
+    <p>Saathi is a care continuity service from your palliative care team for patients at home. You tell us what is worrying you, by WhatsApp or on this website, in your own words or as a voice note. The care team then calls you back. Saathi helps the team keep in touch with the patient between hospital visits and keeps a record of every contact.</p>
     <h2>2. What Saathi does not do</h2>
     <ul>
       <li>It does not diagnose, prescribe, or decide treatment. Only a doctor, nurse or psychologist from the care team gives advice, on a call.</li>

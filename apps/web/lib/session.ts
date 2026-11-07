@@ -8,7 +8,9 @@ import { WorkflowError } from '../../../packages/workflow/src/index';
 export type Role='medical'|'coordinator'|'family';
 export type Method='demo'|'email'|'phone';
 /** `judge` sessions (demo buttons and the judge test login) may switch between the three role views. */
-export type Session={role:Role;name:string;patientId?:string;agreedAt?:string;accountId?:string;method?:Method;judge?:boolean};
+export type Staff='doctor'|'nurse'|'psychologist';
+/** `staff` narrows medical staff: only doctors change prescriptions. Missing means doctor (older sessions). */
+export type Session={role:Role;name:string;patientId?:string;agreedAt?:string;accountId?:string;method?:Method;judge?:boolean;staff?:Staff};
 const COOKIE='saathi_session';
 /** Hosted mode: any host may connect, so a dedicated signing secret must be configured. */
 export const publicDemo=()=>{
@@ -28,7 +30,7 @@ export function readSession(request:Request):Session|null{
   const [payload,mac]=raw.split('.');if(!payload||!mac)return null;
   const expected=Buffer.from(sign(payload)),given=Buffer.from(mac);if(expected.length!==given.length||!timingSafeEqual(expected,given))return null;
   try{const s=JSON.parse(Buffer.from(payload,'base64url').toString('utf8')) as Session&{exp:number};if(!(s.exp>Date.now())||!['medical','coordinator','family'].includes(s.role))return null;
-    const out:Session={role:s.role,name:s.name};for(const k of ['patientId','agreedAt','accountId','method','judge'] as const)if(s[k])(out as Record<string,unknown>)[k]=s[k];return out;}catch{return null;}
+    const out:Session={role:s.role,name:s.name};for(const k of ['patientId','agreedAt','accountId','method','judge','staff'] as const)if(s[k])(out as Record<string,unknown>)[k]=s[k];return out;}catch{return null;}
 }
 export function sessionCookie(session:Session|null){
   if(!session)return `${COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`;

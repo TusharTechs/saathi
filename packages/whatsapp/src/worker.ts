@@ -2,12 +2,13 @@ import {createHash} from 'node:crypto';
 import {NarrativePipeline} from '../../extraction/src/pipeline.ts';
 import {TelegramState,type Task,type State} from '../../telegram/src/state.ts';
 import {planUpdate,queueResult,finishUpdate} from '../../telegram/src/engine.ts';
-import {familyReply,GREETING} from '../../workflow/src/service-config.ts';
+import {familyReplies,GREETING,GREETING_PATTERN,closedMessage} from '../../workflow/src/service-config.ts';
+import type {CarePlanEntry} from '../../workflow/src/care-plan.ts';
 import {WhatsAppAPI,WhatsAppError} from './api.ts';
 import {WhatsAppStore,type Inbound} from './store.ts';
 import type {OnCallAlerts} from './oncall.ts';
 import type {Reminders} from './reminders.ts';
-export const isGreeting=(m:Inbound)=>m.kind==='text'&&/^(hi+|hello|hey|namaste|namaskar|namaskara|good (morning|evening))[\s!.]*$/i.test(m.text??'');
+export const isGreeting=(m:Inbound)=>m.kind==='text'&&GREETING_PATTERN.test(m.text??'');
 export const isLoginCode=(m:Inbound)=>m.kind==='text'&&/^\s*login\s+\d{6}\s*$/i.test(m.text??'');
 export const channelNumber=(phone:string)=>createHash('sha256').update(phone).digest().readUInt32BE(0);
 export function planWhatsApp(state:State,id:number,message:Inbound,phone:string,now=Date.now()){
@@ -36,11 +37,11 @@ export class WhatsAppWorker {
  async recover(){
   let snapshot=await this.state.snapshot();const p=snapshot.pending;if(!p)return;
   await this.store.binding(this.api.phoneId,p.chatId,snapshot.chats[String(p.chatId)]);
-  if(p.task){let text:string;
+  if(p.task){let texts:string[];
    const session=snapshot.chats[String(p.chatId)];
-   if(!session?.consentAt||Date.now()-session.consentAt>=86400000||session.patientId!==p.task.patientId)text='Synthetic-only consent expired. Request a fresh patient link; this report was not processed.';
-   else try{const record=await this.runTask(p.task);text=familyReply(record.report.evaluation.tier,record.report.processing?.extraction.status);}catch{text='The report could not be confirmed. Check the dashboard before /retry. The same request ID will be retained.';}
-   await this.state.transact(s=>queueResult(s,text));
+   if(!session?.consentAt||Date.now()-session.consentAt>=86400000||session.patientId!==p.task.patientId)texts=['Synthetic-only consent expired. Request a fresh patient link; this report was not processed.'];
+   else try{const record=await this.runTask(p.task);texts=familyReplies(record.report.evaluation.tier,record.report.processing?.extraction.status,record.report.evaluation.matched,record.report.input.fields);}catch{texts=['The report could not be confirmed. Check the dashboard before /retry. The same request ID will be retained.'];}
+   await this.state.transact(s=>{for(const t of texts)queueResult(s,t);});
   }
   snapshot=await this.state.snapshot();
   for(let i=0;i<snapshot.pending!.actions.length;i++){
@@ -69,6 +70,14 @@ export class WhatsAppWorker {
   if(await this.oncall?.inbound(next.message)){await this.state.transact(s=>{s.offset=next.id+1;});await this.store.complete(this.api.phoneId,next.id+1);return true;}
   // A consented family's "Hi" opens the conversation instead of becoming an empty report.
   const chat=state.chats[next.message.from];
+  // A closed patient (died or moved to another team) gets only the fixed OPD message; nothing is reported or triaged.
+  const plans:Record<string,CarePlanEntry>|undefined=chat?.patientId&&chat.consentAt?await this.store.carePlans?.().catch(()=>({})):undefined;
+  const closedPlan=chat?.patientId?plans?.[chat.patientId]?.plan:undefined;
+  if(closedPlan?.closure){
+   let status:'accepted'|'unknown'|'failed'='accepted';
+   try{await this.api.send({method:'sendMessage',status:'pending',payload:{chat_id:Number(next.message.from),text:closedMessage(closedPlan.demographics.name)}},next.message.timestamp*1000);}catch(e){status=e instanceof WhatsAppError&&e.kind!=='unknown'?'failed':'unknown';}
+   this.log({event:'whatsapp_closed_patient',status});return consume();
+  }
   if(isGreeting(next.message)&&chat?.consentAt&&Date.now()-chat.consentAt<86400000&&!chat.draft){
    let status:'accepted'|'unknown'|'failed'='accepted';
    try{await this.api.send({method:'sendMessage',status:'pending',payload:{chat_id:Number(next.message.from),text:GREETING}},next.message.timestamp*1000);}catch(e){status=e instanceof WhatsAppError&&e.kind!=='unknown'?'failed':'unknown';}

@@ -16,7 +16,7 @@ export async function verifyPassword(password:string,stored:string|null|undefine
 }
 export const passwordRule=z.string().min(8,'Use at least 8 characters for the password.').max(128);
 export const emailRule=z.string().trim().toLowerCase().max(120).email('Enter a valid email address.');
-const account=z.object({id:z.uuid(),role:z.enum(['medical','coordinator','family']),name:z.string(),email:z.string().nullable(),phone:z.string().nullable(),patientKey:z.string().nullable(),passwordHash:z.string().nullable().optional()});
+const account=z.object({id:z.uuid(),role:z.enum(['medical','coordinator','family']),name:z.string(),email:z.string().nullable(),phone:z.string().nullable(),patientKey:z.string().nullable(),passwordHash:z.string().nullable().optional(),staffType:z.enum(['doctor','nurse','psychologist']).nullable().optional()});
 export type Account=z.infer<typeof account>;
 export class AccountStore extends SupabaseStore {
   async create(input:{role:Role;name:string;email?:string|null;phone?:string|null;passwordHash?:string|null;patientKey?:string|null}){
@@ -25,6 +25,7 @@ export class AccountStore extends SupabaseStore {
   }
   async find(by:{email?:string;phone?:string}){return account.nullable().parse(await this.rpc('saathi_account_find',{p_email:by.email??null,p_phone:by.phone??null}));}
   async touch(id:string){await this.rpc('saathi_account_touch',{p_id:id});}
+  async setStaff(id:string,staff:'doctor'|'nurse'|'psychologist'){await this.rpc('saathi_account_set_staff',{p_id:id,p_staff:staff});}
 }
 export function accounts(){
   if((process.env.SAATHI_STORAGE??'local')!=='supabase')throw new WorkflowError(503,'Accounts need Supabase storage. Use a demo account, or set SAATHI_STORAGE=supabase.');

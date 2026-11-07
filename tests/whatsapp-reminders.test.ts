@@ -13,7 +13,7 @@ const entry=():CarePlanEntry=>{const plan=demoCase();plan.appointments=[{kind:'o
 test('welcome, slot and evening-before appointment reminders are due once and list only that slot’s regular medicines',()=>{
  const due=dueReminders(entry(),'demo-ramesh',sender,at('08:30'),new Set());
  assert.match(due[0]!.text,/received .* care plan/);const morning=due[1]!;
- assert.match(morning.text,/morning \(08:00\)/);assert.match(morning.text,/Morphine SR/);assert.match(morning.text,/Paracetamol/);assert.doesNotMatch(morning.text,/Lactulose|solution/);
+ assert.match(morning.text,/morning \(08:00\)/);assert.match(morning.text,/Morphine sustained-release/);assert.doesNotMatch(morning.text,/Bisacodyl|immediate-release/);
  assert.deepEqual(morning.buttons!.map(b=>b.callback_data),['dose:2026-11-04:morning:given','dose:2026-11-04:morning:not_given']);
  assert.ok(morning.buttons!.every(b=>doseButton.test(b.callback_data)&&b.callback_data.length<=64));
  assert.equal(dueReminders(entry(),'demo-ramesh',sender,at('08:30'),new Set(due.map(d=>d.key))).length,0);
@@ -36,9 +36,9 @@ test('a demo request sends one slot immediately; Given taps log every scheduled 
  const t=await setup(60000);try{
   await t.state.transact(s=>{s.sent.push({key:'welcome:demo-ramesh:2026-11-03T14:00:00.000Z',at:'x',status:'accepted'});});
   await t.state.requestDemo('demo-ramesh','night');await t.rem.check(t.chats,at('12:00'));
-  assert.equal(t.sent.length,1);assert.match(t.sent[0]!.payload.text!,/night \(22:00\)/);assert.match(t.sent[0]!.payload.text!,/Lactulose/);
+  assert.equal(t.sent.length,1);assert.match(t.sent[0]!.payload.text!,/night \(22:00\)/);assert.match(t.sent[0]!.payload.text!,/Bisacodyl/);assert.doesNotMatch(t.sent[0]!.payload.text!,/Morphine/);
   const tap:Inbound={id:'wamid.TAP',from:sender,timestamp:Math.floor(Date.now()/1000),kind:'button',buttonId:'dose:2026-11-04:night:given'};
-  assert.equal(await t.rem.inbound(tap,t.chats),true);assert.deepEqual(t.logged.sort(),['lactulose:2026-11-04:night:given','morphine_sr:2026-11-04:night:given']);assert.match(t.sent.at(-1)!.payload.text!,/recorded as given/);
+  assert.equal(await t.rem.inbound(tap,t.chats),true);assert.deepEqual(t.logged.sort(),['bisacodyl:2026-11-04:night:given']);assert.match(t.sent.at(-1)!.payload.text!,/recorded as given/);
   assert.equal(await t.rem.inbound({...tap,buttonId:'q:n:1:2'},t.chats),false);assert.equal(await t.rem.inbound(tap,{}),false);
  }finally{await rm(t.directory,{recursive:true,force:true});}
 });

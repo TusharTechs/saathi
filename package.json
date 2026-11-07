@@ -23,6 +23,7 @@
     "supabase:whatsapp": "node scripts/supabase.mjs whatsapp",
     "supabase:oncall": "node scripts/supabase.mjs oncall",
     "supabase:teleconsult": "node scripts/supabase.mjs teleconsult",
+    "supabase:staff": "node scripts/supabase.mjs staff",
     "supabase:accounts": "node scripts/supabase.mjs accounts",
     "supabase:schedule": "node scripts/supabase.mjs schedule",
     "supabase:login-phone": "node scripts/supabase.mjs login-phone",

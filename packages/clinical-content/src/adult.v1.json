@@ -1,17 +1,17 @@
 {
-  "version": "adult.v1-demo.1",
+  "version": "adult.v1.1-approved-demo",
   "status": "demo_only",
-  "approved_by": null,
-  "approved_at": null,
-  "source": "docs/02-CLINICAL-PROTOCOL.md",
+  "approved_by": "Dr. Krithika S Rao",
+  "approved_at": "2026-11-07",
+  "source": "Clinical review form submitted by Dr. Krithika S Rao on 2026-11-07 (demo use; institutional sign-off pending)",
   "rules": [
     {
       "id": "R1",
       "tier": "RED",
       "label": "Wakefulness W5",
-      "source_status": "accepted_pending_review",
-      "approved_by": null,
-      "approved_at": null,
+      "source_status": "approved",
+      "approved_by": "Dr. Krithika S Rao",
+      "approved_at": "2026-11-07",
       "when": {
         "field": "wakefulness",
         "op": "==",
@@ -22,9 +22,9 @@
       "id": "R2",
       "tier": "RED",
       "label": "Wakefulness W4",
-      "source_status": "accepted_pending_review",
-      "approved_by": null,
-      "approved_at": null,
+      "source_status": "approved",
+      "approved_by": "Dr. Krithika S Rao",
+      "approved_at": "2026-11-07",
       "when": {
         "field": "wakefulness",
         "op": "==",
@@ -35,9 +35,9 @@
       "id": "R3",
       "tier": "RED",
       "label": "Adult breathing concern",
-      "source_status": "confirmed_in_handoff",
-      "approved_by": null,
-      "approved_at": null,
+      "source_status": "approved",
+      "approved_by": "Dr. Krithika S Rao",
+      "approved_at": "2026-11-07",
       "when": {
         "any": [
           {
@@ -89,9 +89,9 @@
       "id": "R4",
       "tier": "RED",
       "label": "Severe breathlessness or blue lips",
-      "source_status": "accepted_pending_review",
-      "approved_by": null,
-      "approved_at": null,
+      "source_status": "approved",
+      "approved_by": "Dr. Krithika S Rao",
+      "approved_at": "2026-11-07",
       "when": {
         "any": [
           {
@@ -137,9 +137,9 @@
       "id": "R5",
       "tier": "RED",
       "label": "Reported neurological red flags",
-      "source_status": "accepted_pending_review",
-      "approved_by": null,
-      "approved_at": null,
+      "source_status": "approved",
+      "approved_by": "Dr. Krithika S Rao",
+      "approved_at": "2026-11-07",
       "when": {
         "any": [
           {
@@ -159,9 +159,9 @@
       "id": "R6",
       "tier": "RED",
       "label": "Sudden confusion or hallucinations",
-      "source_status": "accepted_pending_review",
-      "approved_by": null,
-      "approved_at": null,
+      "source_status": "approved",
+      "approved_by": "Dr. Krithika S Rao",
+      "approved_at": "2026-11-07",
       "when": {
         "field": "confusion",
         "op": "in",
@@ -175,9 +175,9 @@
       "id": "R7",
       "tier": "RED",
       "label": "Seizure",
-      "source_status": "accepted_pending_review",
-      "approved_by": null,
-      "approved_at": null,
+      "source_status": "approved",
+      "approved_by": "Dr. Krithika S Rao",
+      "approved_at": "2026-11-07",
       "when": {
         "field": "seizure",
         "op": "==",
@@ -187,10 +187,10 @@
     {
       "id": "R8",
       "tier": "RED",
-      "label": "Reported bleeding red flags",
-      "source_status": "accepted_pending_review",
-      "approved_by": null,
-      "approved_at": null,
+      "label": "Reported bleeding red flags (including a wound bleed that does not stop with pressure)",
+      "source_status": "approved",
+      "approved_by": "Dr. Krithika S Rao",
+      "approved_at": "2026-11-07",
       "when": {
         "any": [
           {
@@ -215,9 +215,9 @@
       "id": "R9",
       "tier": "RED",
       "label": "Repeated vomiting with swollen belly and no stool or wind",
-      "source_status": "accepted_pending_review",
-      "approved_by": null,
-      "approved_at": null,
+      "source_status": "approved",
+      "approved_by": "Dr. Krithika S Rao",
+      "approved_at": "2026-11-07",
       "when": {
         "all": [
           {
@@ -242,9 +242,9 @@
       "id": "R10",
       "tier": "RED",
       "label": "Fever with recent chemotherapy",
-      "source_status": "accepted_pending_review",
-      "approved_by": null,
-      "approved_at": null,
+      "source_status": "approved",
+      "approved_by": "Dr. Krithika S Rao",
+      "approved_at": "2026-11-07",
       "when": {
         "all": [
           {
@@ -264,9 +264,9 @@
       "id": "R11",
       "tier": "RED",
       "label": "Sudden severe pain not helped by rescue dose",
-      "source_status": "accepted_pending_review",
-      "approved_by": null,
-      "approved_at": null,
+      "source_status": "approved",
+      "approved_by": "Dr. Krithika S Rao",
+      "approved_at": "2026-11-07",
       "when": {
         "all": [
           {
@@ -291,9 +291,9 @@
       "id": "R12",
       "tier": "RED",
       "label": "Medication error",
-      "source_status": "accepted_pending_review",
-      "approved_by": null,
-      "approved_at": null,
+      "source_status": "approved",
+      "approved_by": "Dr. Krithika S Rao",
+      "approved_at": "2026-11-07",
       "when": {
         "field": "med_error",
         "op": "==",
@@ -304,9 +304,9 @@
       "id": "R13",
       "tier": "RED",
       "label": "Reported crisis",
-      "source_status": "accepted_pending_review",
-      "approved_by": null,
-      "approved_at": null,
+      "source_status": "approved",
+      "approved_by": "Dr. Krithika S Rao",
+      "approved_at": "2026-11-07",
       "when": {
         "any": [
           {
@@ -323,12 +323,38 @@
       }
     },
     {
+      "id": "R14",
+      "tier": "RED",
+      "label": "Uncontrolled agitation or restlessness",
+      "source_status": "approved",
+      "approved_by": "Dr. Krithika S Rao",
+      "approved_at": "2026-11-07",
+      "when": {
+        "field": "agitation_uncontrolled",
+        "op": "==",
+        "value": true
+      }
+    },
+    {
+      "id": "R15",
+      "tier": "RED",
+      "label": "A fall",
+      "source_status": "approved",
+      "approved_by": "Dr. Krithika S Rao",
+      "approved_at": "2026-11-07",
+      "when": {
+        "field": "fall",
+        "op": "==",
+        "value": true
+      }
+    },
+    {
       "id": "A1",
       "tier": "AMBER",
       "label": "At least three rescue doses in 24 hours",
-      "source_status": "confirmed_in_handoff",
-      "approved_by": null,
-      "approved_at": null,
+      "source_status": "approved",
+      "approved_by": "Dr. Krithika S Rao",
+      "approved_at": "2026-11-07",
       "when": {
         "field": "rescue_doses_24h",
         "op": ">=",
@@ -339,9 +365,9 @@
       "id": "A2",
       "tier": "AMBER",
       "label": "Pain despite medicines or rise from baseline",
-      "source_status": "accepted_pending_review",
-      "approved_by": null,
-      "approved_at": null,
+      "source_status": "approved",
+      "approved_by": "Dr. Krithika S Rao",
+      "approved_at": "2026-11-07",
       "when": {
         "any": [
           {
@@ -372,9 +398,9 @@
       "id": "A3",
       "tier": "AMBER",
       "label": "Vomiting or unable to retain medicines",
-      "source_status": "accepted_pending_review",
-      "approved_by": null,
-      "approved_at": null,
+      "source_status": "approved",
+      "approved_by": "Dr. Krithika S Rao",
+      "approved_at": "2026-11-07",
       "when": {
         "any": [
           {
@@ -394,9 +420,9 @@
       "id": "A4",
       "tier": "AMBER",
       "label": "No stool for three days while on morphine",
-      "source_status": "accepted_pending_review",
-      "approved_by": null,
-      "approved_at": null,
+      "source_status": "approved",
+      "approved_by": "Dr. Krithika S Rao",
+      "approved_at": "2026-11-07",
       "when": {
         "all": [
           {
@@ -416,9 +442,9 @@
       "id": "A5",
       "tier": "AMBER",
       "label": "Sips or nothing for at least 24 hours",
-      "source_status": "accepted_pending_review",
-      "approved_by": null,
-      "approved_at": null,
+      "source_status": "approved",
+      "approved_by": "Dr. Krithika S Rao",
+      "approved_at": "2026-11-07",
       "when": {
         "all": [
           {
@@ -440,10 +466,10 @@
     {
       "id": "A6",
       "tier": "AMBER",
-      "label": "New W3 after dose increase",
-      "source_status": "accepted_pending_review",
-      "approved_by": null,
-      "approved_at": null,
+      "label": "Mild drowsiness (W3) within 48 hours of starting opioids or a dose increase",
+      "source_status": "approved",
+      "approved_by": "Dr. Krithika S Rao",
+      "approved_at": "2026-11-07",
       "when": {
         "all": [
           {
@@ -452,7 +478,7 @@
             "value": "W3"
           },
           {
-            "field": "wakefulness_new_since_dose_increase_72h",
+            "field": "wakefulness_new_since_opioid_start_or_increase_48h",
             "op": "==",
             "value": true
           }
@@ -463,9 +489,9 @@
       "id": "A7",
       "tier": "AMBER",
       "label": "New jerking",
-      "source_status": "accepted_pending_review",
-      "approved_by": null,
-      "approved_at": null,
+      "source_status": "approved",
+      "approved_by": "Dr. Krithika S Rao",
+      "approved_at": "2026-11-07",
       "when": {
         "field": "jerking",
         "op": "==",
@@ -476,9 +502,9 @@
       "id": "A8",
       "tier": "AMBER",
       "label": "Gradual confusion",
-      "source_status": "accepted_pending_review",
-      "approved_by": null,
-      "approved_at": null,
+      "source_status": "approved",
+      "approved_by": "Dr. Krithika S Rao",
+      "approved_at": "2026-11-07",
       "when": {
         "field": "confusion",
         "op": "==",
@@ -488,38 +514,29 @@
     {
       "id": "A9",
       "tier": "AMBER",
-      "label": "Wound changes with photo",
-      "source_status": "accepted_pending_review",
-      "approved_by": null,
-      "approved_at": null,
+      "label": "Wound changes (a photo helps but is not required; ask for one on the call)",
+      "source_status": "approved",
+      "approved_by": "Dr. Krithika S Rao",
+      "approved_at": "2026-11-07",
       "when": {
-        "all": [
+        "any": [
           {
-            "any": [
-              {
-                "field": "wound_more_bleeding",
-                "op": "==",
-                "value": true
-              },
-              {
-                "field": "wound_stronger_smell",
-                "op": "==",
-                "value": true
-              },
-              {
-                "field": "wound_new_discharge",
-                "op": "==",
-                "value": true
-              },
-              {
-                "field": "wound_spreading_redness",
-                "op": "==",
-                "value": true
-              }
-            ]
+            "field": "wound_more_bleeding",
+            "op": "==",
+            "value": true
           },
           {
-            "field": "context.wound_photo_available",
+            "field": "wound_stronger_smell",
+            "op": "==",
+            "value": true
+          },
+          {
+            "field": "wound_new_discharge",
+            "op": "==",
+            "value": true
+          },
+          {
+            "field": "wound_spreading_redness",
             "op": "==",
             "value": true
           }
@@ -530,7 +547,7 @@
       "id": "A10",
       "tier": "AMBER",
       "label": "New breathlessness at rest",
-      "source_status": "accepted_pending_review",
+      "source_status": "retired",
       "approved_by": null,
       "approved_at": null,
       "when": {
@@ -552,9 +569,9 @@
       "id": "A11",
       "tier": "AMBER",
       "label": "Missed medicines or morphine running out",
-      "source_status": "accepted_pending_review",
-      "approved_by": null,
-      "approved_at": null,
+      "source_status": "approved",
+      "approved_by": "Dr. Krithika S Rao",
+      "approved_at": "2026-11-07",
       "when": {
         "any": [
           {
@@ -582,10 +599,10 @@
     {
       "id": "A12",
       "tier": "AMBER",
-      "label": "Caregiver struggling on consecutive check-ins",
-      "source_status": "accepted_pending_review",
-      "approved_by": null,
-      "approved_at": null,
+      "label": "Caregiver struggling (emotionally or practically) on two check-ins in a row",
+      "source_status": "approved",
+      "approved_by": "Dr. Krithika S Rao",
+      "approved_at": "2026-11-07",
       "when": {
         "field": "context.caregiver_struggling_streak",
         "op": ">=",
@@ -596,9 +613,9 @@
       "id": "A13",
       "tier": "AMBER",
       "label": "Question unanswered after two card attempts",
-      "source_status": "accepted_pending_review",
-      "approved_by": null,
-      "approved_at": null,
+      "source_status": "approved",
+      "approved_by": "Dr. Krithika S Rao",
+      "approved_at": "2026-11-07",
       "when": {
         "field": "context.unanswered_card_attempts",
         "op": ">=",
@@ -609,9 +626,9 @@
       "id": "A14",
       "tier": "AMBER",
       "label": "No check-in for two days",
-      "source_status": "accepted_pending_review",
-      "approved_by": null,
-      "approved_at": null,
+      "source_status": "approved",
+      "approved_by": "Dr. Krithika S Rao",
+      "approved_at": "2026-11-07",
       "when": {
         "field": "context.days_since_checkin",
         "op": ">=",
@@ -621,10 +638,10 @@
     {
       "id": "A15",
       "tier": "AMBER",
-      "label": "Proposed adult breathing band",
-      "source_status": "draft",
-      "approved_by": null,
-      "approved_at": null,
+      "label": "Adult breathing 13 to 15 per minute, counted over a full minute",
+      "source_status": "approved",
+      "approved_by": "Dr. Krithika S Rao",
+      "approved_at": "2026-11-07",
       "when": {
         "all": [
           {
@@ -643,6 +660,32 @@
             "value": true
           }
         ]
+      }
+    },
+    {
+      "id": "A16",
+      "tier": "AMBER",
+      "label": "Unable to swallow medicines",
+      "source_status": "approved",
+      "approved_by": "Dr. Krithika S Rao",
+      "approved_at": "2026-11-07",
+      "when": {
+        "field": "cannot_swallow_medicines",
+        "op": "==",
+        "value": true
+      }
+    },
+    {
+      "id": "A17",
+      "tier": "AMBER",
+      "label": "Severe mouth or throat pain stopping eating or drinking",
+      "source_status": "approved",
+      "approved_by": "Dr. Krithika S Rao",
+      "approved_at": "2026-11-07",
+      "when": {
+        "field": "mouth_pain_stopping_intake",
+        "op": "==",
+        "value": true
       }
     }
   ]

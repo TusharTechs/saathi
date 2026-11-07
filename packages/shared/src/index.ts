@@ -38,13 +38,17 @@ export const fieldsSchema = z.object({
   days_since_stool: observed(z.number().int().nonnegative()).optional(),
   intake: observed(z.enum(["usual", "less", "mouthfuls_sips", "nothing"])).optional(),
   reduced_intake_hours: observed(z.number().int().nonnegative()).optional(),
-  wakefulness_new_since_dose_increase_72h: observed(z.boolean()).optional(),
+  wakefulness_new_since_opioid_start_or_increase_48h: observed(z.boolean()).optional(),
   jerking: observed(z.boolean()).optional(),
   wound_more_bleeding: observed(z.boolean()).optional(),
   wound_stronger_smell: observed(z.boolean()).optional(),
   wound_new_discharge: observed(z.boolean()).optional(),
   wound_spreading_redness: observed(z.boolean()).optional(),
   missed_regular_doses: observed(z.number().int().nonnegative()).optional(),
+  agitation_uncontrolled: observed(z.boolean()).optional(),
+  fall: observed(z.boolean()).optional(),
+  cannot_swallow_medicines: observed(z.boolean()).optional(),
+  mouth_pain_stopping_intake: observed(z.boolean()).optional(),
 }).strict();
 export const contextSchema = z.object({
   pack: z.enum(['adult','paediatric']),

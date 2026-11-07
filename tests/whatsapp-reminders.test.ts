@@ -20,11 +20,12 @@ test('welcome, slot and evening-before appointment reminders are due once and li
  assert.equal(dueReminders(entry(),'demo-ramesh',sender,at('10:30'),new Set([due[0]!.key])).length,0);
  const evening=dueReminders(entry(),'demo-ramesh',sender,at('18:30'),new Set([due[0]!.key]));assert.ok(evening.some(d=>/OPD visit .* tomorrow .* 10:00/.test(d.text)));
 });
-async function setup(lastInboundMsAgo:number){
+async function setup(lastInboundMsAgo:number,base=at('08:30')){
  const directory=await mkdtemp(join(tmpdir(),'saathi-rem-')),sent:Action[]=[],logged:string[]=[];
  const store={carePlans:async()=>({'demo-ramesh':entry()}),logDose:async(_p:string,k:string,d:string,s:string,st:string)=>{logged.push(`${k}:${d}:${s}:${st}`);}};
  const state=new ReminderState(directory),rem=new Reminders(state,store,{send:async(a:Action)=>{sent.push(a);}},()=>{},0);
- await state.transact(s=>{s.lastInbound[sender]=Date.now()-lastInboundMsAgo;});
+ // Anchor the last family message to the simulated check time, not the real clock.
+ await state.transact(s=>{s.lastInbound[sender]=base-lastInboundMsAgo;});
  return {directory,state,rem,sent,logged,chats:{[sender]:{patientId:'demo-ramesh',consentAt:Date.now()}}};
 }
 test('reminders send only inside the 24-hour window; outside it they are recorded, never sent',async()=>{

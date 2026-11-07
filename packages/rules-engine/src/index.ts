@@ -16,10 +16,10 @@ const conditionSchema: z.ZodType<Condition> = z.lazy(() => z.union([
   z.object({difference:z.object({left:pathSchema,right:pathSchema,gte:z.number()}).strict()}).strict(),
 ]));
 const protocol = z.object({
-  version:z.string(), status:z.literal('demo_only'), approved_by:z.null(), approved_at:z.null(), source:z.string(),
+  version:z.string(), status:z.enum(['demo_only','approved']), approved_by:z.string().nullable(), approved_at:z.string().nullable(), source:z.string(),
   rules:z.array(z.object({id:z.string(),tier:z.enum(['RED','AMBER']),label:z.string(),
-    source_status:z.enum(['accepted_pending_review','confirmed_in_handoff','draft']),
-    approved_by:z.null(),approved_at:z.null(),when:conditionSchema}).strict()),
+    source_status:z.enum(['accepted_pending_review','confirmed_in_handoff','draft','approved','retired']),
+    approved_by:z.string().nullable(),approved_at:z.string().nullable(),when:conditionSchema}).strict()),
 }).strict().parse(adultProtocol);
 
 type Truth = true | false | 'unknown';
@@ -82,7 +82,8 @@ export function evaluate(raw: unknown): Evaluation {
     status:'unsupported_pack', matched:[], unknownRuleIds:[], followupFields:[], traces:[],
     reason:'Paediatric protocol awaits age-specific review; adult rules were not evaluated.',
   };
-  const traces = protocol.rules.filter(r => r.source_status !== 'draft').map(rule => ({
+  // Draft rules are not yet active; retired rules were removed by the clinical lead.
+  const traces = protocol.rules.filter(r => r.source_status !== 'draft' && r.source_status !== 'retired').map(rule => ({
     ruleId:rule.id, tier:rule.tier, label:rule.label, sourceStatus:rule.source_status, ...compare(rule.when),
   }));
   const matched = traces.filter(t => t.outcome === true);

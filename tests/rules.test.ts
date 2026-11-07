@@ -26,11 +26,16 @@ test('A2 activates on its positive fixture', () => assert.ok(evaluate(input({"pa
 test('A3 activates on its positive fixture', () => assert.ok(evaluate(input({"vomit_count_24h": 3},{})).matched.includes('A3')));
 test('A4 activates on its positive fixture', () => assert.ok(evaluate(input({"days_since_stool": 3},{"on_morphine": true})).matched.includes('A4')));
 test('A5 activates on its positive fixture', () => assert.ok(evaluate(input({"intake": "mouthfuls_sips", "reduced_intake_hours": 24},{})).matched.includes('A5')));
-test('A6 activates on its positive fixture', () => assert.ok(evaluate(input({"wakefulness": "W3", "wakefulness_new_since_dose_increase_72h": true},{})).matched.includes('A6')));
+test('A6 activates on its positive fixture', () => assert.ok(evaluate(input({"wakefulness": "W3", "wakefulness_new_since_opioid_start_or_increase_48h": true},{})).matched.includes('A6')));
 test('A7 activates on its positive fixture', () => assert.ok(evaluate(input({"jerking": true},{})).matched.includes('A7')));
 test('A8 activates on its positive fixture', () => assert.ok(evaluate(input({"confusion": "gradual"},{})).matched.includes('A8')));
 test('A9 activates on its positive fixture', () => assert.ok(evaluate(input({"wound_stronger_smell": true},{"wound_photo_available": true})).matched.includes('A9')));
-test('A10 activates on its positive fixture', () => assert.ok(evaluate(input({"breathing": "breathless_rest", "breathing_new": true},{})).matched.includes('A10')));
+test('A10 is retired: Dr. Rao noted new breathlessness at rest is already covered by RED rules', () => assert.ok(!evaluate(input({"breathing": "breathless_rest", "breathing_new": true},{})).matched.includes('A10')));
+test('A9 no longer needs a wound photo', () => assert.ok(evaluate(input({"wound_stronger_smell": true},{"wound_photo_available": false})).matched.includes('A9')));
+test('R14 agitation and R15 fall are RED; A16 and A17 are AMBER', () => {
+ assert.ok(evaluate(input({agitation_uncontrolled:true})).matched.includes('R14'));assert.equal(evaluate(input({fall:true})).tier,'RED');
+ assert.equal(evaluate(input({cannot_swallow_medicines:true})).tier,'AMBER');assert.ok(evaluate(input({mouth_pain_stopping_intake:true})).matched.includes('A17'));
+});
 test('A11 activates on its positive fixture', () => assert.ok(evaluate(input({"missed_regular_doses": 2},{})).matched.includes('A11')));
 test('A12 activates on its positive fixture', () => assert.ok(evaluate(input({},{"caregiver_struggling_streak": 2})).matched.includes('A12')));
 test('A13 activates on its positive fixture', () => assert.ok(evaluate(input({},{"unanswered_card_attempts": 2})).matched.includes('A13')));
@@ -38,8 +43,9 @@ test('A14 activates on its positive fixture', () => assert.ok(evaluate(input({},
 
 test('complete explicitly negative report is GREEN', () => assert.equal(evaluate(input()).tier,'GREEN'));
 test('negative report matches no active rule', () => assert.deepEqual(evaluate(input()).matched,[]));
-test('draft A15 stays disabled at both boundaries', () => {
-  for(const n of [13,15]) assert.ok(!evaluate(input({resp_rate_per_min:n,resp_count_full_minute:true})).matched.includes('A15'));
+test('A15 (switched on by Dr. Rao) is AMBER at 13 and 15 but not 16', () => {
+  for(const n of [13,15]) assert.equal(evaluate(input({resp_rate_per_min:n,resp_count_full_minute:true})).tier,'AMBER');
+  assert.ok(!evaluate(input({resp_rate_per_min:16,resp_count_full_minute:true})).matched.includes('A15'));
 });
 test('empty input never defaults to GREEN', () => {
  const r=evaluate({messages:[],fields:{},context:{pack:'adult'}});
@@ -85,7 +91,7 @@ test('evaluation is deterministic and does not mutate input', () => {
 test('alert trace retains source quote, message and protocol version', () => {
  const r=evaluate(input({seizure:true})); const trace=r.traces.find(t=>t.ruleId==='R7')!;
  assert.equal(trace.evidence[0]!.quote,'seizure=true'); assert.equal(trace.evidence[0]!.messageId,'test');
- assert.equal(r.protocolVersion,'adult.v1-demo.1'); assert.equal(r.mode,'demo_only');
+ assert.equal(r.protocolVersion,'adult.v1.1-approved-demo'); assert.equal(r.mode,'demo_only');
 });
 test('R3 includes noisy new breathing with drowsiness', () => assert.ok(evaluate(input({breathing:'noisy_rattling',breathing_new:true,wakefulness:'W3'})).matched.includes('R3')));
 test('R3 needs full minute confirmation for counted rate', () => assert.ok(!evaluate(input({resp_rate_per_min:12})).matched.includes('R3')));

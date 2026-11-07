@@ -188,6 +188,11 @@ WhatsApp is optional and needs a Meta app; see [`docs/11-WHATSAPP-INTAKE.md`](do
 Done: triage pipeline, dashboard roles, family chat, reminders, on-call alerts, EMR check-in, prescriptions, FHIR export, hosted demo. **WhatsApp:** the full line (signed webhook, consent, check-ins, reminders, alerts) worked end to end on Meta's test number on 3 Nov; Meta then paused the test app's API, so the live demo uses the family web chat, which runs the same engine and replies.
 Next: children's pack (age-specific thresholds), automatic nursing replies written by the clinicians, clinician-labelled evaluation, Hindi and Kannada replies, a 90-day pilot after ethics approval.
 
+## AI tools disclosure
+
+- **Building Saathi:** we used AI coding assistants, **Claude Code** and **ChatGPT desktop**, to help write, test and review code. The product design, clinical content and every commit are the team's own, and the triage rules and family wording were reviewed and approved by our clinical lead.
+- **Inside Saathi:** AI is limited to speech-to-text (Sarvam AI) and extracting facts into a fixed schema with exact quotes (an open-weight model on Groq). It never decides urgency, never writes advice and never sees real patient data.
+
 ## Team
 
 - **Tushar Agarwal**, technology lead

@@ -222,3 +222,11 @@ Dr. Krithika S Rao submitted the online review form (60 answers) and joined a ca
 - **Family page:** a WhatsApp-style chat running the same engine and replies as the WhatsApp line, because Meta still blocks the Saathi app (Graph API error 200 since 3 Nov). Not done: children's pack (needs her age thresholds), automatic nursing replies (she will send them), and her labels for the 60-case evaluation (she will review before the finale).
 
 **Evaluation re-run (7 Nov, approved protocol):** 29/30 expected REDs caught (96.7%; EN 10/10, HI 10/10, KN 9/10), 87.9% precision, 95.0% field accuracy, 4 conservative false REDs (negated or historical). The only miss: Kannada caregiver not coping. Part of the change from 27/30 is model variation; labels remain engineering drafts.
+
+## 24. Final fixes and submission pack · 7 November 2026 (evening)
+
+- **AMBER context:** family reports (web, WhatsApp, Telegram, buttons) now carry the patient's usual pain score and morphine status from the care plan, and keep it through extraction, so "pain 7 even after his medicines" is AMBER (rule A2). Extraction prompt defines `pain_despite_medicines`.
+- **Dashboard:** care queue and call manager report filter by a from–to date range (Today, Last 7 days, Last 30 days); two layout overlaps fixed (Needs immediate review, Retry extraction).
+- **Groq:** the free tier's 200,000 tokens per day was exhausted during testing (each extraction is about 5,000 tokens); the keyword net kept REDs and transcripts. The production key was replaced.
+- **Evidence:** [`docs/EVIDENCE.md`](EVIDENCE.md) sources every number used in the README, brief, deck and video (published studies, regulations, our own result files and cost assumptions).
+- **Submission pack:** two-page brief and 14-slide final presentation on the official templates (team HealthPulse, MJYRT8), and a 6:40 narrated demo video, published as the GitHub release `v1.0-submission`.

@@ -17,6 +17,7 @@ Built for **Health-a-thon 2026** (IIT Bombay KCDH · Koita Foundation · Nationa
 | **Judges' submission pack** (demo video, brief, deck, evaluation) | [GitHub release `v1.0-submission`](https://github.com/TusharTechs/saathi/releases/tag/v1.0-submission) |
 | Demo video (6–7 min) | In the [release assets](https://github.com/TusharTechs/saathi/releases/tag/v1.0-submission) |
 | Two-page solution brief | In the [release assets](https://github.com/TusharTechs/saathi/releases/tag/v1.0-submission) |
+| Evidence and sources for every claim | [`docs/EVIDENCE.md`](docs/EVIDENCE.md) |
 | Final presentation | In the [release assets](https://github.com/TusharTechs/saathi/releases/tag/v1.0-submission) |
 | Safety evaluation results | [`output/evaluation/live-extraction.md`](output/evaluation/live-extraction.md) |
 | Clinical protocol (rules as data) | [`packages/clinical-content/src/adult.v1.json`](packages/clinical-content/src/adult.v1.json) · [`docs/02-CLINICAL-PROTOCOL.md`](docs/02-CLINICAL-PROTOCOL.md) |
@@ -32,9 +33,12 @@ Built for **Health-a-thon 2026** (IIT Bombay KCDH · Koita Foundation · Nationa
 
 ## The problem
 
-- India has only about **120–130 MD palliative-medicine specialists**, yet palliative care must continue across hospital, home and hospice.
+- **7–10 million** people in India need palliative care and **fewer than 4%** have access to it ([Naqvi et al., 2025](https://doi.org/10.3332/ecancer.2025.2038)); only **5.8%** of centres give uninterrupted oral morphine ([Ghoshal et al., 2022](https://doi.org/10.3332/ecancer.2022.1486)).
+- India has only about **120–130 MD palliative-medicine specialists** (our clinical lead's estimate; no national count is published), yet palliative care must continue across hospital, home and hospice.
 - After discharge, families phone one duty number at any hour, often without knowing what is urgent. A 2 am call about itching and a patient who cannot be woken land on the same busy on-call doctor, who is also handling hospital emergencies.
-- Calls arrive with **no history and no documentation**, so the doctor advises blind, nothing is tracked, and patients are lost between visits.
+- Calls arrive with **no history and no documentation**, so the doctor advises blind, nothing is tracked, and patients are lost between visits. In one hospice, symptoms were the top reason for 4,434 after-hours calls in a year ([Jiang et al., 2012](https://pmc.ncbi.nlm.nih.gov/articles/PMC3389760)).
+
+Every figure in this README, the brief, the deck and the video is sourced in [`docs/EVIDENCE.md`](docs/EVIDENCE.md).
 
 ## What Saathi does
 
@@ -167,7 +171,7 @@ Open http://127.0.0.1:3000/login and click **Doctor**. Offline mode stores repor
 **Checks:**
 
 ```bash
-pnpm test        # 195 unit, integration and database tests
+pnpm test        # 202 unit, integration and database tests
 pnpm typecheck
 pnpm build
 pnpm eval:text   # keyword-only evaluation; pnpm eval:live needs a Groq key
@@ -191,6 +195,7 @@ Next: children's pack (age-specific thresholds), automatic nursing replies writt
 ## AI tools disclosure
 
 - **Building Saathi:** we used AI coding assistants, **Claude Code** and **ChatGPT desktop**, to help write, test and review code. The product design, clinical content and every commit are the team's own, and the triage rules and family wording were reviewed and approved by our clinical lead.
+- **Demo video:** the narration is a synthetic Indian English voice (Sarvam AI Bulbul v3 text-to-speech) reading our own script; the video says so on screen.
 - **Inside Saathi:** AI is limited to speech-to-text (Sarvam AI) and extracting facts into a fixed schema with exact quotes (an open-weight model on Groq). It never decides urgency, never writes advice and never sees real patient data.
 
 ## Team

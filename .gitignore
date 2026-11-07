@@ -17,3 +17,5 @@ output/evaluation/*.partial.json
 !/README.md
 /.*/
 !/.github/
+# Submission files are published as GitHub release assets, not committed; YouTube material stays local
+output/submission/

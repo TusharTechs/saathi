@@ -200,8 +200,8 @@ Next: children's pack (age-specific thresholds), automatic nursing replies writt
 
 ## Team
 
-- **Tushar Agarwal**, technology lead
-- **Clinical lead**, palliative medicine (KMC Manipal)
+- **Dr. Krithika S Rao**, clinical lead, palliative medicine, Kasturba Medical College (KMC), Manipal. She framed the problem, set the clinical thresholds, shaped the service, and reviewed and approved every triage rule, threshold and family message used in the demo.
+- **Tushar Agarwal**, technology lead. He encoded the protocol, built the triage pipeline, the family channels and the care-team workspace, and ran the evaluation.
 
 ## License
 

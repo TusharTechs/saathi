@@ -91,7 +91,7 @@ test('evaluation is deterministic and does not mutate input', () => {
 test('alert trace retains source quote, message and protocol version', () => {
  const r=evaluate(input({seizure:true})); const trace=r.traces.find(t=>t.ruleId==='R7')!;
  assert.equal(trace.evidence[0]!.quote,'seizure=true'); assert.equal(trace.evidence[0]!.messageId,'test');
- assert.equal(r.protocolVersion,'adult.v1.1-approved-demo'); assert.equal(r.mode,'demo_only');
+ assert.equal(r.protocolVersion,'adult.v1.2-approved-demo'); assert.equal(r.mode,'demo_only');
 });
 test('R3 includes noisy new breathing with drowsiness', () => assert.ok(evaluate(input({breathing:'noisy_rattling',breathing_new:true,wakefulness:'W3'})).matched.includes('R3')));
 test('R3 needs full minute confirmation for counted rate', () => assert.ok(!evaluate(input({resp_rate_per_min:12})).matched.includes('R3')));

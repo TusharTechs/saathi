@@ -35,7 +35,7 @@ export default function Prescribe({patientId,alertId,hospital}:{patientId:string
       </div>)}
       {items.length<10&&<button className="linkish" onClick={()=>setItems([...items,blank()])}>+ Add a medicine</button>}
       {blocked.length>0&&<p className="message error">{blocked.map(b=>b.medicine).join(', ')}: anti-cancer drugs are not prescribed by the palliative care team.</p>}{inPerson.length>0&&<p className="message">{inPerson.map(b=>`${b.medicine} (${b.category})`).join(', ')}: issue only in person at the OPD.</p>}
-      <label>Your medical registration number<input value={registration} onChange={e=>setRegistration(e.target.value)} placeholder="e.g. KMC 12345 (demo)"/></label>
+      <label>Your medical registration number<input value={registration} onChange={e=>setRegistration(e.target.value)} placeholder="e.g. KA-12345 (demo)"/></label>
       <label>Advice (optional)<textarea rows={2} maxLength={1000} value={advice} onChange={e=>setAdvice(e.target.value)}/></label>
       <label className="agree"><input type="checkbox" checked={attested} onChange={e=>setAttested(e.target.checked)}/><span>I consulted this patient’s family by phone or video. This change will be issued in person at the OPD.</span></label>
       {error&&<p className="message error">{error}</p>}

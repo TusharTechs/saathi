@@ -1,0 +1,5 @@
+{
+  "note": "The database keeps each protocol version immutable. Change the version whenever adult.v1.json changes, then update this hash (pnpm test prints it).",
+  "version": "adult.v1.2-approved-demo",
+  "sha256": "a5dd0e29ad916578a7aa57eae92b83efe589da620da1945a0691f721dd3ebfac"
+}

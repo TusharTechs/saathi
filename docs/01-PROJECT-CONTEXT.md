@@ -220,3 +220,5 @@ Dr. Krithika S Rao submitted the online review form (60 answers) and joined a ca
 - **Dashboard:** Search patient replaces the timeline tab; Clinical review tab and KMC label removed; "care continuity service" wording.
 - **Demo case:** her Arjun Mehta case (patient key `demo-ramesh` renamed in the hosted database).
 - **Family page:** a WhatsApp-style chat running the same engine and replies as the WhatsApp line, because Meta still blocks the Saathi app (Graph API error 200 since 3 Nov). Not done: children's pack (needs her age thresholds), automatic nursing replies (she will send them), and her labels for the 60-case evaluation (she will review before the finale).
+
+**Evaluation re-run (7 Nov, approved protocol):** 29/30 expected REDs caught (96.7%; EN 10/10, HI 10/10, KN 9/10), 87.9% precision, 95.0% field accuracy, 4 conservative false REDs (negated or historical). The only miss: Kannada caregiver not coping. Part of the change from 27/30 is model variation; labels remain engineering drafts.

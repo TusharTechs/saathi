@@ -1,7 +1,7 @@
 {
   "complete": true,
   "mode": "live-extraction",
-  "createdAt": "2026-11-03T11:12:59.402Z",
+  "createdAt": "2026-11-07T13:18:51.643Z",
   "corpusSha256": "5785f2ffba580c4d911d579a2fe013aebe001517ce40c6aa4978fe1c661ba925",
   "labels": "engineering_authored_not_clinician_validated",
   "scope": "Text only. No STT, no real patients, no database writes or outbound messages. Confidence calibration, extra-field correctness and translation quality are not scored.",
@@ -9,14 +9,14 @@
     "cases": 60,
     "errors": 0,
     "notRun": 0,
-    "redRecall": 0.9,
-    "redPrecision": 0.8709677419354839,
-    "fieldAccuracy": 0.9166666666666666,
-    "medianLatencyMs": 1803,
+    "redRecall": 0.9666666666666667,
+    "redPrecision": 0.8787878787878788,
+    "fieldAccuracy": 0.95,
+    "medianLatencyMs": 1775,
     "confusion": {
       "RED": {
-        "RED": 27,
-        "PENDING": 3
+        "RED": 29,
+        "PENDING": 1
       },
       "AMBER": {
         "AMBER": 15
@@ -35,7 +35,7 @@
       "redRecall": 1,
       "redPrecision": 0.8333333333333334,
       "fieldAccuracy": 1,
-      "medianLatencyMs": 1804.5,
+      "medianLatencyMs": 1736.5,
       "confusion": {
         "RED": {
           "RED": 10
@@ -53,14 +53,13 @@
       "cases": 20,
       "errors": 0,
       "notRun": 0,
-      "redRecall": 0.8,
-      "redPrecision": 0.8888888888888888,
-      "fieldAccuracy": 0.9,
-      "medianLatencyMs": 1716.5,
+      "redRecall": 1,
+      "redPrecision": 0.9090909090909091,
+      "fieldAccuracy": 1,
+      "medianLatencyMs": 1742.5,
       "confusion": {
         "RED": {
-          "RED": 8,
-          "PENDING": 2
+          "RED": 10
         },
         "AMBER": {
           "AMBER": 5
@@ -78,7 +77,7 @@
       "redRecall": 0.9,
       "redPrecision": 0.9,
       "fieldAccuracy": 0.85,
-      "medianLatencyMs": 1867,
+      "medianLatencyMs": 1862.5,
       "confusion": {
         "RED": {
           "RED": 9,
@@ -104,7 +103,7 @@
         "R1",
         "safety_net:unresponsive:en"
       ],
-      "latencyMs": 2114,
+      "latencyMs": 1792,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -117,7 +116,7 @@
         "R1",
         "safety_net:unresponsive:hi"
       ],
-      "latencyMs": 1530,
+      "latencyMs": 1830,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -129,7 +128,7 @@
       "matched": [
         "R1"
       ],
-      "latencyMs": 2082,
+      "latencyMs": 1891,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -142,7 +141,7 @@
         "R2",
         "safety_net:sedation:en"
       ],
-      "latencyMs": 1646,
+      "latencyMs": 1745,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -154,7 +153,7 @@
       "matched": [
         "R2"
       ],
-      "latencyMs": 1869,
+      "latencyMs": 1876,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -166,7 +165,7 @@
       "matched": [
         "R2"
       ],
-      "latencyMs": 1856,
+      "latencyMs": 2077,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -178,7 +177,7 @@
       "matched": [
         "R3"
       ],
-      "latencyMs": 1801,
+      "latencyMs": 1708,
       "totalFields": 2,
       "correctFields": 2
     },
@@ -190,7 +189,7 @@
       "matched": [
         "R3"
       ],
-      "latencyMs": 1589,
+      "latencyMs": 1707,
       "totalFields": 2,
       "correctFields": 2
     },
@@ -202,7 +201,7 @@
       "matched": [
         "R3"
       ],
-      "latencyMs": 1698,
+      "latencyMs": 1912,
       "totalFields": 2,
       "correctFields": 2
     },
@@ -215,7 +214,7 @@
         "R3",
         "safety_net:breathing:en"
       ],
-      "latencyMs": 1641,
+      "latencyMs": 1834,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -227,7 +226,7 @@
       "matched": [
         "R3"
       ],
-      "latencyMs": 1727,
+      "latencyMs": 1898,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -239,7 +238,7 @@
       "matched": [
         "R3"
       ],
-      "latencyMs": 1693,
+      "latencyMs": 1892,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -251,7 +250,7 @@
       "matched": [
         "R6"
       ],
-      "latencyMs": 1488,
+      "latencyMs": 1728,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -263,7 +262,7 @@
       "matched": [
         "R6"
       ],
-      "latencyMs": 1529,
+      "latencyMs": 1805,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -275,7 +274,7 @@
       "matched": [
         "R6"
       ],
-      "latencyMs": 1815,
+      "latencyMs": 1896,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -287,7 +286,7 @@
       "matched": [
         "R6"
       ],
-      "latencyMs": 4138,
+      "latencyMs": 1875,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -295,11 +294,13 @@
       "id": "hi-hallucinations",
       "language": "hi",
       "expectedTier": "RED",
-      "actualTier": "PENDING",
-      "matched": [],
-      "latencyMs": 1735,
+      "actualTier": "RED",
+      "matched": [
+        "R6"
+      ],
+      "latencyMs": 1821,
       "totalFields": 1,
-      "correctFields": 0
+      "correctFields": 1
     },
     {
       "id": "kn-hallucinations",
@@ -309,7 +310,7 @@
       "matched": [
         "R6"
       ],
-      "latencyMs": 1805,
+      "latencyMs": 1815,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -322,7 +323,7 @@
         "R8",
         "safety_net:bleeding:en"
       ],
-      "latencyMs": 1988,
+      "latencyMs": 1582,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -335,7 +336,7 @@
         "R8",
         "safety_net:bleeding:hi"
       ],
-      "latencyMs": 1759,
+      "latencyMs": 2192,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -348,7 +349,7 @@
         "R8",
         "safety_net:bleeding:kn"
       ],
-      "latencyMs": 2501,
+      "latencyMs": 2209,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -361,7 +362,7 @@
         "R7",
         "safety_net:seizure:en"
       ],
-      "latencyMs": 1842,
+      "latencyMs": 1993,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -374,7 +375,7 @@
         "R7",
         "safety_net:seizure:hi"
       ],
-      "latencyMs": 1331,
+      "latencyMs": 1600,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -386,7 +387,7 @@
       "matched": [
         "safety_net:seizure:kn"
       ],
-      "latencyMs": 2665,
+      "latencyMs": 1593,
       "totalFields": 1,
       "correctFields": 0
     },
@@ -398,7 +399,7 @@
       "matched": [
         "R12"
       ],
-      "latencyMs": 2014,
+      "latencyMs": 1639,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -410,7 +411,7 @@
       "matched": [
         "R12"
       ],
-      "latencyMs": 1645,
+      "latencyMs": 1856,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -422,7 +423,7 @@
       "matched": [
         "R12"
       ],
-      "latencyMs": 2282,
+      "latencyMs": 1544,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -434,7 +435,7 @@
       "matched": [
         "R13"
       ],
-      "latencyMs": 1593,
+      "latencyMs": 1719,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -442,11 +443,13 @@
       "id": "hi-not-coping",
       "language": "hi",
       "expectedTier": "RED",
-      "actualTier": "PENDING",
-      "matched": [],
-      "latencyMs": 2335,
+      "actualTier": "RED",
+      "matched": [
+        "R13"
+      ],
+      "latencyMs": 1635,
       "totalFields": 1,
-      "correctFields": 0
+      "correctFields": 1
     },
     {
       "id": "kn-not-coping",
@@ -454,7 +457,7 @@
       "expectedTier": "RED",
       "actualTier": "PENDING",
       "matched": [],
-      "latencyMs": 1613,
+      "latencyMs": 1976,
       "totalFields": 1,
       "correctFields": 0
     },
@@ -466,7 +469,7 @@
       "matched": [
         "A1"
       ],
-      "latencyMs": 1615,
+      "latencyMs": 1810,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -478,7 +481,7 @@
       "matched": [
         "A1"
       ],
-      "latencyMs": 1702,
+      "latencyMs": 1696,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -490,7 +493,7 @@
       "matched": [
         "A1"
       ],
-      "latencyMs": 1878,
+      "latencyMs": 1834,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -502,7 +505,7 @@
       "matched": [
         "A1"
       ],
-      "latencyMs": 6677,
+      "latencyMs": 1774,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -514,7 +517,7 @@
       "matched": [
         "A1"
       ],
-      "latencyMs": 2171,
+      "latencyMs": 1630,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -526,7 +529,7 @@
       "matched": [
         "A1"
       ],
-      "latencyMs": 1607,
+      "latencyMs": 1809,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -538,7 +541,7 @@
       "matched": [
         "A3"
       ],
-      "latencyMs": 1885,
+      "latencyMs": 1618,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -550,7 +553,7 @@
       "matched": [
         "A3"
       ],
-      "latencyMs": 2573,
+      "latencyMs": 1905,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -562,7 +565,7 @@
       "matched": [
         "A3"
       ],
-      "latencyMs": 1912,
+      "latencyMs": 1757,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -574,7 +577,7 @@
       "matched": [
         "A11"
       ],
-      "latencyMs": 1605,
+      "latencyMs": 1857,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -586,7 +589,7 @@
       "matched": [
         "A11"
       ],
-      "latencyMs": 1706,
+      "latencyMs": 1473,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -598,7 +601,7 @@
       "matched": [
         "A11"
       ],
-      "latencyMs": 1737,
+      "latencyMs": 1354,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -610,7 +613,7 @@
       "matched": [
         "A11"
       ],
-      "latencyMs": 2189,
+      "latencyMs": 1468,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -622,7 +625,7 @@
       "matched": [
         "A11"
       ],
-      "latencyMs": 1480,
+      "latencyMs": 1396,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -634,7 +637,7 @@
       "matched": [
         "A11"
       ],
-      "latencyMs": 1605,
+      "latencyMs": 1942,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -644,7 +647,7 @@
       "expectedTier": "PENDING",
       "actualTier": "PENDING",
       "matched": [],
-      "latencyMs": 1724,
+      "latencyMs": 1776,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -654,7 +657,7 @@
       "expectedTier": "PENDING",
       "actualTier": "PENDING",
       "matched": [],
-      "latencyMs": 1685,
+      "latencyMs": 1706,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -664,7 +667,7 @@
       "expectedTier": "PENDING",
       "actualTier": "PENDING",
       "matched": [],
-      "latencyMs": 2649,
+      "latencyMs": 1604,
       "totalFields": 1,
       "correctFields": 0
     },
@@ -674,7 +677,7 @@
       "expectedTier": "PENDING",
       "actualTier": "PENDING",
       "matched": [],
-      "latencyMs": 1808,
+      "latencyMs": 1603,
       "totalFields": 0,
       "correctFields": 0
     },
@@ -684,7 +687,7 @@
       "expectedTier": "PENDING",
       "actualTier": "PENDING",
       "matched": [],
-      "latencyMs": 1851,
+      "latencyMs": 1830,
       "totalFields": 0,
       "correctFields": 0
     },
@@ -694,7 +697,7 @@
       "expectedTier": "PENDING",
       "actualTier": "PENDING",
       "matched": [],
-      "latencyMs": 1966,
+      "latencyMs": 1552,
       "totalFields": 0,
       "correctFields": 0
     },
@@ -704,7 +707,7 @@
       "expectedTier": "PENDING",
       "actualTier": "PENDING",
       "matched": [],
-      "latencyMs": 1718,
+      "latencyMs": 1754,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -714,7 +717,7 @@
       "expectedTier": "PENDING",
       "actualTier": "PENDING",
       "matched": [],
-      "latencyMs": 2115,
+      "latencyMs": 1581,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -724,7 +727,7 @@
       "expectedTier": "PENDING",
       "actualTier": "PENDING",
       "matched": [],
-      "latencyMs": 1646,
+      "latencyMs": 1897,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -736,7 +739,7 @@
       "matched": [
         "safety_net:seizure:en"
       ],
-      "latencyMs": 1527,
+      "latencyMs": 1561,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -748,7 +751,7 @@
       "matched": [
         "safety_net:seizure:hi"
       ],
-      "latencyMs": 1445,
+      "latencyMs": 1778,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -760,7 +763,7 @@
       "matched": [
         "safety_net:seizure:kn"
       ],
-      "latencyMs": 2137,
+      "latencyMs": 2221,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -772,7 +775,7 @@
       "matched": [
         "safety_net:bleeding:en"
       ],
-      "latencyMs": 1986,
+      "latencyMs": 1595,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -782,7 +785,7 @@
       "expectedTier": "PENDING",
       "actualTier": "PENDING",
       "matched": [],
-      "latencyMs": 2525,
+      "latencyMs": 1693,
       "totalFields": 1,
       "correctFields": 1
     },
@@ -792,7 +795,7 @@
       "expectedTier": "PENDING",
       "actualTier": "PENDING",
       "matched": [],
-      "latencyMs": 2191,
+      "latencyMs": 1519,
       "totalFields": 1,
       "correctFields": 1
     }

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1250 380" role="img" aria-label="saathi">
+  <!-- The app's own mark: an arch holding an italic "s", beside the serif wordmark and a small copper dot. -->
+  <path d="M60 310V174a124 124 0 0 1 248 0v136a32 32 0 0 1-32 32H92a32 32 0 0 1-32-32z" fill="none" stroke="#214f46" stroke-width="8"/>
+  <text x="184" y="300" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-style="italic" font-size="246" fill="#214f46">s</text>
+  <text x="360" y="300" font-family="Georgia, 'Times New Roman', serif" font-weight="700" font-size="272" letter-spacing="-6" fill="#214f46">saathi</text>
+  <circle cx="1208" cy="126" r="13" fill="#bf8659"/>
+</svg>

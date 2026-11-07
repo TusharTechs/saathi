@@ -2,7 +2,7 @@
 begin;
 alter table public.patients add column demo_key text unique, add column diagnosis_label text, add column initials text;
 update public.patients p set demo_key=v.key,diagnosis_label=v.diagnosis,initials=v.initials from (values
- ('10000000-0000-4000-8000-000000000001'::uuid,'demo-ramesh','Oral cancer','RK'),
+ ('10000000-0000-4000-8000-000000000001'::uuid,'demo-ramesh','Metastatic prostate cancer','AM'),
  ('10000000-0000-4000-8000-000000000002'::uuid,'demo-lakshmi','Breast cancer','LS'),
  ('10000000-0000-4000-8000-000000000003'::uuid,'demo-fatima','Cervical cancer','FA'),
  ('10000000-0000-4000-8000-000000000004'::uuid,'demo-suresh','Lung cancer','SP'),

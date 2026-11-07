@@ -3,9 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "SAATHI_LOCAL_DEMO=1 next dev --hostname 127.0.0.1",
+    "dev": "next dev --hostname 127.0.0.1",
     "build": "next build",
-    "start": "SAATHI_LOCAL_DEMO=1 next start --hostname 127.0.0.1",
+    "start": "next start --hostname 127.0.0.1",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

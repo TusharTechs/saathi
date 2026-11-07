@@ -12,5 +12,8 @@ coverage/
 output/evaluation/*.partial.json
 .vercel
 
-# Personal handoff notes stay on this machine
-HANDOFF-PROMPT.md
+# Local working notes and editor settings stay on this machine
+/*.md
+!/README.md
+/.*/
+!/.github/

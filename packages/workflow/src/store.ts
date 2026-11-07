@@ -7,7 +7,7 @@ import { fixtureInput } from './fixtures.ts';
 
 export type Patient={id:string;name:string;age:number;language:string;diagnosis:string;initials:string};
 export const patients:Patient[]=[
-  {id:'demo-ramesh',name:'Ramesh K.',age:64,language:'Hindi',diagnosis:'Oral cancer',initials:'RK'},
+  {id:'demo-ramesh',name:'Arjun Mehta',age:45,language:'English',diagnosis:'Metastatic prostate cancer',initials:'AM'},
   {id:'demo-lakshmi',name:'Lakshmi S.',age:58,language:'Kannada',diagnosis:'Breast cancer',initials:'LS'},
   {id:'demo-fatima',name:'Fatima A.',age:47,language:'Hindi',diagnosis:'Cervical cancer',initials:'FA'},
   {id:'demo-suresh',name:'Suresh P.',age:71,language:'English',diagnosis:'Lung cancer',initials:'SP'},

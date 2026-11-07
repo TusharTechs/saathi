@@ -1,6 +1,6 @@
 # Saathi text evaluation · live-extraction
 
-2026-11-03T11:12:59.402Z
+2026-11-07T13:18:51.643Z
 
 Run completed.
 
@@ -12,19 +12,19 @@ Corpus: 60 authored examples, 20 per language. The keyword-only baseline deliber
 
 | Language | Cases | RED recall | RED precision | Labelled-field accuracy | Errors / not run |
 |---|---:|---:|---:|---:|---:|
-| overall | 60 | 90.0% | 87.1% | 91.7% | 0 / 0 |
+| overall | 60 | 96.7% | 87.9% | 95.0% | 0 / 0 |
 | en | 20 | 100.0% | 83.3% | 100.0% | 0 / 0 |
-| hi | 20 | 80.0% | 88.9% | 90.0% | 0 / 0 |
+| hi | 20 | 100.0% | 90.9% | 100.0% | 0 / 0 |
 | kn | 20 | 90.0% | 90.0% | 85.0% | 0 / 0 |
 
-Overall median latency: 1803 ms. This includes failed attempts; it is not end-to-end voice latency.
+Overall median latency: 1775 ms. This includes failed attempts; it is not end-to-end voice latency.
 
 Confusion matrix (expected → actual):
 ```json
 {
   "RED": {
-    "RED": 27,
-    "PENDING": 3
+    "RED": 29,
+    "PENDING": 1
   },
   "AMBER": {
     "AMBER": 15
@@ -37,9 +37,7 @@ Confusion matrix (expected → actual):
 ```
 
 ## Mismatches
-- hi-hallucinations: expected RED, got PENDING; fields 0/1
 - kn-seizure: expected RED, got RED; fields 0/1
-- hi-not-coping: expected RED, got PENDING; fields 0/1
 - kn-not-coping: expected RED, got PENDING; fields 0/1
 - kn-low-pain: expected PENDING, got PENDING; fields 0/1
 - en-negated-seizure: expected PENDING, got RED; fields 1/1

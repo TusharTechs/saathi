@@ -14,4 +14,7 @@ output/*.pdf
 output/evaluation/*.partial.json
 docs/review
 site
-HANDOFF-PROMPT.md
+# Local working notes and editor settings stay on this machine
+/*.md
+!/README.md
+/.*/

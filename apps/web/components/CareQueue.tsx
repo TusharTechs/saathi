@@ -25,17 +25,22 @@ function Due({r,now}:{r:RecordEntry;now:number}){
 type Props={ws:Workspace;selected:string|null;setSelected:(id:string|null)=>void;busy:boolean;perform:(task:()=>Promise<void>)=>Promise<void>;send:(url:string,payload:object)=>Promise<any>;setNotice:(n:string)=>void;onExample:()=>void;loaded:boolean;staff?:string};
 export default function CareQueue({ws,selected,setSelected,busy,perform,send,setNotice,onExample,loaded,staff='doctor'}:Props){
   const today=istDate(Date.now());
-  const [date,setDate]=useState(today),[now,setNow]=useState(Date.now()),[notes,setNotes]=useState(''),[advice,setAdvice]=useState(''),[answeredBy,setAnsweredBy]=useState('duty_doctor');
+  const [from,setFrom]=useState(today),[to,setTo]=useState(today),[now,setNow]=useState(Date.now()),[notes,setNotes]=useState(''),[advice,setAdvice]=useState(''),[answeredBy,setAnsweredBy]=useState('duty_doctor');
   useEffect(()=>{const id=setInterval(()=>setNow(Date.now()),30000);return ()=>clearInterval(id);},[]);
   useEffect(()=>{setNotes('');setAdvice('');},[selected]);
   // Oldest first within each urgency, so the team calls back in the order families asked.
   const order=(a:RecordEntry,b:RecordEntry)=>(rank[tier(a)]!-rank[tier(b)]!)||Date.parse(a.createdAt)-Date.parse(b.createdAt);
-  const day=ws.records.filter(r=>istDate(r.createdAt)===date),carried=date===today?ws.records.filter(r=>r.status!=='resolved'&&istDate(r.createdAt)<date):[];
+  // A from–to range (IST dates, inclusive). Open calls from before the range are carried forward while it ends today.
+  const range=(f:string,t:string)=>{setFrom(f);setTo(t);setSelected(null);};
+  const daysAgo=(n:number)=>istDate(Date.now()-n*86400000);
+  const isToday=from===today&&to===today,single=from===to;
+  const fmt=(d:string)=>stamp(d+'T12:00:00+05:30').split(',')[0];
+  const day=ws.records.filter(r=>{const d=istDate(r.createdAt);return d>=from&&d<=to;}),carried=to===today?ws.records.filter(r=>r.status!=='resolved'&&istDate(r.createdAt)<from):[];
   const open=[...carried,...day.filter(r=>r.status!=='resolved')];
   const sections:[string,string,RecordEntry[]][]=[
     ['urgent','Needs immediate review',open.filter(r=>tier(r)==='RED').sort(order)],
     ['callback','Call-back list',open.filter(r=>tier(r)!=='RED').sort(order)],
-    ['closed',date===today?'Closed today':'Closed on this day',day.filter(r=>r.status==='resolved').sort((a,b)=>Date.parse(a.createdAt)-Date.parse(b.createdAt))],
+    ['closed',isToday?'Closed today':single?'Closed on this day':'Closed in this range',day.filter(r=>r.status==='resolved').sort((a,b)=>Date.parse(a.createdAt)-Date.parse(b.createdAt))],
   ];
   const all=sections.flatMap(s=>s[2]),chosen=all.find(r=>r.id===selected)??all[0];
   const patient=chosen?ws.patients.find(p=>p.id===chosen.patientId):undefined,plan=chosen?ws.carePlans[chosen.patientId]?.plan:undefined;
@@ -43,13 +48,18 @@ export default function CareQueue({ws,selected,setSelected,busy,perform,send,set
   const phone=plan?.demographics.phone??patient?.whatsapp??null;
   const fee=chosen?ws.fees[chosen.id]??'due':'due';
   return <>
-    <section className="day-bar" data-tour="day-bar" aria-label="Reports for the selected day">
-      <label>Date<input type="date" value={date} max={today} onChange={e=>{setDate(e.target.value||today);setSelected(null);}}/></label>
-      {date!==today&&<button onClick={()=>{setDate(today);setSelected(null);}}>Back to today</button>}
+    <section className="day-bar" data-tour="day-bar" aria-label="Reports for the selected dates">
+      <label>From<input type="date" value={from} max={to} onChange={e=>{const f=e.target.value||today;range(f,f>to?f:to);}}/></label>
+      <label>To<input type="date" value={to} min={from} max={today} onChange={e=>{const t=e.target.value||today;range(t<from?t:from,t);}}/></label>
+      <div className="range-presets" role="group" aria-label="Quick ranges">
+        <button className={isToday?'active':''} aria-pressed={isToday} onClick={()=>range(today,today)}>Today</button>
+        <button className={from===daysAgo(6)&&to===today?'active':''} aria-pressed={from===daysAgo(6)&&to===today} onClick={()=>range(daysAgo(6),today)}>Last 7 days</button>
+        <button className={from===daysAgo(29)&&to===today?'active':''} aria-pressed={from===daysAgo(29)&&to===today} onClick={()=>range(daysAgo(29),today)}>Last 30 days</button>
+      </div>
       <div className="day-counts"><span><b>{day.length}</b> calls received</span><span className="red"><b>{count('RED')}</b> RED</span><span className="amber"><b>{count('AMBER')}</b> AMBER</span><span><b>{count('GREEN')+count('PENDING')}</b> GREEN / review</span><span className="done"><b>{day.filter(r=>r.status==='resolved').length}</b> closed</span>{carried.length>0&&<span className="carry"><b>{carried.length}</b> still open from earlier days</span>}</div>
     </section>
     <div className="queue-layout"><section className="queue-panel">
-      {!loaded?<div className="empty">Loading workspace…</div>:all.length===0?<div className="empty"><div className="empty-symbol">✧</div><h3>No reports on {date===today?'this day yet':stamp(date+'T12:00:00+05:30').split(',')[0]}.</h3><p>Caregiver concerns from WhatsApp and the family web page appear here.</p>{date===today&&<button disabled={busy} onClick={onExample}>Load an urgent example</button>}</div>:
+      {!loaded?<div className="empty">Loading workspace…</div>:all.length===0?<div className="empty"><div className="empty-symbol">✧</div><h3>{isToday?'No reports on this day yet.':single?`No reports on ${fmt(from)}.`:`No reports from ${fmt(from)} to ${fmt(to)}.`}</h3><p>Caregiver concerns from WhatsApp and the family web page appear here.</p>{isToday&&<button disabled={busy} onClick={onExample}>Load an urgent example</button>}</div>:
       sections.map(([key,title,rows])=>rows.length>0&&<div key={key} data-tour={key} className={`queue-section ${key}`}><h2>{title}<span>{rows.length}</span></h2>{rows.map(r=>{const p=ws.patients.find(p=>p.id===r.patientId)!;return <button key={r.id} className={`patient-row ${chosen?.id===r.id?'selected':''}`} onClick={()=>setSelected(r.id)}><div className={`row-marker ${tier(r).toLowerCase()}`}/><div className="avatar">{p.initials}</div><div className="row-text"><strong>{p.name} <span>{p.age} yr</span></strong><p>{p.diagnosis}</p><div className="row-reason">{r.report.evaluation.traces.filter(t=>t.outcome===true).map(t=>t.label).join(' · ')||'Call to understand the concern'}</div></div><div className="row-status"><span className={`pill ${tier(r).toLowerCase()}`}>{tierLabel(tier(r))}</span><small>{stamp(r.createdAt)}</small><small>{statusLabel[r.status]}</small>{ws.assignments?.[r.id]&&<small className="assignee">→ {WHO[ws.assignments[r.id]!.assignee]}</small>}<Due r={r} now={now}/></div></button>;})}</div>)}
       <div className="queue-footer"><span className="live-dot"/> {ws.storage==='supabase'?'Supabase storage':ws.storage==='local'?'Local file storage':'Connecting to storage'} <span>·</span> Oldest first within each urgency · updates every 5 seconds</div>
     </section>

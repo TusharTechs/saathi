@@ -10,7 +10,7 @@ export function taskRunner(store:SupabaseStore,api:TelegramAPI,keys:{sarvam:stri
  return async(task:Task):Promise<RecordEntry>=>{
   const origin={channel:'telegram' as const,externalId:task.externalId};
   if(task.kind==='buttons')return (await store.submit({requestId:task.requestId,patientId:task.patientId,answers:task.answers},origin)).record;
-  const pipeline=new NarrativePipeline({findRequest:(...args)=>store.findRequest(...args),saveNarrative:(...args)=>store.saveNarrative(...args,origin),claimAnalysis:(...args)=>store.claimAnalysis(...args),completeAnalysis:(...args)=>store.completeAnalysis(...args)},keys);
+  const pipeline=new NarrativePipeline({findRequest:(...args)=>store.findRequest(...args),saveNarrative:(...args)=>store.saveNarrative(...args,origin),claimAnalysis:(...args)=>store.claimAnalysis(...args),completeAnalysis:(...args)=>store.completeAnalysis(...args),patientContext:id=>store.patientContext(id)},keys);
   const request={requestId:task.requestId,patientId:task.patientId,language:task.language,synthetic:true as const};
   if(task.kind==='text')return (await pipeline.text({...request,text:task.text})).record;
   // Reuse the server checkpoint even if Telegram's original voice file has expired.

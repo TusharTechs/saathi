@@ -24,7 +24,7 @@ export function runWhatsAppTask(store:WhatsAppStore,api:WhatsAppAPI,keys:{sarvam
  return async(task:Task)=>{
   const origin={channel:'whatsapp' as const,externalId:task.externalId};
   if(task.kind==='buttons')return (await store.submit({requestId:task.requestId,patientId:task.patientId,answers:task.answers},origin)).record;
-  const pipeline=new NarrativePipeline({findRequest:(...a)=>store.findRequest(...a),saveNarrative:(...a)=>store.saveNarrative(...a,origin),claimAnalysis:(...a)=>store.claimAnalysis(...a),completeAnalysis:(...a)=>store.completeAnalysis(...a)},keys);
+  const pipeline=new NarrativePipeline({findRequest:(...a)=>store.findRequest(...a),saveNarrative:(...a)=>store.saveNarrative(...a,origin),claimAnalysis:(...a)=>store.claimAnalysis(...a),completeAnalysis:(...a)=>store.completeAnalysis(...a),patientContext:id=>store.patientContext(id)},keys);
   const request={requestId:task.requestId,patientId:task.patientId,language:task.language,synthetic:true as const};
   if(task.kind==='text')return (await pipeline.text({...request,text:task.text})).record;
   const saved=(await store.snapshot()).records.find(r=>r.requestId===task.requestId);

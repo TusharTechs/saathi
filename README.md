@@ -113,7 +113,7 @@ Keywords alone catch 10 of 30. The one miss was Kannada "I am not coping at all"
 
 ## Tech stack (₹0 to run the demo)
 
-TypeScript monorepo (pnpm) · Next.js 16 (App Router) on Vercel · Supabase (Postgres with RLS, Edge Functions, pg_cron) · Meta WhatsApp Cloud API · Sarvam AI speech-to-text · Groq (open-weight `gpt-oss-120b`) for schema-constrained extraction · Zod schemas shared across API, extraction and UI · Node's built-in test runner (195 tests) with PGlite for database tests.
+TypeScript monorepo (pnpm) · Next.js 16 (App Router) on Vercel · Supabase (Postgres with RLS, Edge Functions, pg_cron) · Meta WhatsApp Cloud API · Sarvam AI speech-to-text · Groq (open-weight `gpt-oss-120b`) for schema-constrained extraction · Zod schemas shared across API, extraction and UI · Node's built-in test runner (202 tests) with PGlite for database tests.
 
 ## Project structure
 

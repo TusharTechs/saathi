@@ -111,6 +111,20 @@ test('Supabase service-only storage transactions and grants',async t=>{
    await assert.rejects(finish(lease.lease),/lease conflict/);
    await assert.rejects(rpc('select public.saathi_demo_lookup($1,$2) as data',[request,'e'.repeat(64)]),/Request ID conflict/);
   });
+  await t.test('narrative pipeline keeps the care-plan pain baseline through the database lease, so pain 7 is AMBER',async()=>{
+   const {NarrativePipeline}=await import('../packages/extraction/src/pipeline.ts');const {extract,extractionJSONSchema}=await import('../packages/extraction/src/index.ts');const {demoCase}=await import('../packages/workflow/src/demo-case.ts');
+   const transport:typeof fetch=async(url,options)=>{
+    const name=String(url).split('/').pop()!;const entries=Object.entries(JSON.parse(String(options?.body)) as Record<string,unknown>);
+    return Response.json(await rpc(`select public.${name}(${entries.map(([key],i)=>`${key}=>$${i+1}`).join(',')}) as data`,entries.map(([,v])=>v&&typeof v==='object'?JSON.stringify(v):v)));
+   };
+   const store=new SupabaseStore('https://example.supabase.co','sb_secret_test',transport);await store.checkin('demo-ramesh',demoCase());
+   const said='His pain is 7 out of 10 even after his medicines.',blank=Object.fromEntries(Object.keys(extractionJSONSchema.properties).map(k=>[k,null]));
+   const content=JSON.stringify({...blank,pain_now:{value:7,confidence:0.97,quote:'pain is 7 out of 10'},pain_despite_medicines:{value:true,confidence:0.92,quote:'even after his medicines'}});
+   const p=new NarrativePipeline(store,{sarvam:'',groq:'test'},{speech:async()=>{throw Error('unused');},extract:(t,id)=>extract(t,id,'test',async()=>Response.json({choices:[{finish_reason:'stop',message:{content}}]}))});
+   const r=await p.text({requestId:randomUUID(),patientId:'demo-ramesh',language:'en-IN',synthetic:true,text:said});
+   assert.equal(r.record.report.processing?.extraction.status,'complete');assert.equal(r.record.report.input.context.usual_pain_score,3);
+   assert.equal(r.record.report.evaluation.tier,'AMBER');assert.ok(r.record.report.evaluation.matched.includes('A2'));
+  });
   await t.test('failed extraction can retry but cannot remove independent RED flags',async()=>{
    const request=randomUUID(),input={messages:[{id:request,text:'We cannot wake him.'}],fields:{},context:{pack:'adult' as const}};
    const pending={...processReport(input,'text',true),processing:{language:'en-IN',extraction:{provider:'groq' as const,model:'openai/gpt-oss-120b' as const,status:'pending' as const}}};
@@ -284,4 +298,21 @@ test('Supabase RPC revision conflicts become HTTP 409 without leaking response c
 test('explicit PostgREST PT409 conflicts retain HTTP 409',async()=>{
  const store=new SupabaseStore('https://testproject.supabase.co','sb_secret_test',async()=>Response.json({code:'PT409',message:'private details'},{status:409}));
  await assert.rejects(store.transition(randomUUID(),'resolve',1),e=>e instanceof Error&&'code' in e&&e.code===409&&!e.message.includes('private details'));
+});
+test('button reports carry the usual pain score and morphine status from the care plan',async()=>{
+ const {demoCase}=await import('../packages/workflow/src/demo-case.ts');const {planContext}=await import('../packages/workflow/src/care-plan.ts');
+ assert.deepEqual(planContext(demoCase()),{pack:'adult',usual_pain_score:3,on_morphine:true});assert.deepEqual(planContext(),{pack:'adult'});
+ let sent:typeof report|undefined;
+ const transport:typeof fetch=async(url,options)=>{
+  const name=String(url).split('/').pop();
+  if(name==='saathi_demo_care_plans')return Response.json({'demo-ramesh':{plan:demoCase(),checkedInAt:'2026-11-07T10:00:00+00:00'}});
+  sent=JSON.parse(String(options?.body)).p_report;
+  return Response.json({record:{id:randomUUID(),patientId:'demo-ramesh',requestId,fingerprint,createdAt:'2026-11-07T10:00:00+00:00',status:'open',revision:1,escalationLevel:0,lastEscalatedAt:'2026-11-07T10:00:00+00:00',exhausted:false,report:sent,events:[]},duplicate:false});
+ };
+ await new SupabaseStore('https://testproject.supabase.co','sb_secret_test',transport).submit({requestId:randomUUID(),patientId:'demo-ramesh',answers:{pain:7}});
+ assert.equal(sent?.input.context.usual_pain_score,3);assert.equal(sent?.evaluation.tier,'AMBER');assert.ok(sent?.evaluation.matched.includes('A2'));
+ // A failed care-plan lookup must not block the report; the baseline simply stays unknown.
+ const down:typeof fetch=async(url,options)=>String(url).endsWith('saathi_demo_care_plans')?Response.json({},{status:500}):transport(url,options);
+ await new SupabaseStore('https://testproject.supabase.co','sb_secret_test',down).submit({requestId:randomUUID(),patientId:'demo-ramesh',answers:{pain:7}});
+ assert.deepEqual(sent?.input.context,{pack:'adult'});assert.ok(!sent?.evaluation.matched.includes('A2'));
 });

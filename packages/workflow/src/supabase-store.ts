@@ -6,7 +6,7 @@ import { adultProtocol } from '../../clinical-content/src/index.ts';
 import { intakeSchema, buttonInput, processReport, originSchema, type Origin, type Report } from './intake.ts';
 import { fixtureInput } from './fixtures.ts';
 import { savedSchema, WorkflowError, type Snapshot, type RecordEntry, type Patient } from './store.ts';
-import { carePlanSchema, type CarePlan, type CarePlanEntry, type DoseLog, type Slot } from './care-plan.ts';
+import { carePlanSchema, planContext, type CarePlan, type CarePlanEntry, type DoseLog, type Slot } from './care-plan.ts';
 const queueSchema=savedSchema.extend({storage:z.literal('supabase'),patients:z.array(z.object({id:z.string(),name:z.string(),age:z.number(),language:z.string(),diagnosis:z.string(),initials:z.string()})),team:z.array(z.string())});
 const recordSchema=savedSchema.shape.records.element;
 /** Server-only, service-role adapter. Use only behind the existing loopback demo guard. */
@@ -42,10 +42,14 @@ export class SupabaseStore {
   const request=intakeSchema.parse(raw);if(origin)origin=originSchema.parse(origin);
   if(request.scenario&&Object.keys(request.answers).length)throw new WorkflowError(400,'Choose a synthetic scenario or enter answers, not both.');
   const fingerprint=createHash('sha256').update(JSON.stringify({patientId:request.patientId,scenario:request.scenario,answers:request.answers,...(origin?{origin}:{})})).digest('hex');
-  const input=request.scenario?fixtureInput(request):buttonInput(request,{pack:'adult'});
+  const input=request.scenario?fixtureInput(request):buttonInput(request,await this.patientContext(request.patientId));
   const report=processReport(input,request.scenario?'synthetic_fixture':'buttons',Boolean(request.answers.concerns));
   const result=await this.rpc(origin?(origin.channel==='telegram'?'saathi_telegram_submit':'saathi_wa_submit'):'saathi_demo_submit',{p_request_id:request.requestId,p_patient_key:request.patientId,p_fingerprint:fingerprint,p_report:{...report,...(origin?{origin}:{})},p_protocol:adultProtocol});
   return z.object({record:recordSchema,duplicate:z.boolean()}).parse(result) as unknown as {record:RecordEntry;duplicate:boolean};
+ }
+ /** Usual pain score and morphine status from the patient's hospital record. A failed lookup never blocks a report. */
+ async patientContext(patientId:string){
+  const plans=await this.carePlans().catch(()=>({} as Record<string,CarePlanEntry>));return planContext(plans[patientId]?.plan);
  }
  async findRequest(requestId:string,fingerprint:string):Promise<RecordEntry|null>{
   const raw=await this.rpc('saathi_demo_lookup',{p_request_id:requestId,p_fingerprint:fingerprint});

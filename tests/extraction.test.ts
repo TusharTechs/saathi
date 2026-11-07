@@ -78,3 +78,33 @@ test('extraction completion preserves a server-assigned Telegram origin',async()
  const p=new NarrativePipeline(m.store,{sarvam:'',groq:'test'},{speech:transcribe,extract:async(t,id)=>extract(t,id,'test',async()=>response(facts()))});
  const result=await p.text({requestId:id,patientId:'demo-ramesh',language:'en-IN',synthetic:true,text});assert.deepEqual(result.record.report.origin,origin);
 });
+
+test('extraction prompt defines pain despite medicines as a reported fact',async()=>{
+ let prompt='';await extract(text,id,'test',async(_url,options)=>{prompt=JSON.parse(String(options?.body)).messages[0].content;return response(facts());});
+ assert.match(prompt,/pain_despite_medicines is true only when/);assert.match(prompt,/even after his medicines/);
+});
+test('hospital-record context reaches the rules and survives extraction, so pain 7 after medicines is AMBER',async()=>{
+ const m=memoryStore(),context={pack:'adult' as const,usual_pain_score:3,on_morphine:true};const asked:string[]=[];
+ m.store.patientContext=async patient=>{asked.push(patient);return context;};
+ const said='His pain is 7 out of 10 even after his medicines.';
+ const p=new NarrativePipeline(m.store,{sarvam:'',groq:'test'},{speech:transcribe,extract:async(t,mid)=>{
+  assert.deepEqual(m.get()?.report.input.context,context,'context is saved before the model is called');
+  return extract(t,mid,'test',async()=>response({...blank(),pain_now:{value:7,confidence:0.97,quote:'pain is 7 out of 10'},pain_despite_medicines:{value:true,confidence:0.92,quote:'even after his medicines'}}));
+ }});
+ const r=await p.text({requestId:randomUUID(),patientId:'demo-ramesh',language:'en-IN',synthetic:true,text:said});
+ assert.deepEqual(asked,['demo-ramesh']);assert.deepEqual(r.record.report.input.context,context);
+ assert.equal(r.record.report.evaluation.tier,'AMBER');assert.ok(r.record.report.evaluation.matched.includes('A2'));
+ const a2=r.record.report.evaluation.traces.find(t=>t.ruleId==='A2')!;assert.ok(a2.evidence.some(e=>e.path==='context.usual_pain_score'&&e.value===3));
+});
+test('the usual-pain baseline alone raises A2 when the model misses "despite medicines"',async()=>{
+ const m=memoryStore();m.store.patientContext=async()=>({pack:'adult',usual_pain_score:3,on_morphine:true});
+ const p=new NarrativePipeline(m.store,{sarvam:'',groq:'test'},{speech:transcribe,extract:async(t,mid)=>extract(t,mid,'test',async()=>response({...blank(),pain_now:{value:7,confidence:0.97,quote:'pain is 7 out of 10'}}))});
+ const r=await p.text({requestId:randomUUID(),patientId:'demo-ramesh',language:'en-IN',synthetic:true,text:'His pain is 7 out of 10 today.'});
+ assert.equal(r.record.report.evaluation.tier,'AMBER');assert.ok(r.record.report.evaluation.matched.includes('A2'));
+});
+test('a pipeline without a context source keeps context unknown rather than normal',async()=>{
+ const m=memoryStore();
+ const p=new NarrativePipeline(m.store,{sarvam:'',groq:'test'},{speech:transcribe,extract:async(t,mid)=>extract(t,mid,'test',async()=>response({...blank(),pain_now:{value:7,confidence:0.97,quote:'pain is 7 out of 10'}}))});
+ const r=await p.text({requestId:randomUUID(),patientId:'demo-ramesh',language:'en-IN',synthetic:true,text:'His pain is 7 out of 10 today.'});
+ assert.deepEqual(r.record.report.input.context,{pack:'adult'});assert.ok(!r.record.report.evaluation.matched.includes('A2'));
+});

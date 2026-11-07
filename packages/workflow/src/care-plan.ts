@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { Context } from '../../shared/src/index.ts';
 /**
  * Synthetic care plan received from the demo hospital record through "Check in to Saathi".
  * Real hospital data cannot be linked without an MOU, so every plan is invented and labelled.
@@ -24,3 +25,11 @@ export const carePlanSchema=z.object({
 export type CarePlan=z.infer<typeof carePlanSchema>;
 export type CarePlanEntry={plan:CarePlan;checkedInAt:string};
 export type DoseLog={doseKey:string;dueDate:string;slot:Slot;status:'given'|'not_given';reportedAt:string};
+/**
+ * Rules-engine context from the hospital record: the usual pain score (rule A2's baseline) and whether morphine is
+ * prescribed. Without a care plan both stay unknown rather than defaulting to "normal".
+ */
+export function planContext(plan?:CarePlan):Context{
+ if(!plan)return {pack:'adult'};
+ return {pack:'adult',usual_pain_score:plan.usualPainScore??null,on_morphine:plan.medications.some(m=>/morphine/i.test(m.name))};
+}

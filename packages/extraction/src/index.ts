@@ -67,6 +67,7 @@ For each reported field provide value, confidence (0 to 1, not a clinical probab
 Do not infer newness, duration, medication use or treatment response when not stated. Interpret negation and who is speaking. Unknown or ambiguous observations stay null or receive low confidence.
 Wakefulness meanings: W1 awake/talking normally; W2 sleeping but wakes easily; W3 drowsy but stays awake; W4 repeatedly falls asleep while talking/eating; W5 very hard to wake/cannot wake.
 rescue_doses_24h is the count of extra/rescue doses in the last 24 hours, not regular scheduled doses. pain_now is an explicit 0-10 score. resp_count_full_minute is true only when counting for a full minute is stated. days_since_stool is elapsed days; fever_c is an explicitly stated Celsius value; chemo_within_weeks is elapsed weeks, not a boolean.
+pain_despite_medicines is true only when the source explicitly says pain continues even though the usual pain medicines were taken (for example "still in pain even after his medicines"); an explicit statement like this is reported treatment response, not inference. rescue_not_helped is true only when an extra/rescue dose is explicitly said not to have helped.
 The transcript can be English, Hindi, Kannada or code-mixed. Use only facts present in it. No tier, risk score, diagnosis or advice field is allowed.`;
 export async function extract(text:string,messageId:string,key:string,transport:typeof fetch=fetch):Promise<Input>{
  if(!key)throw new ProviderError('configuration','GROQ_API_KEY is not configured.');

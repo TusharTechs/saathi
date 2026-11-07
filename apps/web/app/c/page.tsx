@@ -11,14 +11,15 @@ const Linked=({text}:{text:string})=><>{text.split(/(https:\/\/www\.youtube\.com
 const TZ='Asia/Kolkata',when=(at:string)=>new Date(at).toLocaleString('en-IN',{timeZone:TZ,day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
 /** Family web page, an alternative to WhatsApp: confirm the patient, describe the concern in words or a voice note, request a call-back. */
 export default function FamilyPortal(){
-  const [data,setData]=useState<Family|null>(null),[note,setNote]=useState(''),[updated,setUpdated]=useState(''),[confirmed,setConfirmed]=useState(false),[text,setText]=useState(''),[file,setFile]=useState<File|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false),[greeted,setGreeted]=useState<string[]>([]);
-  const end=useRef<HTMLDivElement|null>(null);
+  const [data,setData]=useState<Family|null>(null),[note,setNote]=useState(''),[updated,setUpdated]=useState(''),[confirmed,setConfirmed]=useState(false),[text,setText]=useState(''),[file,setFile]=useState<File|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false),[greeted,setGreeted]=useState<{text:string;at:number}[]>([]);
+  const chat=useRef<HTMLDivElement|null>(null);
   const load=useCallback(async()=>{const r=await fetch('/api/family',{cache:'no-store'});const d=await r.json();if(!r.ok){setError(d.error);return;}setData(d);},[]);
   useEffect(()=>{load();},[load]);
-  useEffect(()=>{end.current?.scrollIntoView({block:'nearest'});},[data,greeted,busy]);
+  // Scroll only the conversation, never the page.
+  useEffect(()=>{const c=chat.current;if(c)c.scrollTop=c.scrollHeight;},[data,greeted,busy]);
   async function submit(){
     // Like WhatsApp: a greeting opens the conversation and creates no report.
-    if(!file&&GREETING_PATTERN.test(text.trim())){setGreeted(g=>[...g,text.trim()]);setText('');return;}
+    if(!file&&GREETING_PATTERN.test(text.trim())){setGreeted(g=>[...g,{text:text.trim(),at:Date.now()}]);setText('');return;}
     setBusy(true);setError('');
     try{
       const requestId=crypto.randomUUID();let r:Response;
@@ -36,12 +37,10 @@ export default function FamilyPortal(){
     {data.closure?null:!confirmed?<section className="family-card"><h1>Is this the patient?</h1><dl><dt>Name</dt><dd>{data.patient.name}</dd><dt>Age</dt><dd>{data.patient.age}</dd><dt>Hospital</dt><dd>{data.patient.hospital??'—'} {data.patient.hospitalId?`(${data.patient.hospitalId})`:''}</dd><dt>Saathi ID</dt><dd>{data.patient.saathiId}</dd></dl>
       <button className="primary" onClick={()=>setConfirmed(true)}>Yes, continue</button><p className="muted">If these details are wrong, please call the hospital.</p></section>
     :<section className="family-card chat-card"><div className="chat-head"><span className="brandmark">s</span><div><b>Saathi</b><small>Your palliative care team · same replies as the Saathi WhatsApp line</small></div></div>
-      <div className="chat">
+      <div className="chat" ref={chat}>
         <p className="bubble in">{GREETING}</p>
-        {[...data.requests].reverse().map(r=><div key={r.id}><p className="bubble out">{r.text||'Voice note'}<time>{when(r.createdAt)}</time></p>{r.replies.map((t,i)=><p key={i} className={`bubble in ${/may be critical|emergency department/.test(t)?'urgent':''}`}><Linked text={t}/></p>)}<p className="chat-status">{r.status==='resolved'?'Call completed':r.status==='acked'?'The care team will call you':'Received by the care team'}</p></div>)}
-        {greeted.map((g,i)=><div key={i}><p className="bubble out">{g}</p><p className="bubble in">{GREETING}</p></div>)}
+        {[...[...data.requests].reverse().map(r=>({at:Date.parse(r.createdAt),r,g:null as null|{text:string}})),...greeted.map(g=>({at:g.at,r:null,g}))].sort((a,b)=>a.at-b.at).map(({r,g},k)=>g?<div key={`g${k}`}><p className="bubble out">{g.text}</p><p className="bubble in">{GREETING}</p></div>:r&&<div key={r.id}><p className="bubble out">{r.text||'Voice note'}<time>{when(r.createdAt)}</time></p>{r.replies.map((t,i)=><p key={i} className={`bubble in ${/may be critical|emergency department/.test(t)?'urgent':''}`}><Linked text={t}/></p>)}<p className="chat-status">{r.status==='resolved'?'Call completed':r.status==='acked'?'The care team will call you':'Received by the care team'}</p></div>)}
         {busy&&<p className="bubble in typing">Saathi is reading your message…</p>}
-        <div ref={end}/>
       </div>
       {error&&<p className="message error">{error}</p>}
       {data.fees.enabled&&<p className="fee-note">Call-back fee: <b>₹{data.fees.due}</b>{data.fees.followUp?` (follow-up within ${data.fees.followUpWithinDays} days of your last call)`:` (first consultation; a follow-up within ${data.fees.followUpWithinDays} days costs less)`}. Demo: no payment is collected.</p>}

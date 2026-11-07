@@ -149,3 +149,7 @@ a.nav{color:var(--ink);text-decoration:none;font-weight:600}
 .chat-input .attach{cursor:pointer;font-size:20px;padding:6px}.chat-input .attach input{display:none}.chat-input button{border-radius:18px}
 .chat-card .fee-note,.chat-card .message,.chat-card>.muted{margin:8px 12px}
 .video-list{list-style:none;padding:0;display:grid;gap:8px}.video-list li{display:flex;flex-direction:column}.video-list small{color:var(--muted)}
+.no-copy{-webkit-user-select:none;user-select:none}.confidential{background:#fdf6e7;border:1px solid #ecd9a8;border-radius:8px;padding:9px 12px;font-size:12px;margin:0 0 12px}.coord-table small{display:block;color:var(--muted);font-size:11px}
+.family-message.calm{border-color:#cfe0d4;background:#f3f8f4}.family-message p{white-space:pre-wrap}.close-call select{border:1px solid #dbe2db;border-radius:6px;padding:7px 8px;font:inherit;font-weight:400}
+.reminder-preview{width:100%;max-width:100%;background:#fff;border:1px solid var(--line)}.reminder-preview .chip{display:inline-block;margin:6px 6px 0 0;border:1px solid #9cc5b2;color:#0b6e4f;border-radius:14px;padding:3px 10px;font-size:12px}
+.judge-roles{grid-template-columns:repeat(2,1fr)!important}@media(max-width:620px){.judge-roles{grid-template-columns:1fr!important}}

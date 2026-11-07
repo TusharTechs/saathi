@@ -207,3 +207,16 @@ Still waiting on Dr. Rao: approved automatic nursing replies, care-card texts an
 ## 22. Online review form for Dr. Rao · 3 November 2026
 
 Replaced the PDF review pack with an online form at `/review` (private link with `SAATHI_REVIEW_TOKEN`, no login). 60 questions in five sections (call decisions, family messages, every triage rule generated from the protocol data, open questions, and new items: the restricted-drug list, automatic nursing replies and legal wording). Each question has tappable choices and an optional note; answers autosave (server and browser) and Submit keeps a copy (migration 013). Tushar reads answers at `/review/responses` (with `SAATHI_REVIEW_ADMIN_TOKEN`), can copy them as Markdown, and `pnpm review:export` writes them to `output/review/`. Review pack v2's sign-in (A6) and prescription delivery (A8) items are corrected in the form. Both links are in `apps/web/env.local`.
+
+## 23. Clinical review applied and final build · 7 November 2026
+
+Dr. Krithika S Rao submitted the online review form (60 answers) and joined a call. Applied:
+- **Protocol `adult.v1.1-approved-demo`:** all rules are recorded as approved by her for the demo; institutional sign-off is still needed. A6 now covers 48 h after starting opioids or a dose increase; A9 no longer needs a photo; A10 is retired; A15 is on; R8 includes a wound bleed that will not stop. New rules: R14 uncontrolled agitation and R15 a fall (RED); A16 unable to swallow medicines and A17 mouth or throat pain stopping intake (AMBER).
+- **Family wording (her text):** the "may be critical" RED message for breathing, unconsciousness, seizure, vomiting, severe pain and sudden new symptoms, with her end-of-life note and the kept emergency card; the Tele-MANAS message for R13; other REDs promise a 30-minute call. Every rider says "call 108 for an ambulance … or seek urgent medical help from your local physician". Non-urgent replies add her C6/C12 cards and links to approved hospice videos (Karunashraya, St Nicholas Hospice; the Doctors' Circle video is left out as not an institutional source).
+- **Call-backs:** RED 30 min at any hour; AMBER 6 h counted in duty hours (demo 9:00–17:00 Mon–Sat); GREEN the next working day.
+- **Roles:** nurses and psychologists (staff type, migration 014 applied) see everything except prescription changes. The call manager sees contact details for scheduling with copying disabled.
+- **Prescriptions:** changes are saved for in-person issue at the OPD within 2–3 working days; nothing is sent to families; anti-cancer drugs refused; NDPS flagged as in-person only.
+- **Lifecycle:** doctors close follow-up on death or transfer; reminders stop and families get the OPD message.
+- **Dashboard:** Search patient replaces the timeline tab; Clinical review tab and KMC label removed; "care continuity service" wording.
+- **Demo case:** her Arjun Mehta case (patient key `demo-ramesh` renamed in the hosted database).
+- **Family page:** a WhatsApp-style chat running the same engine and replies as the WhatsApp line, because Meta still blocks the Saathi app (Graph API error 200 since 3 Nov). Not done: children's pack (needs her age thresholds), automatic nursing replies (she will send them), and her labels for the 60-case evaluation (she will review before the finale).

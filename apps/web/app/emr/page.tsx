@@ -38,7 +38,7 @@ export default function DemoEMR(){
           <label>Usual pain score (0–10)<input type="number" min={0} max={10} value={plan.usualPainScore??''} onChange={e=>set('usualPainScore',e.target.value===''?undefined:Number(e.target.value))}/></label>
         </fieldset>
       </section>
-      <section><h2>Prescription</h2><table className="emr-table"><thead><tr><th>Medicine</th><th>Dose</th><th>When</th><th>Instructions</th><th>Rescue</th></tr></thead><tbody>{plan.medications.map((m,i)=><tr key={m.key}>
+      <section><h2>Prescription</h2><p className="muted">Hospitals with their own EMR link its prescription to Saathi through the check-in, so the doctor writes it once and both systems stay the same.</p><table className="emr-table"><thead><tr><th>Medicine</th><th>Dose</th><th>When</th><th>Instructions</th><th>Rescue</th></tr></thead><tbody>{plan.medications.map((m,i)=><tr key={m.key}>
         <td><input value={m.name} onChange={e=>med(i,{name:e.target.value})}/></td><td><input value={m.dose} onChange={e=>med(i,{dose:e.target.value})}/></td>
         <td className="slots">{SLOTS.map(s=><label key={s}><input type="checkbox" disabled={m.rescue} checked={m.slots.includes(s)} onChange={e=>med(i,{slots:e.target.checked?[...m.slots,s]:m.slots.filter(x=>x!==s)})}/>{s}</label>)}</td>
         <td><input value={m.instructions} onChange={e=>med(i,{instructions:e.target.value})}/></td><td><input type="checkbox" checked={m.rescue} onChange={e=>med(i,{rescue:e.target.checked,slots:e.target.checked?[]:m.slots})}/></td></tr>)}</tbody></table></section>

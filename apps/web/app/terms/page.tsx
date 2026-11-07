@@ -9,7 +9,7 @@ export default function Terms(){
   const f=service.fees;
   return <main className="terms">
     <a className="brand" href="/login"><span className="brandmark">s</span>saathi<span className="branddot">●</span></a>
-    <p className="terms-draft">DRAFT · awaiting legal review and the clinical lead’s approval · demonstration with synthetic data only</p>
+    <p className="terms-draft">DRAFT prepared for the demo · it needs review by the institution’s legal team before it can be adopted in practice · synthetic data only</p>
     <h1>Service terms and consent</h1>
     <p className="terms-rider"><b>Saathi is not an emergency service.</b> {RIDER}</p>
     <h2>1. What Saathi is</h2>
@@ -22,7 +22,7 @@ export default function Terms(){
       <li>By law (Telemedicine Practice Guidelines 2020), narcotic medicines such as morphine and fentanyl, other Schedule X and psychotropic medicines, and anti-cancer medicines cannot be prescribed by teleconsultation. Refills of these are collected from your registered hospital.</li>
     </ul>
     <h2>3. When we call back</h2>
-    <p>Target call-back times (still to be confirmed by the clinical lead): urgent concerns within {hours(service.callbackMinutes.RED!)} with advice to seek hospital care at once; other concerns within {hours(service.callbackMinutes.AMBER!)} to {hours(service.callbackMinutes.GREEN!)}, usually on the next working day. These are targets, not guarantees.</p>
+    <p>Target call-back times: urgent concerns within {hours(service.callbackMinutes.RED!)} at any hour, with advice to seek urgent care at once; other concerns within {hours(service.callbackMinutes.AMBER!)} of working time ({service.dutyHours.label}) or on the next working day. These are targets, not guarantees.</p>
     <h2>4. Fees</h2>
     <p>{f.enabled?`Some organisations charge for a call-back, for example ₹${f.audioCall} for a consultation and half that for a follow-up within ${f.followUpWithinDays} days. The organisation tells you the fee before the call. Free and NGO services do not charge. This demonstration collects no payment.`:'This service does not charge for call-backs.'}</p>
     <h2>5. Your information</h2>

@@ -1,16 +1,16 @@
 {
   "version": "adult.v1.1-approved-demo",
   "status": "demo_only",
-  "approved_by": "Dr. Krithika S Rao",
+  "approved_by": "Clinical lead, palliative medicine",
   "approved_at": "2026-11-07",
-  "source": "Clinical review form submitted by Dr. Krithika S Rao on 2026-11-07 (demo use; institutional sign-off pending)",
+  "source": "Online clinical review by the clinical lead on 2026-11-07 (demo use; institutional sign-off pending)",
   "rules": [
     {
       "id": "R1",
       "tier": "RED",
       "label": "Wakefulness W5",
       "source_status": "approved",
-      "approved_by": "Dr. Krithika S Rao",
+      "approved_by": "Clinical lead, palliative medicine",
       "approved_at": "2026-11-07",
       "when": {
         "field": "wakefulness",
@@ -23,7 +23,7 @@
       "tier": "RED",
       "label": "Wakefulness W4",
       "source_status": "approved",
-      "approved_by": "Dr. Krithika S Rao",
+      "approved_by": "Clinical lead, palliative medicine",
       "approved_at": "2026-11-07",
       "when": {
         "field": "wakefulness",
@@ -36,7 +36,7 @@
       "tier": "RED",
       "label": "Adult breathing concern",
       "source_status": "approved",
-      "approved_by": "Dr. Krithika S Rao",
+      "approved_by": "Clinical lead, palliative medicine",
       "approved_at": "2026-11-07",
       "when": {
         "any": [
@@ -90,7 +90,7 @@
       "tier": "RED",
       "label": "Severe breathlessness or blue lips",
       "source_status": "approved",
-      "approved_by": "Dr. Krithika S Rao",
+      "approved_by": "Clinical lead, palliative medicine",
       "approved_at": "2026-11-07",
       "when": {
         "any": [
@@ -138,7 +138,7 @@
       "tier": "RED",
       "label": "Reported neurological red flags",
       "source_status": "approved",
-      "approved_by": "Dr. Krithika S Rao",
+      "approved_by": "Clinical lead, palliative medicine",
       "approved_at": "2026-11-07",
       "when": {
         "any": [
@@ -160,7 +160,7 @@
       "tier": "RED",
       "label": "Sudden confusion or hallucinations",
       "source_status": "approved",
-      "approved_by": "Dr. Krithika S Rao",
+      "approved_by": "Clinical lead, palliative medicine",
       "approved_at": "2026-11-07",
       "when": {
         "field": "confusion",
@@ -176,7 +176,7 @@
       "tier": "RED",
       "label": "Seizure",
       "source_status": "approved",
-      "approved_by": "Dr. Krithika S Rao",
+      "approved_by": "Clinical lead, palliative medicine",
       "approved_at": "2026-11-07",
       "when": {
         "field": "seizure",
@@ -189,7 +189,7 @@
       "tier": "RED",
       "label": "Reported bleeding red flags (including a wound bleed that does not stop with pressure)",
       "source_status": "approved",
-      "approved_by": "Dr. Krithika S Rao",
+      "approved_by": "Clinical lead, palliative medicine",
       "approved_at": "2026-11-07",
       "when": {
         "any": [
@@ -216,7 +216,7 @@
       "tier": "RED",
       "label": "Repeated vomiting with swollen belly and no stool or wind",
       "source_status": "approved",
-      "approved_by": "Dr. Krithika S Rao",
+      "approved_by": "Clinical lead, palliative medicine",
       "approved_at": "2026-11-07",
       "when": {
         "all": [
@@ -243,7 +243,7 @@
       "tier": "RED",
       "label": "Fever with recent chemotherapy",
       "source_status": "approved",
-      "approved_by": "Dr. Krithika S Rao",
+      "approved_by": "Clinical lead, palliative medicine",
       "approved_at": "2026-11-07",
       "when": {
         "all": [
@@ -265,7 +265,7 @@
       "tier": "RED",
       "label": "Sudden severe pain not helped by rescue dose",
       "source_status": "approved",
-      "approved_by": "Dr. Krithika S Rao",
+      "approved_by": "Clinical lead, palliative medicine",
       "approved_at": "2026-11-07",
       "when": {
         "all": [
@@ -292,7 +292,7 @@
       "tier": "RED",
       "label": "Medication error",
       "source_status": "approved",
-      "approved_by": "Dr. Krithika S Rao",
+      "approved_by": "Clinical lead, palliative medicine",
       "approved_at": "2026-11-07",
       "when": {
         "field": "med_error",
@@ -305,7 +305,7 @@
       "tier": "RED",
       "label": "Reported crisis",
       "source_status": "approved",
-      "approved_by": "Dr. Krithika S Rao",
+      "approved_by": "Clinical lead, palliative medicine",
       "approved_at": "2026-11-07",
       "when": {
         "any": [
@@ -327,7 +327,7 @@
       "tier": "RED",
       "label": "Uncontrolled agitation or restlessness",
       "source_status": "approved",
-      "approved_by": "Dr. Krithika S Rao",
+      "approved_by": "Clinical lead, palliative medicine",
       "approved_at": "2026-11-07",
       "when": {
         "field": "agitation_uncontrolled",
@@ -340,7 +340,7 @@
       "tier": "RED",
       "label": "A fall",
       "source_status": "approved",
-      "approved_by": "Dr. Krithika S Rao",
+      "approved_by": "Clinical lead, palliative medicine",
       "approved_at": "2026-11-07",
       "when": {
         "field": "fall",
@@ -353,7 +353,7 @@
       "tier": "AMBER",
       "label": "At least three rescue doses in 24 hours",
       "source_status": "approved",
-      "approved_by": "Dr. Krithika S Rao",
+      "approved_by": "Clinical lead, palliative medicine",
       "approved_at": "2026-11-07",
       "when": {
         "field": "rescue_doses_24h",
@@ -366,7 +366,7 @@
       "tier": "AMBER",
       "label": "Pain despite medicines or rise from baseline",
       "source_status": "approved",
-      "approved_by": "Dr. Krithika S Rao",
+      "approved_by": "Clinical lead, palliative medicine",
       "approved_at": "2026-11-07",
       "when": {
         "any": [
@@ -399,7 +399,7 @@
       "tier": "AMBER",
       "label": "Vomiting or unable to retain medicines",
       "source_status": "approved",
-      "approved_by": "Dr. Krithika S Rao",
+      "approved_by": "Clinical lead, palliative medicine",
       "approved_at": "2026-11-07",
       "when": {
         "any": [
@@ -421,7 +421,7 @@
       "tier": "AMBER",
       "label": "No stool for three days while on morphine",
       "source_status": "approved",
-      "approved_by": "Dr. Krithika S Rao",
+      "approved_by": "Clinical lead, palliative medicine",
       "approved_at": "2026-11-07",
       "when": {
         "all": [
@@ -443,7 +443,7 @@
       "tier": "AMBER",
       "label": "Sips or nothing for at least 24 hours",
       "source_status": "approved",
-      "approved_by": "Dr. Krithika S Rao",
+      "approved_by": "Clinical lead, palliative medicine",
       "approved_at": "2026-11-07",
       "when": {
         "all": [
@@ -468,7 +468,7 @@
       "tier": "AMBER",
       "label": "Mild drowsiness (W3) within 48 hours of starting opioids or a dose increase",
       "source_status": "approved",
-      "approved_by": "Dr. Krithika S Rao",
+      "approved_by": "Clinical lead, palliative medicine",
       "approved_at": "2026-11-07",
       "when": {
         "all": [
@@ -490,7 +490,7 @@
       "tier": "AMBER",
       "label": "New jerking",
       "source_status": "approved",
-      "approved_by": "Dr. Krithika S Rao",
+      "approved_by": "Clinical lead, palliative medicine",
       "approved_at": "2026-11-07",
       "when": {
         "field": "jerking",
@@ -503,7 +503,7 @@
       "tier": "AMBER",
       "label": "Gradual confusion",
       "source_status": "approved",
-      "approved_by": "Dr. Krithika S Rao",
+      "approved_by": "Clinical lead, palliative medicine",
       "approved_at": "2026-11-07",
       "when": {
         "field": "confusion",
@@ -516,7 +516,7 @@
       "tier": "AMBER",
       "label": "Wound changes (a photo helps but is not required; ask for one on the call)",
       "source_status": "approved",
-      "approved_by": "Dr. Krithika S Rao",
+      "approved_by": "Clinical lead, palliative medicine",
       "approved_at": "2026-11-07",
       "when": {
         "any": [
@@ -570,7 +570,7 @@
       "tier": "AMBER",
       "label": "Missed medicines or morphine running out",
       "source_status": "approved",
-      "approved_by": "Dr. Krithika S Rao",
+      "approved_by": "Clinical lead, palliative medicine",
       "approved_at": "2026-11-07",
       "when": {
         "any": [
@@ -601,7 +601,7 @@
       "tier": "AMBER",
       "label": "Caregiver struggling (emotionally or practically) on two check-ins in a row",
       "source_status": "approved",
-      "approved_by": "Dr. Krithika S Rao",
+      "approved_by": "Clinical lead, palliative medicine",
       "approved_at": "2026-11-07",
       "when": {
         "field": "context.caregiver_struggling_streak",
@@ -614,7 +614,7 @@
       "tier": "AMBER",
       "label": "Question unanswered after two card attempts",
       "source_status": "approved",
-      "approved_by": "Dr. Krithika S Rao",
+      "approved_by": "Clinical lead, palliative medicine",
       "approved_at": "2026-11-07",
       "when": {
         "field": "context.unanswered_card_attempts",
@@ -627,7 +627,7 @@
       "tier": "AMBER",
       "label": "No check-in for two days",
       "source_status": "approved",
-      "approved_by": "Dr. Krithika S Rao",
+      "approved_by": "Clinical lead, palliative medicine",
       "approved_at": "2026-11-07",
       "when": {
         "field": "context.days_since_checkin",
@@ -640,7 +640,7 @@
       "tier": "AMBER",
       "label": "Adult breathing 13 to 15 per minute, counted over a full minute",
       "source_status": "approved",
-      "approved_by": "Dr. Krithika S Rao",
+      "approved_by": "Clinical lead, palliative medicine",
       "approved_at": "2026-11-07",
       "when": {
         "all": [
@@ -667,7 +667,7 @@
       "tier": "AMBER",
       "label": "Unable to swallow medicines",
       "source_status": "approved",
-      "approved_by": "Dr. Krithika S Rao",
+      "approved_by": "Clinical lead, palliative medicine",
       "approved_at": "2026-11-07",
       "when": {
         "field": "cannot_swallow_medicines",
@@ -680,7 +680,7 @@
       "tier": "AMBER",
       "label": "Severe mouth or throat pain stopping eating or drinking",
       "source_status": "approved",
-      "approved_by": "Dr. Krithika S Rao",
+      "approved_by": "Clinical lead, palliative medicine",
       "approved_at": "2026-11-07",
       "when": {
         "field": "mouth_pain_stopping_intake",

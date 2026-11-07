@@ -4,6 +4,7 @@ import RedAlert from '../components/RedAlert';
 import { useCallback, useEffect, useState } from 'react';
 import ClinicalReview from '../components/ClinicalReview';
 import SearchPatient from '../components/SearchPatient';
+import Icon from '../components/Icon';
 import {checkinQuestions,checkinAnswers} from '../../../packages/workflow/src/checkin';
 import VoiceIntake from '../components/VoiceIntake';
 import JudgeTour,{type TourView} from '../components/JudgeTour';
@@ -21,7 +22,8 @@ export default function Page(){
  useEffect(()=>{fetch('/api/session',{cache:'no-store'}).then(r=>r.json()).then(d=>setMe(d.session)).catch(()=>{});},[]);
  // The judges' walkthrough opens with ?tour=1, or once on a first visit; anyone can skip it.
  useEffect(()=>{const q=new URLSearchParams(window.location.search);if(q.get('tour')==='1'||!localStorage.getItem('saathi-tour-seen'))setTouring(true);},[]);
- const initials=(me?.name??'Demo doctor').split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
+ // Letters only, so a name like "Judge (test account)" becomes JT, not J(.
+ const initials=(me?.name??'Demo doctor').replace(/[^\p{L}\s]/gu,' ').split(/\s+/).filter(Boolean).map(w=>w[0]).join('').slice(0,2).toUpperCase();
  const refresh=useCallback(async()=>{const response=await fetch('/api/queue',{cache:'no-store'});const data=await response.json();if(!response.ok) throw new Error(data.error);setQueue(data);setLoaded(true);},[]);
  // Deep links from the guided tour: /?view=intake|patients|review.
  useEffect(()=>{const v=new URLSearchParams(window.location.search).get('view');if(v==='intake'||v==='patients'||v==='review')setView(v);},[]);
@@ -39,13 +41,21 @@ export default function Page(){
  const update=(key:string,value:string)=>setAnswers({...answers,[key]:value});
  return <><JudgeSwitcher/><div className="shell">
   <aside className="sidebar"><a className="brand" href="/" aria-label="Saathi home"><span className="brandmark">s</span>saathi<span className="branddot">●</span></a><div className="workspace-label">CARE TEAM WORKSPACE</div>
-   <nav data-tour="nav"><button className={view==='queue'?'nav active':'nav'} onClick={()=>setView('queue')}><span>▤</span> Care queue <b>{queue.records.filter(r=>r.status!=='resolved').length}</b></button><button className={view==='intake'?'nav active':'nav'} onClick={()=>setView('intake')}><span>＋</span> Caregiver check-in</button><button className={view==='patients'?'nav active':'nav'} onClick={()=>setView('patients')}><span>⌕</span> Search patient</button><a className="nav" data-tour="emr-link" href="/emr" target="_blank" rel="noreferrer"><span>⌂</span> Hospital EMR ↗</a><a className="nav" data-tour="coord-link" href="/coordinator" target="_blank" rel="noreferrer"><span>▦</span> Call manager report ↗</a><button className="nav tour-launch" onClick={()=>setTouring(true)}><span>▶</span> Tour for judges</button></nav>
+   <nav data-tour="nav">
+    <button className={view==='queue'?'nav active':'nav'} onClick={()=>setView('queue')}><Icon name="queue"/><span className="nav-label">Care queue</span><b>{queue.records.filter(r=>r.status!=='resolved').length}</b></button>
+    <button className={view==='intake'?'nav active':'nav'} onClick={()=>setView('intake')}><Icon name="plus"/><span className="nav-label">Caregiver check-in</span></button>
+    <button className={view==='patients'?'nav active':'nav'} onClick={()=>setView('patients')}><Icon name="search"/><span className="nav-label">Search patient</span></button>
+    <a className="nav" data-tour="emr-link" href="/emr" target="_blank" rel="noreferrer"><Icon name="hospital"/><span className="nav-label">Hospital EMR</span><i className="nav-ext"><Icon name="external" size={13}/></i></a>
+    <a className="nav" data-tour="coord-link" href="/coordinator" target="_blank" rel="noreferrer"><Icon name="report"/><span className="nav-label">Call manager</span><i className="nav-ext"><Icon name="external" size={13}/></i></a>
+    <button className="nav tour-launch" onClick={()=>setTouring(true)}><Icon name="play"/><span className="nav-label">Tour for judges</span></button>
+   </nav>
    <div className="side-note"><span className="live-dot"/> Live demo · synthetic data<p>Five invented patients.<br/>Every report has a trace.</p></div>
-   <div className="profile"><div className="avatar">{initials}</div><div><strong>{me?.name??'Demo doctor'}</strong><small>{me?.staff==='nurse'?'Nurse':me?.staff==='psychologist'?'Psychologist':'Doctor'} · medical staff</small></div><button className="signout" onClick={async()=>{await fetch('/api/session',{method:'DELETE'});window.location.href='/login';}}>Sign out</button></div>
+   <div className="profile"><div className="avatar">{initials}</div><div className="profile-text"><strong title={me?.name??'Demo doctor'}>{me?.name??'Demo doctor'}</strong><small>{me?.staff==='nurse'?'Nurse':me?.staff==='psychologist'?'Psychologist':'Doctor'} · medical staff</small></div></div>
+   <button className="signout" onClick={async()=>{await fetch('/api/session',{method:'DELETE'});window.location.href='/login';}}>Sign out</button>
   </aside>
-  <main><div className="topbar"><span>Palliative care <span className="slash">/</span> Home care continuity</span><span className="demo-chip">SYNTHETIC DATA ONLY</span></div>
+  <main><div className="topbar"><span>Palliative care <span className="slash">/</span> Home care continuity</span><span className="topbar-chips">{me?.staff&&me.staff!=='doctor'&&<span className="demo-chip role-chip">{me.staff==='nurse'?'NURSE':'PSYCHOLOGIST'} VIEW · NO PRESCRIPTION CHANGES</span>}<span className="demo-chip">SYNTHETIC DATA ONLY</span></span></div>
    <div className="page-heading"><div><div className="eyebrow">HOME PALLIATIVE CARE</div><h1>{view==='queue'?'A little closer to home.':view==='review'?'Ready for a clinician’s review.':view==='patients'?'Find any patient, fast.':'Tell the care team how things are.'}</h1><p>{view==='queue'?'Caregiver updates, clear priorities, and the words behind every alert.':view==='review'?'Draft protocol, care cards and the decisions still awaiting sign-off.':view==='patients'?'For calls that come straight to the team: search, open the full record, send a reminder or close follow-up.':'A demo check-in for a synthetic patient. Leave anything you do not know unanswered.'}</p></div><button className="primary" onClick={()=>setView(view==='intake'?'queue':'intake')}>{view==='intake'?'View care queue':'+ New check-in'}</button></div>
-   <div className="demo-banner"><span>◈</span><div><strong>Protocol approved by our clinical lead for this demo · synthetic data only</strong><p>Reports are triaged by the rules Dr. Krithika S Rao reviewed and approved on 7 Nov 2026 (institutional sign-off is still needed before real use). No real patient is connected.</p></div></div>
+   <div className="demo-banner"><span>◈</span><div><strong>Protocol approved by our clinical lead for this demo · synthetic data only</strong><p>Reports are triaged by rules our clinical lead in palliative medicine reviewed and approved for this demo. Institutional sign-off is still needed before real use, and no real patient is connected.</p></div></div>
    <RedAlert records={queue.records} patients={queue.patients} onOpen={id=>{setSelected(id);setView('queue');}}/>
    {error&&<div className="message error" role="alert">{error} <button onClick={()=>perform(refresh)}>Refresh</button></div>}{notice&&<div className="message success" role="status">{notice}</div>}
    {view==='intake'&&<div data-tour="voice"><VoiceIntake patients={queue.patients} patientId={patientId} setPatientId={setPatientId} enabled={queue.storage==='supabase'} onSaved={async(record)=>{setSelected(record.id);setView('queue');setNotice(record.report.processing?.extraction.status==='failed'?'Transcript saved. Extraction failed; human review is required.':record.report.processing?.extraction.status==='pending'?'Report saved; extraction is still pending.':'Report saved with validated source quotes. Human review is still required.');await refresh();}}/></div>}

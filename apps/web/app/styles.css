@@ -153,3 +153,29 @@ a.nav{color:var(--ink);text-decoration:none;font-weight:600}
 .family-message.calm{border-color:#cfe0d4;background:#f3f8f4}.family-message p{white-space:pre-wrap}.close-call select{border:1px solid #dbe2db;border-radius:6px;padding:7px 8px;font:inherit;font-weight:400}
 .reminder-preview{width:100%;max-width:100%;background:#fff;border:1px solid var(--line)}.reminder-preview .chip{display:inline-block;margin:6px 6px 0 0;border:1px solid #9cc5b2;color:#0b6e4f;border-radius:14px;padding:3px 10px;font-size:12px}
 .judge-roles{grid-template-columns:repeat(2,1fr)!important}@media(max-width:620px){.judge-roles{grid-template-columns:1fr!important}}
+
+/* Sidebar polish (7 Nov): aligned icons, one line per item, readable profile. */
+.sidebar .nav{display:flex;align-items:center;gap:11px;padding:11px 12px;margin-bottom:4px;border-radius:8px;font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;min-height:42px}
+.sidebar .nav svg{flex:none;color:#53655d}.sidebar .nav.active svg{color:var(--green)}
+.sidebar .nav .nav-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.sidebar .nav b{margin-left:auto}.sidebar .nav-ext{display:inline-flex;color:#8a978f;font-style:normal;margin-left:auto}
+.sidebar .nav:hover:not(.active){background:#f3f6f2}
+.sidebar .nav.tour-launch{color:#8a6420}.sidebar .nav.tour-launch svg{color:#b08a3e}
+.profile{display:flex;gap:10px;align-items:center;min-width:0}.profile-text{min-width:0}.profile-text strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}
+.sidebar .signout{margin-top:10px;width:100%;font-size:12px;padding:8px 10px}
+@media(max-width:1000px){.sidebar .nav{padding:9px 8px;gap:8px;font-size:12px;min-height:0}.sidebar .signout{width:auto;margin-top:0}}
+.sidebar .nav span.nav-label{font-size:inherit;font-weight:inherit;width:auto}
+.topbar-chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.role-chip{background:#eef3fb;border-color:#c6d6ee;color:#2f5687}
+/* Phones: the sidebar becomes a compact scrolling chip row so content starts on the first screen. */
+@media(max-width:760px){
+ .sidebar{position:static;flex-direction:row;flex-wrap:wrap;align-items:center;gap:10px;padding:12px 14px}
+ .sidebar .brand{font-size:26px}
+ .sidebar .workspace-label,.sidebar .side-note,.sidebar .profile{display:none}
+ .sidebar nav{display:flex;flex-wrap:nowrap;gap:6px;overflow-x:auto;width:100%;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+ .sidebar .nav{flex:none;width:auto;min-height:0;margin:0;padding:7px 11px;gap:6px;border:1px solid var(--line);border-radius:18px;font-size:12px;background:#fff}
+ .sidebar .nav.active{border-color:var(--green)}
+ .sidebar .nav .nav-label{overflow:visible}
+ .sidebar .nav-ext{display:none}
+ .sidebar .signout{position:absolute;top:58px;right:14px;width:auto;margin:0;padding:6px 10px;font-size:11px}
+}
+@media(max-width:760px){.sidebar{position:relative}.sidebar .signout{top:16px}}

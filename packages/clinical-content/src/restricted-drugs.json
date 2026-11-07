@@ -1,12 +1,83 @@
 {
   "version": "draft-2026-11-03",
-  "status": "draft · engineering list from the Telemedicine Practice Guidelines 2020 · awaiting Dr. Rao's review",
+  "status": "reviewed by the clinical lead on 7 Nov 2026: anti-cancer drugs are refused; narcotic, psychotropic and Schedule X changes are issued only in person at the OPD",
   "source": "Telemedicine Practice Guidelines 2020 (MoHFW/NMC): drugs in Schedule X and narcotic or psychotropic substances under the NDPS Act may not be prescribed by teleconsultation. Anti-cancer drugs are excluded on the clinical lead's instruction (3 Nov call).",
   "categories": [
-    { "id": "ndps-narcotic", "label": "narcotic (NDPS Act)", "names": ["morphine", "fentanyl", "buprenorphine", "methadone", "oxycodone", "hydromorphone", "pethidine", "meperidine", "codeine", "tramadol", "tapentadol", "dihydrocodeine", "opium", "durogesic"] },
-    { "id": "ndps-psychotropic", "label": "psychotropic (NDPS Act)", "names": ["alprazolam", "diazepam", "lorazepam", "clonazepam", "midazolam", "nitrazepam", "chlordiazepoxide", "clobazam", "zolpidem", "phenobarbital", "ketamine", "methylphenidate"] },
-    { "id": "schedule-x", "label": "Schedule X", "names": ["amphetamine", "secobarbital", "pentobarbital", "meprobamate", "glutethimide"] },
-    { "id": "anti-cancer", "label": "anti-cancer", "names": ["capecitabine", "cyclophosphamide", "methotrexate", "temozolomide", "imatinib", "tamoxifen", "letrozole", "anastrozole", "etoposide", "hydroxyurea", "chlorambucil", "melphalan", "lenalidomide", "thalidomide", "erlotinib", "gefitinib", "sorafenib", "abiraterone", "bicalutamide", "megestrol"] }
+    {
+      "id": "ndps-narcotic",
+      "label": "narcotic (NDPS Act)",
+      "names": [
+        "morphine",
+        "fentanyl",
+        "buprenorphine",
+        "methadone",
+        "oxycodone",
+        "hydromorphone",
+        "pethidine",
+        "meperidine",
+        "codeine",
+        "tramadol",
+        "tapentadol",
+        "dihydrocodeine",
+        "opium",
+        "durogesic"
+      ]
+    },
+    {
+      "id": "ndps-psychotropic",
+      "label": "psychotropic (NDPS Act)",
+      "names": [
+        "alprazolam",
+        "diazepam",
+        "lorazepam",
+        "clonazepam",
+        "midazolam",
+        "nitrazepam",
+        "chlordiazepoxide",
+        "clobazam",
+        "zolpidem",
+        "phenobarbital",
+        "ketamine",
+        "methylphenidate"
+      ]
+    },
+    {
+      "id": "schedule-x",
+      "label": "Schedule X",
+      "names": [
+        "amphetamine",
+        "secobarbital",
+        "pentobarbital",
+        "meprobamate",
+        "glutethimide"
+      ]
+    },
+    {
+      "id": "anti-cancer",
+      "label": "anti-cancer",
+      "names": [
+        "capecitabine",
+        "cyclophosphamide",
+        "methotrexate",
+        "temozolomide",
+        "imatinib",
+        "tamoxifen",
+        "letrozole",
+        "anastrozole",
+        "etoposide",
+        "hydroxyurea",
+        "chlorambucil",
+        "melphalan",
+        "lenalidomide",
+        "thalidomide",
+        "erlotinib",
+        "gefitinib",
+        "sorafenib",
+        "abiraterone",
+        "bicalutamide",
+        "megestrol"
+      ]
+    }
   ],
   "refillAdvice": "Narcotic medicines such as morphine are refilled at the patient's registered hospital (a Recognised Medical Institution)."
 }

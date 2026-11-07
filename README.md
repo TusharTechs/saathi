@@ -15,7 +15,7 @@ Built for **Health-a-thon 2026** (IIT Bombay KCDH · Koita Foundation · Nationa
 | **Live app** (one-click demo, no sign-up) | **https://saathi-mauve.vercel.app** |
 | Judge test login (all views from one login) | `judge@saathi.test` · `Saathi@2026` |
 | **Judges' submission pack** (demo video, brief, deck, evaluation) | [GitHub release `v1.0-submission`](https://github.com/TusharTechs/saathi/releases/tag/v1.0-submission) |
-| Demo video (6–7 min) | In the [release assets](https://github.com/TusharTechs/saathi/releases/tag/v1.0-submission) |
+| **Demo video** (6:53) | [Watch on YouTube](https://youtu.be/QToSvQRI6bg) · also in the [release assets](https://github.com/TusharTechs/saathi/releases/tag/v1.0-submission) |
 | Two-page solution brief | In the [release assets](https://github.com/TusharTechs/saathi/releases/tag/v1.0-submission) |
 | Evidence and sources for every claim | [`docs/EVIDENCE.md`](docs/EVIDENCE.md) |
 | Final presentation | In the [release assets](https://github.com/TusharTechs/saathi/releases/tag/v1.0-submission) |

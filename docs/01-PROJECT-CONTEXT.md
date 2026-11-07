@@ -229,4 +229,4 @@ Dr. Krithika S Rao submitted the online review form (60 answers) and joined a ca
 - **Dashboard:** care queue and call manager report filter by a from–to date range (Today, Last 7 days, Last 30 days); two layout overlaps fixed (Needs immediate review, Retry extraction).
 - **Groq:** the free tier's 200,000 tokens per day was exhausted during testing (each extraction is about 5,000 tokens); the keyword net kept REDs and transcripts. The production key was replaced.
 - **Evidence:** [`docs/EVIDENCE.md`](EVIDENCE.md) sources every number used in the README, brief, deck and video (published studies, regulations, our own result files and cost assumptions).
-- **Submission pack:** two-page brief and 14-slide final presentation on the official templates (team HealthPulse, MJYRT8), and a 6:40 narrated demo video, published as the GitHub release `v1.0-submission`.
+- **Submission pack:** two-page brief and 14-slide final presentation on the official templates (team HealthPulse, MJYRT8), and a 6:53 narrated demo video ([YouTube](https://youtu.be/QToSvQRI6bg)), published as the GitHub release `v1.0-submission`.
